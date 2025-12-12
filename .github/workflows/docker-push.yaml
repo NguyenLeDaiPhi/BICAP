@@ -15,7 +15,6 @@ jobs:
         service:
           - { name: 'auth-service', context: './services/auth-service' }
           - { name: 'auth-database', context: './database/auth-database' }
-          - { name: 'api-gateway', context: './api-gateway/api-gateway' }
 
     steps:
       - name: Checkout code
