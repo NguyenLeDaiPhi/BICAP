@@ -1,0 +1,43 @@
+name: Build and Push Docker Images
+
+on: 
+  [workflow_dispatch]
+
+jobs:
+  build-and-push-auth-service:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.nguyenledaiphi/bicap }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push auth-service image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./services/auth-service
+          push: true
+          tags: ${{ secrets.nguyenledaiphi/bicap }}/auth-service:latest
+
+  build-and-push-auth-database:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.nguyenledaiphi/bicap }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push auth-database image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./database/auth-database
+          push: true
+          tags: ${{ secrets.nguyenledaiphi/bicap }}/auth-database:latest
