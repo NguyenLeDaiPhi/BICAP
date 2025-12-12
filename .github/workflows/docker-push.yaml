@@ -54,14 +54,19 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          # For Docker Hub, the image name is <username>/<repo>-<service_name>
-          # Example: nguyenledaiphi/bicap-auth-service
-          images: nguyenledaiphi/bicap-${{ matrix.service }}
+          # For Docker Hub, this will create tags like:
+          # nguyenledaiphi/bicap:auth-service
+          # nguyenledaiphi/bicap:auth-service-sha-xxxxxxx
+          images: nguyenledaiphi/bicap
           
           # For GHCR, uncomment the following line and comment out the one above.
-          # The image name is ghcr.io/<username>/<repo>/<service_name>
-          # Example: ghcr.io/nguyenledaiphi/bicap/auth-service
-          # images: ghcr.io/${{ github.repository_owner }}/bicap/${{ matrix.service }}
+          # This will create tags like:
+          # ghcr.io/your-gh-username/bicap:auth-service
+          # ghcr.io/your-gh-username/bicap:auth-service-sha-xxxxxxx
+          # images: ghcr.io/${{ github.repository_owner }}/bicap
+          tags: |
+            type=raw,value=${{ matrix.service }}
+            type=sha,prefix=${{ matrix.service }}-
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
