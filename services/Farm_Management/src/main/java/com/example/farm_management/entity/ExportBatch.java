@@ -20,7 +20,12 @@ public class ExportBatch {
     @Column(name = "export_code", unique = true)
     private String batchCode; // Mã in trên bao bì
 
-    private Double quantity;
+    @Column(name = "initial_quantity")
+    private Double initialQuantity;
+
+    @Column(name = "current_quantity")
+    private Double currentQuantity;
+
     private String unit; // kg, tấn, hộp...
 
     @Column(name = "qr_code", columnDefinition = "TEXT")

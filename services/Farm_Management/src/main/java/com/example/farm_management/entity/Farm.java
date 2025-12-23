@@ -22,6 +22,9 @@ public class Farm {
     @Column(columnDefinition = "TEXT")
     private String address;
 
+    @Column(name = "business_license")
+    private String businessLicense; // Giấy phép kinh doanh
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 }

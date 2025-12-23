@@ -37,6 +37,5 @@ public class ProductionBatch {
     @Column(name = "tx_hash")
     private String txHash; // Mã giao dịch tạo mùa vụ trên Blockchain
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+
 }
