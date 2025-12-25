@@ -1,0 +1,20 @@
+{
+  "name": "farm-management-web",
+  "version": "1.0.0",
+  "description": "auth-service",
+  "main": "src/authentication.js",
+  "scripts": {
+    "start": "nodemon src/authentication.js"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.1",
+    "cookie": "^1.1.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "nodemon": "^3.1.11",
+    "path": "^0.12.7"
+  }
+}
