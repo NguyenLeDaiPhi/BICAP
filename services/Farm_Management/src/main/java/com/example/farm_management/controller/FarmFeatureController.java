@@ -6,28 +6,37 @@ import com.example.farm_management.repository.ExportBatchRepository;
 import com.example.farm_management.service.FarmFeatureService;
 import com.example.farm_management.utils.QRCodeGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.farm_management.dto.FarmCreateDto; // Import DTO mới
 
 @RestController
 @RequestMapping("/api/farm-features")
 public class FarmFeatureController {
 
     @Autowired
-    private FarmFeatureService featureService;
+    private FarmFeatureService farmFeatureService;
     @Autowired
     private ExportBatchRepository exportBatchRepository;
+
+
+    @PostMapping("/")
+    public ResponseEntity<Farm> createFarm(@RequestBody FarmCreateDto dto) {
+        Farm createdFarm = farmFeatureService.createFarm(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdFarm);
+    }
     // 1. Cập nhật thông tin trang trại
     @PutMapping("/{farmId}/info")
     public ResponseEntity<Farm> updateInfo(@PathVariable Long farmId, @RequestBody FarmUpdateDto dto) {
-        return ResponseEntity.ok(featureService.updateFarmInfo(farmId, dto));
+        return ResponseEntity.ok(farmFeatureService.updateFarmInfo(farmId, dto));
     }
 
     // 2. Tạo QR Code cho lô xuất hàng
     @PostMapping("/export-batches/{exportId}/generate-qr")
     public ResponseEntity<ExportBatch> generateQr(@PathVariable Long exportId) {
-        return ResponseEntity.ok(featureService.generateQrCode(exportId));
+        return ResponseEntity.ok(farmFeatureService.generateQrCode(exportId));
     }
 
     @GetMapping(value = "/export-batches/{exportId}/qr-image", produces = MediaType.IMAGE_PNG_VALUE)

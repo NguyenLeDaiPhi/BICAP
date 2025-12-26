@@ -1,8 +1,10 @@
 package com.example.farm_management.service;
 
+import com.example.farm_management.dto.FarmCreateDto;
 import com.example.farm_management.dto.FarmUpdateDto;
 import com.example.farm_management.entity.*;
 import com.example.farm_management.repository.*;
+import com.zaxxer.hikari.util.ClockSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
@@ -14,6 +16,31 @@ public class FarmFeatureService {
     @Autowired private ExportBatchRepository exportBatchRepository;
     @Autowired private ProductionBatchRepository productionBatchRepository;
 
+    // Method create mới
+    public Farm createFarm(FarmCreateDto dto) {
+        // Kiểm tra thủ công các trường bắt buộc
+        if (dto.getFarmName() == null || dto.getFarmName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên trang trại là bắt buộc");
+        }
+        if (dto.getAddress() == null || dto.getAddress().trim().isEmpty()) {
+            throw new IllegalArgumentException("Địa chỉ là bắt buộc");
+        }
+
+        // Optional: có thể trim dữ liệu để sạch hơn
+        String farmName = dto.getFarmName().trim();
+        String address = dto.getAddress().trim();
+        String businessLicense = dto.getBusinessLicense() != null ? dto.getBusinessLicense().trim() : null;
+
+        Farm newFarm = new Farm();
+        newFarm.setFarmName(farmName);
+        newFarm.setAddress(address);
+        newFarm.setBusinessLicense(businessLicense);
+
+        // Nếu sau này tích hợp auth, set ownerId ở đây
+        newFarm.setOwnerId(currentId);
+
+        return farmRepository.save(newFarm);
+    }
     // 1. CẬP NHẬT THÔNG TIN PHÁP LÝ TRANG TRẠI
     public Farm updateFarmInfo(Long farmId, FarmUpdateDto dto) {
         Farm farm = farmRepository.findById(farmId)
