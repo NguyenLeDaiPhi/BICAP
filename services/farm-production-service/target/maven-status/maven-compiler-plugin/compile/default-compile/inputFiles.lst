@@ -1,0 +1,9 @@
+C:\Users\QUOC BAO\BICAP\services\farm-production-service\src\main\java\com\bicap\farm\config\AppConfig.java
+C:\Users\QUOC BAO\BICAP\services\farm-production-service\src\main\java\com\bicap\farm\controller\FarmController.java
+C:\Users\QUOC BAO\BICAP\services\farm-production-service\src\main\java\com\bicap\farm\FarmProductionApplication.java
+C:\Users\QUOC BAO\BICAP\services\farm-production-service\src\main\java\com\bicap\farm\model\EnvironmentMetric.java
+C:\Users\QUOC BAO\BICAP\services\farm-production-service\src\main\java\com\bicap\farm\model\FarmingLog.java
+C:\Users\QUOC BAO\BICAP\services\farm-production-service\src\main\java\com\bicap\farm\repository\EnvMetricRepository.java
+C:\Users\QUOC BAO\BICAP\services\farm-production-service\src\main\java\com\bicap\farm\repository\FarmingLogRepository.java
+C:\Users\QUOC BAO\BICAP\services\farm-production-service\src\main\java\com\bicap\farm\service\FarmService.java
+C:\Users\QUOC BAO\BICAP\services\farm-production-service\src\main\java\com\bicap\farm\util\DatabaseInitializer.java
