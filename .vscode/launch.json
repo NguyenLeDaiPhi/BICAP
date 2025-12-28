@@ -9,6 +9,16 @@
             "projectName": "farm-production",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-FarmManagementApplication<Farm_Management>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.example.farm_management.FarmManagementApplication",
+            "projectName": "Farm_Management",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

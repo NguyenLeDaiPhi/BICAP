@@ -5,18 +5,21 @@ networks:
     external: true  # Quan trọng: Mạng này sẽ nối các service với nhau
 
 services:
-  # === 1. MySQL Database (Farm) ===
+  # === 1. MySQL Database (Chứa cả 3 DB) ===
   bicap-mysql:
     image: mysql:8.0
     container_name: bicap-mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: bicap_farm_db
+      # Bỏ dòng MYSQL_DATABASE đi vì chúng ta đã tạo trong init.sql rồi
+      # MYSQL_DATABASE: bicap_farm_db 
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      # THÊM DÒNG NÀY: Nạp file init.sql vào để chạy tự động
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - bicap-network
 

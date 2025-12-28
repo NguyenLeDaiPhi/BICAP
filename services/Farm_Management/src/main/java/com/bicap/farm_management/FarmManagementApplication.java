@@ -1,4 +1,4 @@
-package com.example.farm_management;
+package com.bicap.farm_management;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package com.example.farm_management.entity;
+package com.bicap.farm_management.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
