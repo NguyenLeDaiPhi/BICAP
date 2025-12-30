@@ -34,4 +34,6 @@ public class ExportBatch {
     // --- BLOCKCHAIN FIELDS ---
     @Column(name = "tx_hash")
     private String txHash; // Mã giao dịch chứng thực xuất hàng
+    @Column(columnDefinition = "TEXT") // Dùng TEXT để chứa chuỗi Base64 dài
+    private String qrCodeImage; // Ảnh QR Code dạng Base64 để hiển thị nhanh
 }
