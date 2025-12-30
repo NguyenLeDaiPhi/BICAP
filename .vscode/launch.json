@@ -29,6 +29,17 @@
             "mainClass": "com.bicap.blockchain_adapter_service.BlockchainAdapterServiceApplication",
             "projectName": "blockchain-adapter-service",
             "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=61395 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=blockchain-adapter-service"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-FarmManagementApplication<Farm_Management>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.farm_management.FarmManagementApplication",
+            "projectName": "Farm_Management",
+            "args": "",
             "envFile": "${workspaceFolder}/.env"
         }
     ]
