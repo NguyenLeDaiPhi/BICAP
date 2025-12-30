@@ -14,17 +14,19 @@ public class EnvironmentMetricController {
     @Autowired
     private EnvironmentMetricService metricService;
 
-    // API: Ghi nhận chỉ số môi trường (VD: Nhiệt độ, Độ ẩm)
-    // POST /api/environment-metrics/batch/{batchId}
     @PostMapping("/batch/{batchId}")
     public EnvironmentMetric addMetric(@PathVariable Long batchId, @RequestBody EnvironmentMetric metric) {
         return metricService.addMetric(batchId, metric);
     }
 
-    // API: Xem lịch sử môi trường của 1 lô
-    // GET /api/environment-metrics/batch/{batchId}
     @GetMapping("/batch/{batchId}")
     public List<EnvironmentMetric> getMetricsByBatch(@PathVariable Long batchId) {
         return metricService.getMetricsByBatch(batchId);
+    }
+
+    // === SỬA DÒNG NÀY ===
+    @PostMapping("/sync-weather/{batchId}")
+    public List<EnvironmentMetric> syncWeather(@PathVariable Long batchId) {
+        return metricService.syncWeatherFromApi(batchId);
     }
 }

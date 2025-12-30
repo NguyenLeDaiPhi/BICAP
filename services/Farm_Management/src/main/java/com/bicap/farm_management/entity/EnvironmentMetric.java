@@ -5,31 +5,25 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "environment_metrics")
 @Data
+@Table(name = "environment_metrics")
 public class EnvironmentMetric {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    // Liên kết với Mùa vụ (để biết thông số này của vụ nào)
+    // === 3 TRƯỜNG QUAN TRỌNG (Service sẽ gọi set vào đây) ===
+    private String metricType; // Lưu chữ: "TEMPERATURE" hoặc "HUMIDITY"
+    private Double value;      // Lưu số: 30.5, 80.0...
+    private String unit;       // Lưu đơn vị: "Celsius", "%"
+    
+    private LocalDateTime recordedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "production_batch_id")
+    private ProductionBatch productionBatch;
+
     @ManyToOne
     @JoinColumn(name = "farm_id", nullable = false)
     private Farm farmId;
-
-    @ManyToOne
-    @JoinColumn(name = "batch_id", nullable = false)
-    private ProductionBatch productionBatch;
-
-    private Double temperature; // Nhiệt độ
-    private Double humidity;    // Độ ẩm
-
-    @Column(name = "ph_level")
-    private Double phLevel;     // Độ pH đất/nước
-
-    @Column(name = "recorded_at")
-    private LocalDateTime recordedAt = LocalDateTime.now();
-
-
 }

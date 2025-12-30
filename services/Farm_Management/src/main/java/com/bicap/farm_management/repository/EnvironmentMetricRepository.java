@@ -7,6 +7,7 @@ import java.util.List;
 
 @Repository
 public interface EnvironmentMetricRepository extends JpaRepository<EnvironmentMetric, Long> {
-    // Tìm các chỉ số môi trường theo Lô sản xuất
+    // Hàm tìm kiếm lịch sử chỉ số của một lô sản xuất
+    // (Spring Data JPA tự động tạo câu lệnh SQL dựa trên tên hàm này)
     List<EnvironmentMetric> findByProductionBatchId(Long batchId);
 }
