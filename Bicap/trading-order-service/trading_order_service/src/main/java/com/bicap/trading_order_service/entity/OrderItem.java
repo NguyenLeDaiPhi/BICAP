@@ -1,5 +1,6 @@
 package com.bicap.trading_order_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
@@ -13,6 +14,7 @@ public class OrderItem {
 
     @ManyToOne
     @JoinColumn(name = "order_id")
+    @JsonIgnore // ⭐ FIX LỖI VÒNG LẶP JSON
     private Order order;
 
     @Column(name = "product_id", nullable = false)
