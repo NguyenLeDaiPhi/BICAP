@@ -16,16 +16,15 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity // Cho phép dùng @PreAuthorize trên Controller
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
-    // === PHẦN BẠN BỊ THIẾU ĐÂY ===
+    // Đã thêm dòng này để fix lỗi biên dịch
     @Autowired
-    private AuthEntryPointJwt unauthorizedHandler;
-    // ==============================
+    private AuthEntryPointJwt unauthorizedHandler; 
 
     @Bean
     public JwtAuthenticationFilter authenticationJwtTokenFilter() {
@@ -53,16 +52,11 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler)) // <-- Dòng gây lỗi nếu thiếu biến trên
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // API Auth công khai
                 .requestMatchers("/api/auth/**").permitAll()
-                
-                // Mở quyền cho Swagger
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                
-                // Các API khác cần token
                 .requestMatchers("/api/test/**").permitAll()
                 .anyRequest().authenticated()
             );

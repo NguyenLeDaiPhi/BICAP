@@ -1,67 +1,85 @@
 package com.bicap.auth.factory;
 
-import java.util.HashSet;
-import java.util.Set;
-import com.bicap.auth.repository.UserRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
-
 import com.bicap.auth.dto.AuthRequest;
 import com.bicap.auth.model.ERole;
 import com.bicap.auth.model.Role;
 import com.bicap.auth.model.User;
 import com.bicap.auth.model.UserStatus;
 import com.bicap.auth.repository.RoleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 public class UserRegistrationFactory {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
-    
-    public UserRegistrationFactory(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    public User createUser(AuthRequest authRequest) {
-        String requestedRole = authRequest.getRole().toUpperCase();
+    @Autowired
+    private RoleRepository roleRepository;
 
-        if (requestedRole.equals("ADMIN") || requestedRole.equals("DELIVERYDRIVER")) {
-            throw new IllegalArgumentException("Cannot self-register for high-priviledge roles.");
-        }
-
+    public User createUser(AuthRequest signUpRequest) {
         User user = new User();
+        user.setUsername(signUpRequest.getUsername());
+        user.setEmail(signUpRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
+        user.setStatus(UserStatus.ACTIVE);
 
+        Set<String> strRoles = signUpRequest.getRole();
         Set<Role> roles = new HashSet<>();
 
-        if (requestedRole.equals("FARMMANAGER")) {
-            roles.add(getRole(ERole.ROLE_FARMMANAGER));
-            user.setStatus(UserStatus.ACTIVE);
+        if (strRoles == null || strRoles.isEmpty()) {
+            Role userRole = roleRepository.findByName(ERole.ROLE_GUEST)
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+            roles.add(userRole);
+        } else {
+            strRoles.forEach(role -> {
+                switch (role.toLowerCase().trim()) {
+                    case "admin":
+                        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(adminRole);
+                        break;
+                    case "farm_manager":
+                    case "farmmanager":
+                        // Đã sửa: ROLE_FARM_MANAGER
+                        Role farmRole = roleRepository.findByName(ERole.ROLE_FARM_MANAGER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(farmRole);
+                        break;
+                    case "retailer":
+                        Role retailerRole = roleRepository.findByName(ERole.ROLE_RETAILER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(retailerRole);
+                        break;
+                    case "shipping_manager":
+                    case "shippingmanager":
+                        // Đã sửa: ROLE_SHIPPING_MANAGER
+                        Role shipRole = roleRepository.findByName(ERole.ROLE_SHIPPING_MANAGER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(shipRole);
+                        break;
+                    case "delivery_driver":
+                    case "driver":
+                        // Đã sửa: ROLE_DELIVERY_DRIVER
+                        Role driverRole = roleRepository.findByName(ERole.ROLE_DELIVERY_DRIVER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(driverRole);
+                        break;
+                    default:
+                        Role guestRole = roleRepository.findByName(ERole.ROLE_GUEST)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(guestRole);
+                }
+            });
         }
-        else if (requestedRole.equals("RETAILER")) {
-            roles.add(getRole(ERole.ROLE_RETAILER));
-            user.setStatus(UserStatus.ACTIVE);
-        }
-        else if (requestedRole.equals("SHIPPINGMANAGER")) {
-            roles.add(getRole(ERole.ROLE_SHIPPINGMANAGER));
-            user.setStatus(UserStatus.ACTIVE);
-        }
-        else {
-            roles.add(getRole(ERole.ROLE_GUEST));
-            user.setStatus(UserStatus.ACTIVE);
-        }
-        user.setEmail(authRequest.getEmail());
-        user.setUsername(authRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(authRequest.getPassword()));
-        user.setRole(roles);
-        return userRepository.save(user);
-    }
 
-    public Role getRole(ERole roleName) {
-        return roleRepository.findByName(roleName)
-                .orElseThrow(() -> new RuntimeException("System Error: Role " + roleName + " not found in the database."));
+        // Đã sửa: setRoles (số nhiều)
+        user.setRoles(roles);
+        return user;
     }
 }

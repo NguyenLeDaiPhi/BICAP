@@ -1,117 +1,104 @@
 package com.bicap.auth.service;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
 import com.bicap.auth.config.JwtUtils;
 import com.bicap.auth.dto.AuthRequest;
 import com.bicap.auth.dto.UserProfileRequest;
 import com.bicap.auth.factory.UserRegistrationFactory;
 import com.bicap.auth.model.ERole;
+import com.bicap.auth.model.Role;
 import com.bicap.auth.model.User;
 import com.bicap.auth.model.UserProfile;
 import com.bicap.auth.repository.UserProfileRepository;
 import com.bicap.auth.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 @Service
 public class AuthenticationUser implements IAuthenticationUser {
-    @Autowired private UserRepository userRepository;
-    @Autowired private UserProfileRepository userProfileRepository;
-    @Autowired private UserRegistrationFactory userRegistrationFactory;
-    @Autowired private AuthenticationManager authManager;
-    @Autowired private JwtUtils jwtUtils;
-    @Autowired private ProducerMQ producerMQ;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserRegistrationFactory userRegistrationFactory;
+
+    @Autowired
+    private AuthenticationManager authManager;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private UserProfileRepository userProfileRepository;
+    
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @Override
-    public User registerNewUser(AuthRequest authRequest) {
-        if (userRepository.findByUsername(authRequest.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already taken");
-        }
-        User user = userRegistrationFactory.createUser(authRequest);
+    public boolean isFarmManager(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Set<Role> roles = user.getRoles();
+        return roles.stream()
+                .anyMatch(role -> role.getName().equals(ERole.ROLE_FARM_MANAGER));
+    }
 
-        boolean isFarmManager = user.getRole().stream()
-                                .anyMatch(role -> role.getName() == ERole.ROLE_FARMMANAGER);
+    @Override
+    @Transactional
+    public void updateUserProfile(String username, UserProfileRequest profileRequest) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserProfile profile = user.getUserProfile();
+        if (profile == null) {
+            profile = new UserProfile();
+            profile.setUser(user);
+        }
+
+        profile.setFullName(profileRequest.getFullName());
+        profile.setPhoneNumber(profileRequest.getPhoneNumber());
+        profile.setAddress(profileRequest.getAddress());
+        userProfileRepository.save(profile);
+    }
+
+    @Override
+    public User registerNewUser(AuthRequest signUpRequest) { // Sửa trả về User
+        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+            throw new RuntimeException("Error: Username is already taken!");
+        }
+        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+            throw new RuntimeException("Error: Email is already in use!");
+        }
+
+        User user = userRegistrationFactory.createUser(signUpRequest);
+        User savedUser = userRepository.save(user); // Lưu user
+        
+        boolean isFarmManager = user.getRoles().stream()
+                .anyMatch(role -> role.getName().equals(ERole.ROLE_FARM_MANAGER));
         
         if (isFarmManager) {
-            Map<String, Object> farmerData = new HashMap<>();
-            farmerData.put("id", user.getId());
-            farmerData.put("username", user.getUsername());
-            farmerData.put("email", user.getEmail());
-            farmerData.put("address", user.getUserProfile().getAddress());
-            producerMQ.sendFarmUserData("CREATE_FARMER", farmerData);
+            UserProfile profile = new UserProfile();
+            profile.setUser(savedUser);
+            profile.setFullName(signUpRequest.getFullName());
+            userProfileRepository.save(profile);
         }
-
-        return user;
+        return savedUser;
     }
 
     @Override
-    public String signIn(AuthRequest authRequest) {
-        try {
-            Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
-            return jwtUtils.generateJwtToken(authentication);
-        } catch (BadCredentialsException e) {
-            return null;
-        }
-    }
+    public String signIn(AuthRequest authRequest) { // Thêm hàm Login
+        Authentication authentication = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
 
-    @Override
-    public UserProfile updateUserProfile(UserProfileRequest userProfileRequest) {
-
-        UserProfile userProfile = new UserProfile();
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        UserDetailsImpl userDetailsImpl = (UserDetailsImpl) authentication.getPrincipal();
-
-        User user = userRepository.findByUsername(userDetailsImpl.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Check if user has FARMMANAGER role
-        boolean isFarmManager = user.getRole().stream()
-            .anyMatch(role -> role.getName() == ERole.ROLE_FARMMANAGER);
-        
-        if (!isFarmManager) {
-            throw new RuntimeException("Only Farm Managers can update their profile information.");
-        }
-
-        userProfile = userProfileRepository.findByUser(user)
-            .orElse(new UserProfile());
-        
-        if (userProfileRequest.getBusinessLicense() != null && !userProfileRequest.getBusinessLicense().isEmpty()) {
-            userProfile.setBusinessLicense(userProfileRequest.getBusinessLicense());
-        }
-
-        if (userProfileRequest.getAddress() != null) {
-            userProfile.setAddress(userProfileRequest.getAddress());
-        }
-
-        if (userProfileRequest.getAvatar() != null && !userProfileRequest.getAvatar().isBlank()) {
-            try {
-                String avatarData = userProfileRequest.getAvatar();
-                // Check for and strip the data URI prefix if it exists
-                if (avatarData.contains(",")) {
-                    avatarData = avatarData.split(",")[1];
-                }
-                byte[] decodedBytes = Base64.getDecoder().decode(avatarData);
-                userProfile.setAvatarBytes(decodedBytes);
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid Base64 avatar data");
-            }
-        }
-
-        if (userProfile.getId() == null) {
-            userProfile.setUser(user);
-        }
-
-        return userProfileRepository.save(userProfile);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return jwtUtils.generateJwtToken(authentication);
     }
 }

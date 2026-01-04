@@ -2,6 +2,7 @@ package com.bicap.auth.config;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -9,22 +10,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.bicap.auth.service.UserDetailsImpl;
-
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
-@Service
+@Component
 public class JwtUtils {
-
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
-    
+
     @Value("${bicap.app.jwtSecret}")
     private String jwtSecret;
 
@@ -32,49 +28,44 @@ public class JwtUtils {
     private int jwtExpirationMs;
 
     public String generateJwtToken(Authentication authentication) {
-        UserDetailsImpl userPrinciple = (UserDetailsImpl) authentication.getPrincipal();
+        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
-        String roles = userPrinciple.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.joining(","));
-        
-        return Jwts.builder() 
-            .subject(userPrinciple.getUsername())
-            .claim("email", userPrinciple.getEmail())
-            .claim("roles", roles)
-            .issuer("retailer-app")
-            .issuedAt(new Date())
-            .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
-            .signWith(key())
-            .compact();
+        List<String> roles = userPrincipal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        return Jwts.builder()
+                .setSubject(userPrincipal.getUsername()) // <-- ĐÃ SỬA: dùng setSubject thay vì subject
+                .claim("roles", roles)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key(), SignatureAlgorithm.HS256)
+                .compact();
     }
 
     private Key key() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
-    @Deprecated
     public String getUserNameFromJwtToken(String token) {
-    return Jwts.parser().setSigningKey(key()).build()
-               .parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parserBuilder().setSigningKey(key()).build()
+                .parseClaimsJws(token).getBody().getSubject();
     }
 
-    @Deprecated
-    public boolean validateToken(String authToken) {
+    public boolean validateJwtToken(String authToken) {
         try {
-            Jwts.parser().setSigningKey(key()).build().parse(authToken);
+            Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(authToken);
             return true;
         } catch (MalformedJwtException e) {
-        logger.error("Invalid JWT token: {}", e.getMessage());
+            logger.error("Invalid JWT token: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-        logger.error("JWT token is expired: {}", e.getMessage());
+            logger.error("JWT token is expired: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-        logger.error("JWT token is unsupported: {}", e.getMessage());
+            logger.error("JWT token is unsupported: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-        logger.error("JWT claims string is empty: {}", e.getMessage());
+            logger.error("JWT claims string is empty: {}", e.getMessage());
         }
+
         return false;
     }
 }
-
