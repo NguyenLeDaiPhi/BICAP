@@ -22,9 +22,9 @@ public class WebSecurityConfig {
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
-    // Đã thêm dòng này để fix lỗi biên dịch
+    // Biến này quan trọng để xử lý lỗi 401 Unauthorized
     @Autowired
-    private AuthEntryPointJwt unauthorizedHandler; 
+    private AuthEntryPointJwt unauthorizedHandler;
 
     @Bean
     public JwtAuthenticationFilter authenticationJwtTokenFilter() {
@@ -55,13 +55,17 @@ public class WebSecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Các API không cần đăng nhập
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/test/**").permitAll()
+                // Các API còn lại bắt buộc phải có Token
                 .anyRequest().authenticated()
             );
 
         http.authenticationProvider(authenticationProvider());
+        
+        // Thêm filter kiểm tra JWT trước filter xác thực user/pass
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
