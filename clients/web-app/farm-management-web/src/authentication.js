@@ -184,6 +184,24 @@ app.get('/dashboard', requireAuth, (req, res) => {
     });
 });
 
+app.get('/farm-info', requireAuth, (req, res) => {
+    res.render('farm-info', { 
+        user: {
+            username: req.user.sub,
+            email: req.user.email,
+            roles: req.user.roles
+        } 
+    });
+});
+app.get('/farm-info/edit', requireAuth, (req, res) => {
+    res.render('farm-info-edit', { 
+        user: {
+            username: req.user.sub,
+            email: req.user.email,
+            roles: req.user.roles
+        } 
+    });
+});
 // Use profile routes
 app.use('/', profileRoutes(requireAuth));
 
@@ -210,6 +228,7 @@ app.use((err, req, res, next) => {
             message: 'The uploaded image is too big. Please use a smaller file (max 10MB).',
             maxSize: '10MB'
         });
+    } else {
         next(err);
     }
 })
