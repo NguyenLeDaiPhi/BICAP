@@ -22,6 +22,18 @@ public class Farm {
     @Column(columnDefinition = "TEXT")
     private String address;
 
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "hotline")
+    private String hotline;
+
+    @Column(name = "area_size")
+    private Double areaSize;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -41,4 +41,8 @@ public class RabbitMQConfig {
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
+    @Bean
+    public Queue farmResponseQueue() {
+        return new Queue("farm_response_queue", true); // true: durable
+    }
 }

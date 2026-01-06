@@ -190,11 +190,30 @@ app.get('/farm-info', requireAuth, (req, res) => {
             username: req.user.sub,
             email: req.user.email,
             roles: req.user.roles
-        } 
+        },
+        farm: {
+            farmName: 'Trang trại BiCap',
+            createdAt: new Date().toISOString(),
+            areaSize: 50,
+            hotline: '0123-456-789',
+            email: 'contact@bicap.farm',
+            address: '123 Đường ABC, Quận XYZ, TP.HCM',
+            description: 'Trang trại nông nghiệp sạch, cung cấp sản phẩm hữu cơ chất lượng cao.',
+            image: '/assets/img/farm-organic-1.jpg'
+        }
     });
 });
 app.get('/farm-info/edit', requireAuth, (req, res) => {
     res.render('farm-info-edit', { 
+        user: {
+            username: req.user.sub,
+            email: req.user.email,
+            roles: req.user.roles
+        } 
+    });
+});
+app.get('/notifications', requireAuth, (req, res) => {
+    res.render('notifications', { 
         user: {
             username: req.user.sub,
             email: req.user.email,
