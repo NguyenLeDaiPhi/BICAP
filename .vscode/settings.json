@@ -1,4 +1,36 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3308,
+            "driver": "MySQL",
+            "name": "Farm Database",
+            "database": "bicap_farm_db",
+            "username": "root",
+            "password": "0862264719Phi"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3307,
+            "driver": "MySQL",
+            "name": "Auth Database",
+            "database": "auth_db",
+            "username": "root",
+            "password": "0862264719Phi"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3309,
+            "driver": "MySQL",
+            "name": "Blockchain Database",
+            "database": "bicap_blockchain_db",
+            "username": "root",
+            "password": "0862264719Phi"
+        }
+    ]
 }

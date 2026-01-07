@@ -1,6 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '..', 'config', '.env') });
 
+const farmController = require('./farmController');
 const { serialize } = require('cookie');
 const jwt = require('jsonwebtoken');
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
@@ -184,25 +185,7 @@ app.get('/dashboard', requireAuth, (req, res) => {
     });
 });
 
-app.get('/farm-info', requireAuth, (req, res) => {
-    res.render('farm-info', { 
-        user: {
-            username: req.user.sub,
-            email: req.user.email,
-            roles: req.user.roles
-        },
-        farm: {
-            farmName: 'Trang trại BiCap',
-            createdAt: new Date().toISOString(),
-            areaSize: 50,
-            hotline: '0123-456-789',
-            email: 'contact@bicap.farm',
-            address: '123 Đường ABC, Quận XYZ, TP.HCM',
-            description: 'Trang trại nông nghiệp sạch, cung cấp sản phẩm hữu cơ chất lượng cao.',
-            image: '/assets/img/farm-organic-1.jpg'
-        }
-    });
-});
+app.get('/farm-info', requireAuth, farmController.getFarmInfoPage);
 app.get('/farm-info/edit', requireAuth, (req, res) => {
     res.render('farm-info-edit', { 
         user: {

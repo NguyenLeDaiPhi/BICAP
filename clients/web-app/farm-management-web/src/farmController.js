@@ -1,26 +1,35 @@
 const axios = require('axios');
 
-// Lưu ý: Nếu chạy qua Kong Gateway thì thường là cổng 8000. 
-// Nếu bạn test trực tiếp vào service Farm thì để 8001.
-const BASE_API_URL = 'http://localhost:8001/api/farm-features'; 
+// Sử dụng tên service trong Docker network thay vì localhost
+// Trong Docker, container gọi nhau bằng tên service + port internal (8081 chứ không phải 8001)
+const BASE_API_URL = 'http://farm-production-service:8081/api/farm-features'; 
 
 
 // 1. Hiển thị trang thông tin (Read)
 exports.getFarmInfoPage = async (req, res) => {
     try {
-        // Gọi API GET /{id} mà ta vừa viết thêm ở Java
-        const response = await axios.get(`${BASE_API_URL}/${req.params.farmId}`);
+        // TẠM THỜI: Lấy ID = 1 để test. 
+        // Sau này bạn sẽ lấy từ req.user.farmId hoặc database
+        const farmId = req.params.farmId || 1; 
+
+        console.log(`Đang gọi Java API lấy thông tin Farm ID: ${farmId}`);
+        const response = await axios.get(`${BASE_API_URL}/${farmId}`);
         
+        // Render với dữ liệu thật từ Java
         res.render('farm-info', { 
-            farm: response.data,
-            pageTitle: 'Thông tin trang trại'
+            farm: response.data, 
+            user: req.user // Truyền thêm user để hiển thị Avatar/Tên trên Menu
         });
     } catch (error) {
-        console.error('Lỗi lấy dữ liệu:', error.message);
-        res.render('farm-info', { farm: null, error: 'Chưa có dữ liệu' });
+        console.error('Lỗi kết nối Java:', error.message);
+        // Nếu lỗi, hiển thị trang rỗng hoặc thông báo
+        res.render('farm-info', { 
+            farm: null, 
+            user: req.user,
+            error: 'Không thể tải dữ liệu trang trại' 
+        });
     }
 };
-
 // 2. Hiển thị trang chỉnh sửa (Read for Edit)
 exports.getEditFarmPage = async (req, res) => {
     try {

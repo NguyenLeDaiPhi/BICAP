@@ -5,6 +5,7 @@ import com.bicap.farm_management.dto.FarmUpdateDto;
 import com.bicap.farm_management.entity.*;
 import com.bicap.farm_management.repository.*;
 import com.zaxxer.hikari.util.ClockSource;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ public class FarmFeatureService {
     @Autowired private FarmRepository farmRepository;
 
     // Method create mới
+    @Transactional
     public Farm createFarm(FarmCreateDto dto) {
         // Kiểm tra thủ công các trường bắt buộc
         if (dto.getFarmName() == null || dto.getFarmName().trim().isEmpty()) {
@@ -40,14 +42,19 @@ public class FarmFeatureService {
         newFarm.setHotline(hotline);
         newFarm.setAreaSize(areaSize);
         newFarm.setDescription(description);
+        newFarm.setOwnerId(1L);
         if (dto.getCreateAt() != null && !dto.getCreateAt().trim().isEmpty()) 
             {
                 newFarm.setCreatedAt(LocalDateTime.parse(dto.getCreateAt().trim()));
+            }
+            else {
+                newFarm.setCreatedAt(LocalDateTime.now()); 
             }
 
         return farmRepository.save(newFarm);
     }
     // 1. CẬP NHẬT THÔNG TIN PHÁP LÝ TRANG TRẠI
+    @Transactional
     public Farm updateFarmInfo(Long farmId, FarmUpdateDto dto) {
         Farm farm = farmRepository.findById(farmId)
                 .orElseThrow(() -> new RuntimeException("Farm not found"));
