@@ -12,28 +12,39 @@ public class RabbitMQConfig {
     @Value("${bicap.rabbitmq.queue.request}")
     private String requestQueue;
 
-    @Value("${bicap.rabbitmq.queue.response}") // 1. Lấy tên queue phản hồi từ file config
+    @Value("${bicap.rabbitmq.queue.response}")
     private String responseQueue;
 
     @Value("${bicap.rabbitmq.exchange}")
     private String exchange;
     
     @Value("${bicap.rabbitmq.routing-key.request}")
-    private String routingKey;
+    private String requestRoutingKey;
+
+    // THÊM: Lấy routing key response
+    @Value("${bicap.rabbitmq.routing-key.response}")
+    private String responseRoutingKey;
 
     @Bean
     public TopicExchange exchange() { return new TopicExchange(exchange); }
 
     @Bean
-    public Queue requestQueue() { return new Queue(requestQueue); }
-
-    // 2. QUAN TRỌNG: Khai báo Bean này để RabbitMQ tự động tạo queue nếu chưa có
-    @Bean
-    public Queue responseQueue() { return new Queue(responseQueue); } 
+    public Queue requestQueue() { return new Queue(requestQueue, true); }
 
     @Bean
-    public Binding binding() { 
-        return BindingBuilder.bind(requestQueue()).to(exchange()).with(routingKey); 
+    public Queue responseQueue() { return new Queue(responseQueue, true); } 
+
+    // Binding chiều gửi đi (Request)
+    @Bean
+    public Binding requestBinding() { 
+        return BindingBuilder.bind(requestQueue()).to(exchange()).with(requestRoutingKey); 
+    }
+    
+    // GIA CỐ: Binding chiều nhận về (Response) - QUAN TRỌNG
+    // Giúp Farm Service nhận được phản hồi kể cả khi Blockchain Service khởi động lại
+    @Bean
+    public Binding responseBinding() { 
+        return BindingBuilder.bind(responseQueue()).to(exchange()).with(responseRoutingKey); 
     }
     
     @Bean

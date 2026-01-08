@@ -97,6 +97,7 @@ services:
   konga:
     image: pantsel/konga
     container_name: bicap-konga
+    platform: linux/amd64
     networks:
       - bicap-network
     environment:
