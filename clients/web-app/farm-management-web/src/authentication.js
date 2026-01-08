@@ -2,6 +2,7 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '..', 'config', '.env') });
 
 const farmController = require('./farmController');
+const notificationController = require('./notificationController');
 const { serialize } = require('cookie');
 const jwt = require('jsonwebtoken');
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
@@ -185,25 +186,28 @@ app.get('/dashboard', requireAuth, (req, res) => {
     });
 });
 
+// Debug endpoint - xem token chứa gì
+app.get('/debug/user-info', requireAuth, (req, res) => {
+    res.json({
+        message: 'Token decoded successfully',
+        user: req.user,
+        availableFields: Object.keys(req.user)
+    });
+});
+
 app.get('/farm-info', requireAuth, farmController.getFarmInfoPage);
-app.get('/farm-info/edit', requireAuth, (req, res) => {
-    res.render('farm-info-edit', { 
-        user: {
-            username: req.user.sub,
-            email: req.user.email,
-            roles: req.user.roles
-        } 
-    });
-});
-app.get('/notifications', requireAuth, (req, res) => {
-    res.render('notifications', { 
-        user: {
-            username: req.user.sub,
-            email: req.user.email,
-            roles: req.user.roles
-        } 
-    });
-});
+app.get('/farm-info/edit', requireAuth, farmController.getEditFarmPage);
+app.post('/farm-info/update', requireAuth, farmController.updateFarmInfo);
+
+// Notification routes
+app.get('/notifications', requireAuth, notificationController.getNotificationsPage);
+app.get('/api/notifications/stream', requireAuth, notificationController.streamNotifications);
+app.get('/api/notifications', requireAuth, notificationController.getAllNotifications);
+app.post('/api/notifications/:id/read', requireAuth, notificationController.markAsRead);
+app.delete('/api/notifications/:id', requireAuth, notificationController.deleteNotification);
+app.delete('/api/notifications', requireAuth, notificationController.clearAllNotifications);
+app.post('/api/notifications/test', requireAuth, notificationController.sendTestNotification);
+
 // Use profile routes
 app.use('/', profileRoutes(requireAuth));
 

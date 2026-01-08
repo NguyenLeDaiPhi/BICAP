@@ -170,8 +170,10 @@ services:
     container_name: farm-management-web
     depends_on:
       - kong-gateway
+      - bicap-message-queue
     environment:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - RABBITMQ_URL=amqp://root:0862264719Phi@bicap-message-queue:5672
     ports:
       - "3002:3002"
     networks:

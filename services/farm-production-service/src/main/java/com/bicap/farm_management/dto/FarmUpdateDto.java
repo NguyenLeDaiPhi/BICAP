@@ -9,4 +9,5 @@ public class FarmUpdateDto {
     private String hotline;
     private Double areaSize;
     private String description;
+    private Long ownerId; 
 }

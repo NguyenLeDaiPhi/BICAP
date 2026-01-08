@@ -40,6 +40,7 @@ public class JwtUtils {
         
         return Jwts.builder() 
             .subject(userPrinciple.getUsername())
+            .claim("userId", userPrinciple.getId())
             .claim("email", userPrinciple.getEmail())
             .claim("roles", roles)
             .issuer("retailer-app")

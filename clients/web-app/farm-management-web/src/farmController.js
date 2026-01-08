@@ -1,69 +1,146 @@
 const axios = require('axios');
 
-// Sử dụng tên service trong Docker network thay vì localhost
-// Trong Docker, container gọi nhau bằng tên service + port internal (8081 chứ không phải 8001)
-const BASE_API_URL = 'http://farm-production-service:8081/api/farm-features'; 
+// URL gốc của API Java
+// Sử dụng tên service trong Docker network, hoặc localhost nếu chạy local
+const BASE_API_URL = process.env.FARM_API_URL || 'http://farm-production-service:8081/api/farm-features';
 
+// Thêm URL cho Auth service để fetch profile (tương tự profile.js)
+const AUTH_SERVICE_URL_UPDATE = process.env.AUTH_SERVICE_URL_UPDATE || 'http://default-url/api/update';
 
 // 1. Hiển thị trang thông tin (Read)
 exports.getFarmInfoPage = async (req, res) => {
     try {
-        // TẠM THỜI: Lấy ID = 1 để test. 
-        // Sau này bạn sẽ lấy từ req.user.farmId hoặc database
-        const farmId = req.params.farmId || 1; 
+        // Lấy UserID từ token (đã được thêm vào JWT)
+        // Ưu tiên userId từ token, fallback về sub nếu chưa update token
+        const ownerId = req.user.userId || req.user.id || req.user.sub; 
 
-        console.log(`Đang gọi Java API lấy thông tin Farm ID: ${farmId}`);
-        const response = await axios.get(`${BASE_API_URL}/${farmId}`);
+        console.log(`Debug User Token:`, req.user);
+        console.log(`Owner ID used for API call: ${ownerId}`); 
         
-        // Render với dữ liệu thật từ Java
+        // GỌI API: Tìm farm theo Owner ID
+        const response = await axios.get(`${BASE_API_URL}/owner/${ownerId}`);
+        
+        const farmData = response.data;
+        console.log(`✓ Lấy thông tin farm thành công:`, farmData.farmName);
+
+        // Render trang và truyền dữ liệu farm, luôn pass error (null nếu không có)
+        // Hợp nhất dữ liệu user với các fallback để khớp với EJS (user.username)
         res.render('farm-info', { 
-            farm: response.data, 
-            user: req.user // Truyền thêm user để hiển thị Avatar/Tên trên Menu
+            farm: farmData, 
+            user: {
+                username: req.user?.sub || req.user?.username || req.user?.id || 'Unknown',
+                email: req.user?.email || 'Unknown',
+                roles: req.user?.roles || [],
+                ...req.user  // Spread req.user để giữ các field khác nếu cần
+            },
+            error: null
         });
     } catch (error) {
-        console.error('Lỗi kết nối Java:', error.message);
-        // Nếu lỗi, hiển thị trang rỗng hoặc thông báo
+        console.error('✗ Lỗi lấy thông tin farm:', error.message);
+        if (error.response) {
+            console.error('API Error Status:', error.response.status);
+            console.error('API Error Data:', error.response.data);
+        }
+        
+        // Nếu chưa có farm, hiển thị thông báo
         res.render('farm-info', { 
             farm: null, 
             user: req.user,
-            error: 'Không thể tải dữ liệu trang trại' 
+            error: 'Bạn chưa tạo trang trại nào hoặc không tìm thấy dữ liệu.' 
         });
     }
 };
-// 2. Hiển thị trang chỉnh sửa (Read for Edit)
+
+// 2. Hiển thị trang chỉnh sửa
 exports.getEditFarmPage = async (req, res) => {
     try {
-        const response = await axios.get(`${BASE_API_URL}/${req.params.farmId}`);
-        res.render('farm-info-edit', { // Lưu ý tên file view của bạn là edit-farm-info hay farm-info-edit?
-            farm: response.data,
-            pageTitle: 'Chỉnh sửa thông tin'
+        const ownerId = req.user.userId || req.user.id || req.user.sub;
+        console.log(`Đang lấy dữ liệu edit cho Owner ID: ${ownerId}`);
+        
+        // Tái sử dụng API tìm theo Owner để lấy dữ liệu điền vào form
+        const farmResponse = await axios.get(`${BASE_API_URL}/owner/${ownerId}`);
+        
+        // Fetch profile data để lấy avatar (tương tự profile.js)
+        let profileData = {};
+        try {
+            console.log('Fetching profile with token:', req.cookies.auth_token?.substring(0, 20) + '...'); // Partial log
+            const profileResp = await axios.get(`${AUTH_SERVICE_URL_UPDATE}/profile`, {
+                headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+            });
+            profileData = profileResp.data;
+            console.log('Fetched profile data for edit: ', profileData);
+            
+            // Xử lý avatar thành data URL
+            const avatarSource = profileData.avatarBase64 || profileData.avatarBytes;
+            if (avatarSource) {
+                profileData.avatar = `data:image/png;base64,${avatarSource}`;
+            }
+        } catch (profileErr) {
+            console.error('Error fetching profile for edit:', profileErr.message);
+        }
+        
+        res.render('farm-info-edit', {
+            farm: farmResponse.data, // Dữ liệu này sẽ chứa farm.id
+            user: {
+                username: req.user?.sub || req.user?.username || req.user?.id || 'Unknown',
+                email: req.user?.email || 'Unknown',
+                roles: req.user?.roles || [],
+                avatar: profileData.avatar || '/assets/img/bruce-mars.jpg',  // Thêm avatar fallback
+                ...req.user,  // Spread req.user
+                ...profileData  // Merge profile data
+            },
+            pageTitle: 'Chỉnh sửa thông tin',
+            error: null
         });
     } catch (error) {
-        res.render('farm-info-edit', { farm: null });
+        console.error('Lỗi lấy dữ liệu edit:', error.message);
+        res.render('farm-info-edit', {
+            farm: null,
+            user: {
+                username: req.user?.sub || req.user?.username || req.user?.id || 'Unknown',
+                email: req.user?.email || 'Unknown',
+                roles: req.user?.roles || [],
+                avatar: '/assets/img/bruce-mars.jpg',  // Fallback nếu lỗi
+                ...req.user
+            },
+            error: 'Không thể tải dữ liệu trang trại'
+        });
     }
 };
 
 // 3. Xử lý cập nhật (Update)
 exports.updateFarmInfo = async (req, res) => {
     try {
-        // Dữ liệu từ Form gửi lên (req.body) cần khớp với FarmUpdateDto bên Java
+        // Bước 1: Lấy lại thông tin Farm để biết FarmID (an toàn nhất)
+        const ownerId = req.user.userId || req.user.id || req.user.sub;
+        const farmResponse = await axios.get(`${BASE_API_URL}/owner/${ownerId}`);
+        const farmId = farmResponse.data.id; // Lấy ID thật từ database
+
+        console.log(`Cập nhật farm ID ${farmId} cho owner ${ownerId}`);
+
+        // Bước 2: Chuẩn bị dữ liệu update
         const updateData = {
             farmName: req.body.farmName,
             address: req.body.address,
             email: req.body.email,
-            hotline: req.body.phone, // Lưu ý: name bên form là 'phone', bên Java DTO là 'hotline'
-            areaSize: parseFloat(req.body.area), // Chuyển String sang Double
+            hotline: req.body.phone, 
+            areaSize: parseFloat(req.body.area), 
             description: req.body.description
         };
 
-        // Gọi API PUT /{id}/info
-        await axios.put(`${BASE_API_URL}/${CURRENT_FARM_ID}/info`, updateData);
+        // Bước 3: Gọi API PUT theo FarmID
+        const updateResponse = await axios.put(`${BASE_API_URL}/${farmId}/info`, updateData);
+        console.log('Cập nhật thành công:', updateResponse.data);
         
-        // Thành công thì quay về trang xem
+        // Redirect về trang xem với thông báo thành công
         res.redirect('/farm-info');
     } catch (error) {
         console.error('Lỗi cập nhật:', error.message);
-        // Có thể redirect lại trang edit kèm thông báo lỗi
-        res.redirect('/farm-info/edit'); 
+        console.error('Error response:', error.response?.data);
+        res.status(500).render('farm-info-edit', {
+            farm: null,
+            user: req.user,
+            error: 'Lỗi cập nhật thông tin: ' + error.message
+        });
     }
 };

@@ -32,4 +32,8 @@ public class FarmFeatureController {
     public ResponseEntity<Farm> getFarmDetail(@PathVariable Long farmId) {
         return ResponseEntity.ok(farmFeatureService.getFarmById(farmId));
     }
+    @GetMapping("/owner/{ownerId}")
+    public ResponseEntity<Farm> getFarmByOwnerId(@PathVariable Long ownerId) {
+        return ResponseEntity.ok(farmFeatureService.getFarmByOwnerId(ownerId));
+    }
 }

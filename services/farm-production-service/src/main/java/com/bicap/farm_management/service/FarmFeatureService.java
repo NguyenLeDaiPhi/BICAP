@@ -42,7 +42,6 @@ public class FarmFeatureService {
         newFarm.setHotline(hotline);
         newFarm.setAreaSize(areaSize);
         newFarm.setDescription(description);
-        newFarm.setOwnerId(1L);
         if (dto.getCreateAt() != null && !dto.getCreateAt().trim().isEmpty()) 
             {
                 newFarm.setCreatedAt(LocalDateTime.parse(dto.getCreateAt().trim()));
@@ -53,7 +52,7 @@ public class FarmFeatureService {
 
         return farmRepository.save(newFarm);
     }
-    // 1. CẬP NHẬT THÔNG TIN PHÁP LÝ TRANG TRẠI
+    // 1. CẬP NHẬT THÔNG TIN TRANG TRẠI
     @Transactional
     public Farm updateFarmInfo(Long farmId, FarmUpdateDto dto) {
         Farm farm = farmRepository.findById(farmId)
@@ -65,11 +64,15 @@ public class FarmFeatureService {
         if(dto.getHotline() != null) farm.setHotline(dto.getHotline());
         if(dto.getAreaSize() != null) farm.setAreaSize(dto.getAreaSize());
         if(dto.getDescription() != null) farm.setDescription(dto.getDescription());
-
+        if(dto.getOwnerId() != null) farm.setOwnerId(dto.getOwnerId());
         return farmRepository.save(farm);
     }
     public Farm getFarmById(Long id) {
         return farmRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy trang trại với ID: " + id));
+    }
+    public Farm getFarmByOwnerId(Long ownerId) {
+    return farmRepository.findByOwnerId(ownerId)
+            .orElseThrow(() -> new RuntimeException("Chưa tìm thấy trang trại nào cho tài khoản này."));
     }
 }
