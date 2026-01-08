@@ -9,6 +9,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,25 +17,24 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity
+@EnableWebSecurity
+@EnableMethodSecurity // Enables @PreAuthorize, @PostAuthorize, etc. for method-level security
 public class WebSecurityConfig {
 
     @Autowired
-    UserDetailsServiceImpl userDetailsService;
+    private UserDetailsServiceImpl userDetailsService;
 
-    // Biến này quan trọng để xử lý lỗi 401 Unauthorized
     @Autowired
-    private AuthEntryPointJwt unauthorizedHandler;
+    private JwtAuthenticationFilter jwtAuthFilter;
 
     @Bean
-    public JwtAuthenticationFilter authenticationJwtTokenFilter() {
-        return new JwtAuthenticationFilter();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(10);
     }
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -45,29 +45,15 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
-            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        http.csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Use stateless sessions
             .authorizeHttpRequests(auth -> auth
-                // Các API không cần đăng nhập
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/api/test/**").permitAll()
-                // Các API còn lại bắt buộc phải có Token
-                .anyRequest().authenticated()
-            );
-
-        http.authenticationProvider(authenticationProvider());
-        
-        // Thêm filter kiểm tra JWT trước filter xác thực user/pass
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-
+                .requestMatchers("/api/auth/**").permitAll() // Allow public access to authentication endpoints
+                .requestMatchers("/api/update/**").authenticated()    
+                .anyRequest().authenticated()) // All other requests require authentication
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }
