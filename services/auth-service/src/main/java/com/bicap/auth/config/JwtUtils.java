@@ -39,6 +39,7 @@ public class JwtUtils {
             .setSubject(userPrinciple.getUsername()) // Sửa: dùng setSubject thay vì subject
             .claim("email", userPrinciple.getEmail())
             .claim("roles", roles)
+            .claim("userId", userPrinciple.getId())
             .setIssuer("retailer-app")
             .setIssuedAt(new Date())
             .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))

@@ -18,24 +18,32 @@ public class FarmingProcessService {
     @Autowired
     private ProductionBatchRepository batchRepository;
     @Autowired
-    private BlockchainProducer blockchainProducer; // Tận dụng lại cái "Súng" có sẵn
+    private BlockchainProducer blockchainProducer;
 
-    public FarmingProcess addProcess(Long batchId, FarmingProcess process) {
+    // SỬA: Thêm tham số userId (Long userId) vào đây
+    public FarmingProcess addProcess(Long batchId, FarmingProcess process, Long userId) {
+        
         // 1. Tìm lô sản xuất
         ProductionBatch batch = batchRepository.findById(batchId)
             .orElseThrow(() -> new RuntimeException("Lô sản xuất không tồn tại!"));
 
+        // 2. [QUAN TRỌNG] Kiểm tra quyền sở hữu
+        // Chỉ cho phép nếu Farm của Batch này thuộc về userId đang đăng nhập
+        if (!batch.getFarm().getOwnerId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền thêm nhật ký cho trang trại này!");
+        }
+
         process.setProductionBatch(batch);
         process.setStatus("PENDING_BLOCKCHAIN");
 
-        // 2. Lưu DB
+        // 3. Lưu DB
         FarmingProcess savedProcess = processRepository.save(process);
 
-        // 3. Bắn lên Blockchain (Dùng Map để tránh lỗi Gson)
+        // 4. Bắn lên Blockchain
         try {
             Map<String, Object> dataToHash = new HashMap<>();
             dataToHash.put("id", savedProcess.getId());
-            dataToHash.put("type", "PROCESS"); // Đánh dấu đây là Nhật ký
+            dataToHash.put("type", "PROCESS");
             dataToHash.put("processType", savedProcess.getProcessType());
             dataToHash.put("description", savedProcess.getDescription());
             dataToHash.put("batchId", batch.getId());
@@ -44,7 +52,6 @@ public class FarmingProcessService {
                 dataToHash.put("date", savedProcess.getPerformedDate().toString());
             }
 
-            // Gửi đi
             blockchainProducer.sendToBlockchain(savedProcess.getId(), "PROCESS", dataToHash);
             
         } catch (Exception e) {
@@ -58,7 +65,6 @@ public class FarmingProcessService {
         return processRepository.findByProductionBatchId(batchId);
     }
     
-    // Hàm cập nhật trạng thái khi Blockchain phản hồi (Sẽ dùng ở Bước 4)
     public void updateBlockchainStatus(Long processId, String txHash) {
         FarmingProcess process = processRepository.findById(processId).orElse(null);
         if (process != null) {

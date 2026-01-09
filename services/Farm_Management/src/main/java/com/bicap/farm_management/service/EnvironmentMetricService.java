@@ -30,20 +30,33 @@ public class EnvironmentMetricService {
     @Value("${weather.city}") private String city;
     @Value("${weather.url}") private String apiUrl;
 
-    public EnvironmentMetric addMetric(Long batchId, EnvironmentMetric metric) {
+    // --- HÀM KIỂM TRA QUYỀN SỞ HỮU (Private) ---
+    private ProductionBatch checkBatchOwnership(Long batchId, Long userId) {
         ProductionBatch batch = batchRepository.findById(batchId)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy Lô sản xuất ID: " + batchId));
+        
+        if (!batch.getFarm().getOwnerId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền tác động vào dữ liệu môi trường của trang trại này!");
+        }
+        return batch;
+    }
+
+    // 1. Thêm chỉ số thủ công (SỬA: Thêm userId)
+    public EnvironmentMetric addMetric(Long batchId, EnvironmentMetric metric, Long userId) {
+        // Gọi hàm check quyền ở trên
+        ProductionBatch batch = checkBatchOwnership(batchId, userId);
+
         metric.setProductionBatch(batch);
         metric.setFarmId(batch.getFarm());
         if (metric.getRecordedAt() == null) metric.setRecordedAt(LocalDateTime.now());
         return metricRepository.save(metric);
     }
 
-    // === SỬA LẠI HÀM NÀY: Trả về List và lưu 2 chỉ số ===
-    public List<EnvironmentMetric> syncWeatherFromApi(Long batchId) {
+    // 2. Đồng bộ thời tiết (SỬA: Thêm userId)
+    public List<EnvironmentMetric> syncWeatherFromApi(Long batchId, Long userId) {
         try {
-            ProductionBatch batch = batchRepository.findById(batchId)
-                .orElseThrow(() -> new RuntimeException("Lô sản xuất không tồn tại"));
+            // Gọi hàm check quyền ở trên
+            ProductionBatch batch = checkBatchOwnership(batchId, userId);
 
             String finalUrl = apiUrl.replace("{city}", city).replace("{key}", apiKey);
             String response = restTemplate.getForObject(finalUrl, String.class);
@@ -56,7 +69,7 @@ public class EnvironmentMetricService {
 
             List<EnvironmentMetric> results = new ArrayList<>();
 
-            // 1. Lưu Nhiệt độ
+            // Lưu Nhiệt độ
             EnvironmentMetric t = new EnvironmentMetric();
             t.setProductionBatch(batch);
             t.setFarmId(batch.getFarm());
@@ -66,7 +79,7 @@ public class EnvironmentMetricService {
             t.setRecordedAt(now);
             results.add(metricRepository.save(t));
 
-            // 2. Lưu Độ ẩm
+            // Lưu Độ ẩm
             EnvironmentMetric h = new EnvironmentMetric();
             h.setProductionBatch(batch);
             h.setFarmId(batch.getFarm());
@@ -78,8 +91,10 @@ public class EnvironmentMetricService {
 
             return results;
 
+        } catch (RuntimeException e) {
+            throw e; // Ném tiếp lỗi quyền sở hữu ra ngoài
         } catch (Exception e) {
-            e.printStackTrace(); // In lỗi ra console để debug
+            e.printStackTrace();
             throw new RuntimeException("Lỗi đồng bộ thời tiết: " + e.getMessage());
         }
     }

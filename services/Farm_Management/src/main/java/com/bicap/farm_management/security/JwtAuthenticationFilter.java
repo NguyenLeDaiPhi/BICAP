@@ -53,6 +53,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .getBody();
 
                 username = claims.getSubject(); // Lấy username
+                Long userId = claims.get("userId", Long.class);
+            
+            if (userId != null) {
+                // Lưu userId vào request attribute để Controller dùng
+                request.setAttribute("userId", userId);
+            }
 
                 // 3. Nếu username tồn tại và chưa được xác thực trong Context
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

@@ -2,7 +2,10 @@ package com.bicap.farm_management.controller;
 
 import com.bicap.farm_management.entity.EnvironmentMetric;
 import com.bicap.farm_management.service.EnvironmentMetricService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -14,9 +17,22 @@ public class EnvironmentMetricController {
     @Autowired
     private EnvironmentMetricService metricService;
 
+    // 1. Thêm chỉ số thủ công
     @PostMapping("/batch/{batchId}")
-    public EnvironmentMetric addMetric(@PathVariable Long batchId, @RequestBody EnvironmentMetric metric) {
-        return metricService.addMetric(batchId, metric);
+    public ResponseEntity<?> addMetric(
+            @PathVariable Long batchId, 
+            @RequestBody EnvironmentMetric metric,
+            HttpServletRequest request
+    ) {
+        try {
+            Long userId = (Long) request.getAttribute("userId");
+            if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User ID not found");
+
+            EnvironmentMetric saved = metricService.addMetric(batchId, metric, userId);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/batch/{batchId}")
@@ -24,9 +40,20 @@ public class EnvironmentMetricController {
         return metricService.getMetricsByBatch(batchId);
     }
 
-    // === SỬA DÒNG NÀY ===
+    // 2. Đồng bộ thời tiết
     @PostMapping("/sync-weather/{batchId}")
-    public List<EnvironmentMetric> syncWeather(@PathVariable Long batchId) {
-        return metricService.syncWeatherFromApi(batchId);
+    public ResponseEntity<?> syncWeather(
+            @PathVariable Long batchId,
+            HttpServletRequest request
+    ) {
+        try {
+            Long userId = (Long) request.getAttribute("userId");
+            if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User ID not found");
+
+            List<EnvironmentMetric> result = metricService.syncWeatherFromApi(batchId, userId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
