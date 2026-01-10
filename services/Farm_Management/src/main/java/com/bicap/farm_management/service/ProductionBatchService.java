@@ -23,32 +23,30 @@ public class ProductionBatchService {
     @Autowired
     private BlockchainProducer blockchainProducer;
 
-    // SỬA: Thêm tham số userId để kiểm tra quyền sở hữu
-    public ProductionBatch createBatch(Long farmId, ProductionBatch batch, Long userId) {
+    public ProductionBatch createBatch(Long farmId, ProductionBatch batch) {
         // 1. Kiểm tra Farm có tồn tại không
         Farm farm = farmRepository.findById(farmId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy trang trại với ID: " + farmId));
+                .orElseThrow(() -> new RuntimeException("Farm not found with ID: " + farmId));
         
-        // 2. KIỂM TRA QUYỀN SỞ HỮU (Chặn nếu không phải chủ trang trại)
-        if (!farm.getOwnerId().equals(userId)) {
-            throw new RuntimeException("Bạn không có quyền tạo mùa vụ cho trang trại này (ID: " + farmId + ")");
-        }
-
         batch.setFarm(farm);
         batch.setStatus("PENDING_BLOCKCHAIN"); // Đặt trạng thái chờ
         
-        // 3. Lưu vào DB trước để lấy ID
+        // 2. Lưu vào DB trước để lấy ID
         ProductionBatch savedBatch = batchRepository.save(batch);
 
-        // 4. Bắn tin nhắn sang Blockchain Adapter
+        // 3. Bắn tin nhắn sang Blockchain Adapter
         try {
+            // === PHẦN SỬA LỖI QUAN TRỌNG ===
+            // Không gửi cả object 'savedBatch' vì nó chứa Hibernate Proxy gây lỗi.
+            // Thay vào đó, tạo một Map thủ công chỉ chứa dữ liệu cần thiết.
             Map<String, Object> dataToHash = new HashMap<>();
             dataToHash.put("id", savedBatch.getId());
             dataToHash.put("batchCode", savedBatch.getBatchCode());
             dataToHash.put("productType", savedBatch.getProductType());
             dataToHash.put("status", savedBatch.getStatus());
-            dataToHash.put("farmId", farm.getId());
+            dataToHash.put("farmId", farm.getId()); // Chỉ lấy ID, không lấy cả object Farm
             
+            // Xử lý ngày tháng: Chuyển về String để tránh lỗi định dạng
             if (savedBatch.getStartDate() != null) {
                 dataToHash.put("startDate", savedBatch.getStartDate().toString());
             }
@@ -56,11 +54,13 @@ public class ProductionBatchService {
                 dataToHash.put("endDate", savedBatch.getEndDate().toString());
             }
 
+            // Gửi Map này đi để tính Hash (Gson xử lý Map rất tốt)
             blockchainProducer.sendToBlockchain(savedBatch.getId(), "BATCH", dataToHash);
             
         } catch (Exception e) {
             System.err.println("❌ Lỗi gửi RabbitMQ: " + e.getMessage());
             e.printStackTrace();
+            // Không ném lỗi ra ngoài để tránh rollback transaction (Dữ liệu vẫn được lưu vào DB)
         }
 
         return savedBatch;
@@ -70,6 +70,7 @@ public class ProductionBatchService {
         return batchRepository.findByFarmId(farmId);
     }
     
+    // Hàm cập nhật kết quả từ Blockchain
     public void updateBlockchainStatus(Long batchId, String txHash) {
         ProductionBatch batch = batchRepository.findById(batchId).orElse(null);
         if (batch != null) {

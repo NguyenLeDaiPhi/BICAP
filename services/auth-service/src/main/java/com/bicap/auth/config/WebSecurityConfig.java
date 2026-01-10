@@ -45,14 +45,22 @@ public class WebSecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-    @Bean
+   @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Use stateless sessions
+        http.csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Allow public access to authentication endpoints
+                // 1. Cho phép API đăng nhập/đăng ký
+                .requestMatchers("/api/auth/**").permitAll()
+                
+                // 2. THÊM DÒNG NÀY: Cho phép Swagger UI truy cập tự do
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() 
+                
+                // 3. Các API cập nhật user cần đăng nhập
                 .requestMatchers("/api/update/**").authenticated()    
-                .anyRequest().authenticated()) // All other requests require authentication
+                
+                // 4. Còn lại bắt buộc phải có Token
+                .anyRequest().authenticated())
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

@@ -1,36 +1,17 @@
-version: "3.9"
+version: '3.8'
 services:
-  mysql:
+  mysql-auth:
     image: mysql:8.0
-    container_name: mysql-auth
+    container_name: bicap-auth-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: auth_db
+      MYSQL_DATABASE: bicap_auth_db
     ports:
-      - "4306:3306"  
+      - "3308:3306"
     volumes:
-      - ./bicap_auth_db_roles.sql:/docker-entrypoint-initdb.d/01_roles.sql
-      - ./bicap_auth_db_users.sql:/docker-entrypoint-initdb.d/02_users.sql
-      - ./bicap_auth_db_user_roles.sql:/docker-entrypoint-initdb.d/03_user_roles.sql
-      - ./bicap_auth_db_user_profiles.sql:/docker-entrypoint-initdb.d/04_user_profiles.sql
-    networks:
-      - bicap-net
+      - auth_db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  auth-service:
-    build:
-      context: ../../services/auth-service
-      dockerfile: Dockerfile
-    container_name: auth-service
-    depends_on:
-      - mysql
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-auth:3306/auth_db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-    ports:
-      - "8080:8080"
-    networks:
-      - auth-net
-
-networks:
-  auth-net:
+volumes:
+  auth_db_data:

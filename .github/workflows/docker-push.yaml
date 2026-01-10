@@ -16,9 +16,11 @@ jobs:
       matrix:
         # Add the name of your services here. 
         # For example: [auth-database, auth-service, farm-production-service]
-        service: [auth-database, auth-service]
+        service: [auth-database, auth-service, farm-production-service, farm-database]
         # Define the path to the Dockerfile context for each service
         include:
+          - service: farm-database
+            context: ./database/farm-database
           - service: auth-database
             context: ./database/auth-database
           - service: auth-service

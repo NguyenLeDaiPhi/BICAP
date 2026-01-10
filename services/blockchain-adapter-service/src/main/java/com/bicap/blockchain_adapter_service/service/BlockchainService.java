@@ -6,6 +6,10 @@ import com.bicap.blockchain_adapter_service.entity.TraceLog;
 import com.bicap.blockchain_adapter_service.repository.BlockchainRecordRepository;
 import com.bicap.blockchain_adapter_service.repository.TraceLogRepository;
 
+<<<<<<< HEAD
+=======
+import org.apache.commons.codec.digest.DigestUtils;
+>>>>>>> Farm-product-service
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -50,7 +54,11 @@ public class BlockchainService implements IBlockchainService {
 
         recordRepository.save(record);
 
+<<<<<<< HEAD
         // 3. Ghi log truy vết
+=======
+        // 4. Ghi log truy vết
+>>>>>>> Farm-product-service
         TraceLog log = new TraceLog();
         log.setObjectType("BATCH");
         log.setObjectId(batchId);
