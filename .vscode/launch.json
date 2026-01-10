@@ -1,0 +1,76 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "FarmManagementApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.farm_management.FarmManagementApplication",
+            "projectName": "com.bicap-Farm_Management"
+        },
+        {
+            "type": "java",
+            "name": "AuthServiceApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.auth.AuthServiceApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "TradingOrderServiceApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.trading_order_service.TradingOrderServiceApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "FarmManagementApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.farm_management.FarmManagementApplication",
+            "projectName": "Farm_Management"
+        },
+        {
+            "type": "java",
+            "name": "FarmManagementApplication",
+            "request": "launch",
+            "mainClass": "com.example.farm_management.FarmManagementApplication",
+            "projectName": "Farm_Management"
+        },
+        {
+            "type": "java",
+            "name": "BlockchainAdapterServiceApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.blockchain_adapter_service.BlockchainAdapterServiceApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-AuthServiceApplication<auth-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.auth.AuthServiceApplication",
+            "projectName": "auth-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Launch BlockchainAdapterServiceApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.blockchain_adapter_service.BlockchainAdapterServiceApplication",
+            "projectName": "blockchain-adapter-service",
+            "cwd": "${workspaceFolder}",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-TradingOrderServiceApplication<com.bicap-trading_order_service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.trading_order_service.TradingOrderServiceApplication",
+            "projectName": "com.bicap-trading_order_service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
