@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= pageTitle %></title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+
+<div class="app">
+  <%- include("partials/sidebar", { user }) %>
+
+  <div class="main">
+    <%- include("partials/header", { pageTitle }) %>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <% if (!orders || orders.length === 0) { %>
+          <p>Bạn chưa có đơn hàng nào</p>
+        <% } else { %>
+          <div class="order-list">
+            <% orders.forEach(o => { %>
+              <div
+                class="order-row"
+                onclick="location.href='/orders/<%= o.orderId %>'"
+              >
+                <span>#<%= o.orderId %></span>
+                <span class="status <%= o.status.toLowerCase() %>">
+                  <%= o.status %>
+                </span>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+
+      </div>
+    </main>
+
+    <%- include("partials/footer") %>
+  </div>
+</div>
+
+<script src="/js/layout.js"></script>
+</body>
+</html>
