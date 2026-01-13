@@ -7,6 +7,7 @@ import com.bicap.farm_management.repository.*;
 import com.zaxxer.hikari.util.ClockSource;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -78,4 +79,5 @@ public class FarmFeatureService {
     public java.util.List<Farm> getAllFarms() {
         return farmRepository.findAll();
     }
+
 }

@@ -5,6 +5,10 @@ import com.example.admin_service.entity.User;
 import com.example.admin_service.enums.UserStatus;
 import com.example.admin_service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,5 +42,16 @@ public class AdminUserService {
         dto.setStatus(user.getStatus());
         dto.setRoles(user.getRoles().stream().map(role -> role.getName().toString()).collect(Collectors.toSet()));
         return dto;
+    }
+    // Thêm import: Page, Pageable, PageRequest
+    public Page<UserResponseDTO> getUsersWithFilter(String keyword, String role, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Specification<User> spec = UserSpecification.filterUsers(keyword, role);
+
+        // Gọi hàm findAll có sẵn nhờ JpaSpecificationExecutor
+        Page<User> userPage = userRepository.findAll(spec, pageable);
+
+        // Convert Page<User> sang Page<UserResponseDTO>
+        return userPage.map(this::convertToDTO);
     }
 }

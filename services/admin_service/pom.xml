@@ -11,11 +11,10 @@
     </parent>
 
     <groupId>com.bicap</groupId>
-    <artifactId>Farm_Management</artifactId>
+    <artifactId>admin_service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Farm_Management</name>
-    <description>Farm_Management Service</description>
-
+    <name>admin_service</name>
+    <description>Admin Service</description>
     <properties>
         <java.version>21</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
