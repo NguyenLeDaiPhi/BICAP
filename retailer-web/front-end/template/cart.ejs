@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Giỏ hàng</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+
+<div class="app">
+  <%- include("partials/sidebar", { user }) %>
+
+  <div class="main">
+    <%- include("partials/header", { pageTitle: "Giỏ hàng" }) %>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <% if (!cart || cart.length === 0) { %>
+          <p>Giỏ hàng trống</p>
+        <% } else { %>
+
+          <div class="cart-list">
+            <% cart.forEach(item => { %>
+              <div class="cart-item">
+                <img src="/img/product-placeholder.png">
+
+                <div class="cart-info">
+                  <strong>ID: <%= item.id %></strong>
+
+                    <div class="qty">
+                        <button class="qty-btn" data-id="<%= item.id %>" data-delta="-1">-</button>
+                        <span><%= item.quantity %></span>
+                        <button class="qty-btn" data-id="<%= item.id %>" data-delta="1">+</button>
+                    </div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+
+          <button class="btn-primary">Thanh toán</button>
+
+        <% } %>
+      </div>
+    </main>
+
+    <%- include("partials/footer") %>
+  </div>
+</div>
+
+<script src="/js/cart.js"></script>
+</body>
+</html>

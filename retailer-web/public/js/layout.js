@@ -16,11 +16,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (userArea && userDropdown) {
     userArea.addEventListener("click", (e) => {
       e.stopPropagation();
-      userDropdown.classList.toggle("open");
+      userArea.classList.toggle("open");
     });
+    // ✅ THÊM CHẶN CLICK TRONG DROPDOWN
+  userDropdown.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
 
     document.addEventListener("click", () => {
-      userDropdown.classList.remove("open");
+      userArea.classList.remove("open");
     });
   }
 

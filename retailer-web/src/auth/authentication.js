@@ -106,8 +106,10 @@ const login = async (req, res) => {
 };
 
 const logout = (req, res) => {
-  clearAuthCookie(res);
-  res.redirect("/login");
+  req.session.destroy(() => {
+    res.clearCookie("connect.sid");
+    res.redirect("/login");
+  });
 };
 
 module.exports = {

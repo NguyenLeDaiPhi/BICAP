@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
+const session = require("express-session");
 
 const auth = require("./src/auth/authentication");
 const retailerController = require("./src/retailer/retailer.controller");
@@ -22,6 +23,17 @@ app.use(express.static(path.join(__dirname, "front-end")));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
+app.use(
+  session({
+    secret: "bicap-retailer-secret",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      secure: false, // true nếu dùng https
+      maxAge: 1000 * 60 * 60 * 2, // 2 giờ
+    },
+  })
+);
 
 // ================= ROOT =================
 app.get("/", (req, res) => {
@@ -39,6 +51,7 @@ app.get("/marketplace", auth.requireAuth, retailerController.showMarketplace);
 app.get("/my-orders", auth.requireAuth, retailerController.showMyOrders);
 app.get("/orders/:id", auth.requireAuth, retailerController.showOrderDetail);
 app.get("/profile", auth.requireAuth, retailerController.showProfile);
+app.get("/cart", auth.requireAuth, retailerController.showCart);
 
 // ================= API – LIVE SEARCH =================
 app.get("/api/marketplace-search", auth.requireAuth, async (req, res) => {

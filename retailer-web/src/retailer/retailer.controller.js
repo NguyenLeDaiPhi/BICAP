@@ -39,10 +39,19 @@ const showProfile = (req, res) => {
     pageTitle: "Hồ sơ cá nhân",
   });
 };
+const showCart = (req, res) => {
+  res.render("cart", {
+    user: req.user,
+    cart: req.session.cart || [],
+    total: 0,
+    pageTitle: "Giỏ hàng",
+  });
+};
 
 module.exports = {
   showMarketplace,
   showMyOrders,
   showOrderDetail,
   showProfile,
+  showCart,
 };
