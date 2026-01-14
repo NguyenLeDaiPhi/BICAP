@@ -134,19 +134,33 @@ router.get('/admin/users', requireAuth, requireAdmin, async (req, res) => {
         const { keyword = '', role = '', page = 0, size = 10 } = req.query;
         const headers = { Authorization: `Bearer ${req.accessToken}` };
 
-        const response = await axios.get(`${ADMIN_SERVICE_URL}/api/v1/admin/users`, {
-            params: { keyword, role, page, size },
-            headers
-        });
-
-        const payload = response.data || {};
-        const users = Array.isArray(payload) ? payload : (payload.content || []);
-        const pagination = {
-            page: payload.number ?? Number(page) ?? 0,
-            size: payload.size ?? Number(size) ?? 10,
-            totalPages: payload.totalPages ?? 1,
-            totalElements: payload.totalElements ?? users.length
+        let users = [];
+        let pagination = {
+            page: Number(page) || 0,
+            size: Number(size) || 10,
+            totalPages: 1,
+            totalElements: 0
         };
+
+        try {
+            const response = await axios.get(`${ADMIN_SERVICE_URL}/api/v1/admin/users`, {
+                params: { keyword, role, page, size },
+                headers,
+                timeout: 5000 // Timeout 5 giây
+            });
+
+            const payload = response.data || {};
+            users = Array.isArray(payload) ? payload : (payload.content || []);
+            pagination = {
+                page: payload.number ?? Number(page) ?? 0,
+                size: payload.size ?? Number(size) ?? 10,
+                totalPages: payload.totalPages ?? 1,
+                totalElements: payload.totalElements ?? users.length
+            };
+        } catch (apiError) {
+            console.error('Lỗi gọi Admin Service API:', apiError.message);
+            // Tiếp tục render với dữ liệu rỗng thay vì crash
+        }
 
         res.render('users', {
             users,
@@ -155,7 +169,7 @@ router.get('/admin/users', requireAuth, requireAdmin, async (req, res) => {
             pagination
         });
     } catch (e) {
-        console.error('Lỗi tải trang User:', e.response?.data || e.message);
+        console.error('Lỗi tải trang User:', e.message);
         res.status(500).render('error', { message: 'Lỗi tải trang User' });
     }
 });

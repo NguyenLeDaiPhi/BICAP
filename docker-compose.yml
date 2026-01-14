@@ -138,6 +138,45 @@ services:
     networks:
       - bicap-global-net
 
+  admin-db:
+    image: mysql:8.0
+    container_name: admin-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=0862264719Phi
+      - MYSQL_DATABASE=bicap_admin
+    ports:
+      - "3310:3306"
+    networks:
+      - bicap-global-net
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  admin-service:
+    build:
+      context: ./services/admin_service
+    container_name: admin-service
+    depends_on:
+      admin-db:
+        condition: service_healthy
+      bicap-message-queue:
+        condition: service_started
+    environment:
+      - spring.datasource.url=jdbc:mysql://admin-db:3306/bicap_admin?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - spring.datasource.username=root
+      - spring.datasource.password=0862264719Phi
+      - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=0862264719Phi
+    ports:
+      - "8085:8085"
+    networks:
+      - bicap-global-net
+
   retailer-web:
     build:
       context: ./clients/web-app/retailer-web
@@ -157,8 +196,10 @@ services:
     container_name: admin-web
     depends_on:
       - kong-gateway
+      - admin-service
     environment:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - ADMIN_SERVICE_URL=http://admin-service:8085
     ports:
       - "3001:3001"
     networks:
