@@ -1,51 +1,51 @@
 package com.bicap.shipping_manager_service.entity;
 
-import java.sql.Driver;
+import jakarta.persistence.*;
+import lombok.Data;
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.Data;
-
 @Entity
-@Table(name = "shipments")
 @Data
+@Table(name = "shipments")
 public class Shipment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String orderId; // ID đơn hàng từ Order Service (đã thành công) 
-    
+    // ID đơn hàng từ Farm Service (để liên kết dữ liệu)
+    private Long orderId; 
+
+    // Tài xế phụ trách
     @ManyToOne
     @JoinColumn(name = "driver_id")
     private Driver driver;
 
+    // Xe vận chuyển
     @ManyToOne
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
 
-    private String fromLocation; // Địa chỉ Farm
-    private String toLocation;   // Địa chỉ Retailer
-    
+    private String fromLocation; // Địa chỉ lấy hàng (Farm)
+    private String toLocation;   // Địa chỉ giao hàng (Retailer)
+
+    // Trạng thái vận đơn (Enum)
     @Enumerated(EnumType.STRING)
-    private ShipmentStatus status; // CREATED, IN_TRANSIT, DELIVERED, CANCELLED
+    private ShipmentStatus status; 
 
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
-
-    // Các trường audit log
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-}
+    
+    // Lưu hash giao dịch blockchain để tra cứu sau này
+    private String blockchainTxHash; 
+    
+    // Tự động cập nhật thời gian
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 
-enum ShipmentStatus {
-    CREATED, ASSIGNED, IN_TRANSIT, COMPLETED, CANCELLED
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

@@ -11,10 +11,10 @@
     </parent>
     
     <groupId>com.bicap</groupId>
-    <artifactId>Farm_Management</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>Farm_Management</name>
-    <description>Farm_Management Service</description>
+<artifactId>shipping-manager-service</artifactId> 
+<version>0.0.1-SNAPSHOT</version>
+<name>shipping-manager-service</name>
+<description>Shipping Manager Service for BICAP System</description>
     
     <properties>
         <java.version>21</java.version>
