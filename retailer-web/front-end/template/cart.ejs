@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Giỏ hàng</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+
+<div class="app">
+
+  <%- include("partials/sidebar", { user }) %>
+
+  <div class="main">
+
+    <%- include("partials/header", { pageTitle: "Giỏ hàng" }) %>
+
+    <main class="content">
+      <div class="content-inner cart-page">
+
+        <% if (!cart || cart.length === 0) { %>
+          <p>Giỏ hàng trống</p>
+        <% } else { %>
+
+        <!-- LIST ITEM -->
+        <div class="cart-list">
+          <% cart.forEach(item => { %>
+            <div class="cart-item" data-id="<%= item.id %>" data-price="<%= item.price %>">
+
+              <div class="cart-img">
+                <img src="/img/product-placeholder.png">
+              </div>
+
+              <div class="cart-info">
+                <h4><%= item.name %></h4>
+                <p class="unit-price"><%= item.price %> VND</p>
+              </div>
+
+            <div class="cart-qty">
+              <button class="qty-btn minus" data-id="<%= item.id %>">−</button>
+              <span class="qty"><%= item.quantity %></span>
+              <button class="qty-btn plus" data-id="<%= item.id %>">+</button>
+            </div>
+
+
+              <div class="cart-total">
+                <span class="item-total">
+                  <%= item.price * item.quantity %> VND
+                </span>
+              </div>
+
+              <div class="cart-remove">
+                 <button class="remove-btn" data-id="<%= item.id %>">✕</button>
+              </div>
+
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="cart-footer">
+          <div class="cart-summary">
+            Tổng tiền: <strong id="grandTotal">0</strong> VND
+          </div>
+          <button class="btn-primary cart-checkout">
+            Thanh toán
+          </button>
+        </div>
+
+        <% } %>
+      </div>
+    </main>
+
+    <%- include("partials/footer") %>
+  </div>
+</div>
+
+<script src="/js/cart.js"></script>
+</body>
+</html>
