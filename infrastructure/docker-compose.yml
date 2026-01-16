@@ -12,8 +12,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      # Bỏ dòng MYSQL_DATABASE đi vì chúng ta đã tạo trong init.sql rồi
-      # MYSQL_DATABASE: bicap_farm_db 
+      # MYSQL_DATABASE: bicap_farm_db
     ports:
       - "3307:3306"
     volumes:

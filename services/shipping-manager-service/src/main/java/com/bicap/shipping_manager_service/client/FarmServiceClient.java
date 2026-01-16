@@ -1,7 +1,7 @@
 package com.bicap.shipping_manager_service.client;
 
 import com.bicap.shipping_manager_service.dto.OrderResponse;
-import org.springframework.web.bind.annotation.FeignClient;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
