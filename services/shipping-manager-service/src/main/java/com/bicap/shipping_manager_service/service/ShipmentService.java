@@ -2,17 +2,19 @@ package com.bicap.shipping_manager_service.service;
 
 import com.bicap.shipping_manager_service.client.BlockchainServiceClient;
 import com.bicap.shipping_manager_service.client.FarmServiceClient;
-import com.bicap.shipping_manager_service.config.RabbitMQConfig; // NEW: Import Config
+import com.bicap.shipping_manager_service.config.RabbitMQConfig;
 import com.bicap.shipping_manager_service.dto.OrderResponse;
-import com.bicap.shipping_manager_service.dto.ShipmentEvent; // NEW: Import DTO
+import com.bicap.shipping_manager_service.dto.ShipmentEvent;
 import com.bicap.shipping_manager_service.dto.WriteBlockchainRequest;
 import com.bicap.shipping_manager_service.entity.*;
 import com.bicap.shipping_manager_service.repository.*;
+import com.bicap.shipping_manager_service.exception.ResourceNotFoundException; // Import Exception chuẩn
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate; // NEW: Import RabbitTemplate
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.security.core.context.SecurityContextHolder; // Import để lấy user hiện tại
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,20 +31,22 @@ public class ShipmentService {
     private final VehicleRepository vehicleRepository;
     private final FarmServiceClient farmClient;
     private final BlockchainServiceClient blockchainClient;
-    private final RabbitTemplate rabbitTemplate; // NEW: Inject RabbitTemplate
+    private final RabbitTemplate rabbitTemplate;
     private final Gson gson = new Gson();
 
+    // 1. Lấy tất cả (Cho Admin/Manager)
     public List<Shipment> getAllShipments() {
         return shipmentRepository.findAll();
     }
 
-    // 1. Tạo vận đơn (Giữ nguyên)
+    // 2. Tạo vận đơn
     public Shipment createShipment(Long orderId, String from, String to) {
         try {
             OrderResponse order = farmClient.getOrderDetails(orderId);
-            if (order == null) throw new RuntimeException("Order not found");
+            if (order == null) throw new ResourceNotFoundException("Không tìm thấy đơn hàng bên Farm Service");
         } catch (Exception e) {
             logger.error("Error calling Farm Service: {}", e.getMessage());
+            // Tùy chọn: Có thể throw lỗi hoặc vẫn cho tạo nhưng cảnh báo
         }
 
         Shipment shipment = new Shipment();
@@ -54,16 +58,16 @@ public class ShipmentService {
         return shipmentRepository.save(shipment);
     }
 
-    // 2. Điều phối xe và tài xế (Giữ nguyên)
+    // 3. Điều phối xe và tài xế
     public Shipment assignDriverAndVehicle(Long shipmentId, Long driverId, Long vehicleId) {
         Shipment shipment = shipmentRepository.findById(shipmentId)
-                .orElseThrow(() -> new RuntimeException("Shipment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vận đơn ID: " + shipmentId));
         
         Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new RuntimeException("Driver not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài xế ID: " + driverId));
         
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new RuntimeException("Vehicle not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy xe ID: " + vehicleId));
 
         shipment.setDriver(driver);
         shipment.setVehicle(vehicle);
@@ -72,18 +76,17 @@ public class ShipmentService {
         return shipmentRepository.save(shipment);
     }
 
-    // 3. Cập nhật trạng thái & Blockchain & RabbitMQ (Đã cập nhật)
+    // 4. Cập nhật trạng thái (Dùng ResourceNotFoundException)
     public Shipment updateStatus(Long shipmentId, ShipmentStatus status) {
         Shipment shipment = shipmentRepository.findById(shipmentId)
-                .orElseThrow(() -> new RuntimeException("Shipment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vận đơn với ID: " + shipmentId));
 
         shipment.setStatus(status);
-        // Cập nhật thời gian update
         shipment.setUpdatedAt(LocalDateTime.now());
         
         Shipment saved = shipmentRepository.save(shipment);
 
-        // --- NEW: Gửi sự kiện RabbitMQ khi giao hàng thành công ---
+        // --- RabbitMQ Logic: Gửi sự kiện khi giao hàng thành công ---
         if (status == ShipmentStatus.DELIVERED) {
             try {
                 ShipmentEvent event = new ShipmentEvent(
@@ -104,7 +107,7 @@ public class ShipmentService {
         }
         // -----------------------------------------------------------
 
-        // Ghi log Blockchain
+        // Blockchain Logic
         try {
             WriteBlockchainRequest req = new WriteBlockchainRequest(
                 shipmentId, 
@@ -116,5 +119,18 @@ public class ShipmentService {
         }
 
         return saved;
+    }
+
+    // 5. API MỚI: Lấy đơn hàng của TÔI (Cho Mobile App Driver)
+    public List<Shipment> getMyShipments() {
+        // Lấy username từ Token
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        
+        // Tìm Driver ID
+        Driver driver = driverRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("Tài khoản '" + currentUsername + "' chưa được đăng ký làm tài xế!"));
+                
+        // Trả về danh sách đơn được gán cho tài xế này
+        return shipmentRepository.findByDriverId(driver.getId());
     }
 }

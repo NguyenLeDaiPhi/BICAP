@@ -2,36 +2,35 @@ version: '3.8'
 
 networks:
   bicap-network:
-    external: true  # Quan trọng: Mạng này sẽ nối các service với nhau
+    external: true
 
 services:
-  # === 1. MySQL Database (Chứa cả 3 DB) ===
+  # === 1. MySQL Database ===
   bicap-mysql:
     image: mysql:8.0
     container_name: bicap-mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      # MYSQL_DATABASE: bicap_farm_db
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      # THÊM DÒNG NÀY: Nạp file init.sql vào để chạy tự động
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - bicap-network
 
-    postgres-db:
+  # === THÊM MỚI: Postgres Database (Phải thẳng hàng với bicap-mysql) ===
+  postgres-db:
     image: postgres:15
     container_name: postgres-db
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: shipping_db  # Tạo sẵn database này khi khởi động
+      POSTGRES_DB: shipping_db
     ports:
-      - "5432:5432"             # Mở cổng 5432 ra máy host để Service kết nối
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -68,7 +67,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # === 4. Kong Gateway Migration (Chạy 1 lần rồi tắt) ===
+  # === 4. Kong Gateway Migration ===
   kong-migration:
     image: kong:latest
     networks:
@@ -83,7 +82,7 @@ services:
       kong-database:
         condition: service_healthy
 
-  # === 5. Kong Gateway chính ===
+  # === 5. Kong Gateway ===
   kong:
     image: kong:latest
     container_name: bicap-kong-gateway
