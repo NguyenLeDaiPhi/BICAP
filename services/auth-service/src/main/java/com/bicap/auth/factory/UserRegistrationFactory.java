@@ -3,7 +3,6 @@ package com.bicap.auth.factory;
 import java.util.HashSet;
 import java.util.Set;
 import com.bicap.auth.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +29,7 @@ public class UserRegistrationFactory {
     public User createUser(AuthRequest authRequest) {
         String requestedRole = authRequest.getRole().toUpperCase();
 
-        if (requestedRole.equals("ADMIN") || requestedRole.equals("DELIVERY_DRIVER")) {
+        if (requestedRole.equals("ADMIN") || requestedRole.equals("DELIVERYDRIVER")) {
             throw new IllegalArgumentException("Cannot self-register for high-priviledge roles.");
         }
 
@@ -38,12 +37,16 @@ public class UserRegistrationFactory {
 
         Set<Role> roles = new HashSet<>();
 
-        if (requestedRole.equals("FARM")) {
-            roles.add(getRole(ERole.ROLE_FARM_MANAGER));
-            user.setStatus(UserStatus.PENDING);
+        if (requestedRole.equals("FARMMANAGER")) {
+            roles.add(getRole(ERole.ROLE_FARMMANAGER));
+            user.setStatus(UserStatus.ACTIVE);
         }
         else if (requestedRole.equals("RETAILER")) {
             roles.add(getRole(ERole.ROLE_RETAILER));
+            user.setStatus(UserStatus.ACTIVE);
+        }
+        else if (requestedRole.equals("SHIPPINGMANAGER")) {
+            roles.add(getRole(ERole.ROLE_SHIPPINGMANAGER));
             user.setStatus(UserStatus.ACTIVE);
         }
         else {

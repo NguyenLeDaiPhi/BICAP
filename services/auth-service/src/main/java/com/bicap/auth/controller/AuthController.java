@@ -23,7 +23,8 @@ public class AuthController {
         try {
             User newUser = authenticationUser.registerNewUser(authRequest);
             return ResponseEntity.ok(newUser);
-        } catch (RuntimeException e) {
+        } catch (Exception e) { // Catch all exceptions for better error reporting
+            System.err.println("Registration error: " + e.getMessage()); // Add logging for server-side
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
