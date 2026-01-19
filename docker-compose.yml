@@ -85,7 +85,9 @@ services:
       bicap-message-queue:
         condition: service_started
     environment:
-      - spring.datasource.url=jdbc:mysql://farm-production-db:3306/farm_production_db
+      # Ép buộc chạy cổng 8081 trong Docker (ghi đè file application.properties)
+      - SERVER_PORT=8081
+      - spring.datasource.url=jdbc:mysql://farm-production-db:3306/bicap_farm_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
       - spring.datasource.password=0862264719Phi
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
@@ -147,6 +149,7 @@ services:
     container_name: retailer-web
     depends_on:
       - kong-gateway
+      - bicap-message-queue
     environment:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
@@ -155,9 +158,10 @@ services:
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
       - "3000:3000"
+    command: node src/index.js
     networks:
       - bicap-global-net
 
@@ -167,6 +171,7 @@ services:
     container_name: admin-web
     depends_on:
       - kong-gateway
+      - bicap-message-queue
     environment:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
@@ -175,9 +180,10 @@ services:
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
       - "3001:3001"
+    command: node src/index.js
     networks:
       - bicap-global-net
     
@@ -187,17 +193,20 @@ services:
     container_name: farm-management-web
     depends_on:
       - kong-gateway
+      - bicap-message-queue
+      - farm-production-service
     environment:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - NODE_ENV=development
       - RABBITMQ_URL=amqp://root:0862264719Phi@bicap-message-queue:5672
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
-      - MARKETPLACE_API_PATH=http://localhost:8000/api/marketplace-products
-      - FARMING_SEASONS_API_PATH=http://localhost:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
+      - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
       - "3002:3002"
+    command: node src/authentication.js
     networks:
       - bicap-global-net
 
@@ -207,6 +216,7 @@ services:
     container_name: shipping-manager-web
     depends_on:
       - kong-gateway
+      - bicap-message-queue
     environment:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
@@ -215,9 +225,10 @@ services:
       - FARM_API_URL=http://kong-gateway:8000/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
       - "3003:3003"
+    command: node src/index.js
     networks:
       - bicap-global-net 
 
