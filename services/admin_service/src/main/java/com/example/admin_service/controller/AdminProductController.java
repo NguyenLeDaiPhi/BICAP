@@ -1,4 +1,4 @@
-package main.java.com.bicap.trading_order_service.controller;
+package com.bicap.trading_order_service.controller;
 
 import com.bicap.trading_order_service.dto.AdminProductResponseDTO;
 import com.bicap.trading_order_service.dto.BanProductRequestDTO;

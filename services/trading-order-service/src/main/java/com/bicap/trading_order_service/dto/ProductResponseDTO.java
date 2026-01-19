@@ -1,4 +1,4 @@
-package main.java.com.bicap.trading_order_service.dto;
+package com.bicap.trading_order_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

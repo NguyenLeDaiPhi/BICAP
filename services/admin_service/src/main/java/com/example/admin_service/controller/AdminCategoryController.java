@@ -1,11 +1,13 @@
-package main.java.com.bicap.trading_order_service.controller;
+package com.bicap.trading_order_service.controller;
 
-import com.bicap.trading_order_service.dto.CategoryRequestDTO;
-import com.bicap.trading_order_service.dto.CategoryResponseDTO;
 import com.bicap.trading_order_service.service.ICategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+
+import com.bicap.trading_order_service.dto.CategoryRequestDTO;
+import com.bicap.trading_order_service.dto.CategoryResponseDTO;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
