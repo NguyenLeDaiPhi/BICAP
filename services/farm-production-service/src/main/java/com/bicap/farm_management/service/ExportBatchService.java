@@ -39,10 +39,9 @@ public class ExportBatchService {
         String traceUrl = "https://bicap.vn/trace/" + productionBatch.getBatchCode();
         try {
             // Tạo ảnh QR kích thước 250x250
-            byte[] qrImage = QRCodeGenerator.generateQRCodeImage(traceUrl, 250, 250);
+            String qrBase64 = QRCodeGenerator.generateQRCodeImage(traceUrl, 250, 250);
             
             // Lưu ảnh dưới dạng chuỗi Base64 để gửi về Frontend hiển thị luôn
-            String qrBase64 = Base64.getEncoder().encodeToString(qrImage);
             exportBatch.setQrCodeImage("data:image/png;base64," + qrBase64);
             
         } catch (Exception e) {

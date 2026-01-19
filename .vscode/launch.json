@@ -93,6 +93,27 @@
             "projectName": "com.bicap-blockchain-adapter-service",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-FarmManagementApplication<farm-production-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.farm_management.FarmManagementApplication",
+            "projectName": "farm-production-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=21149 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=farm-production-service"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-TradingOrderServiceApplication<trading_order_service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.trading_order_service.TradingOrderServiceApplication",
+            "projectName": "trading_order_service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <title>Giám sát Mùa vụ - BICAP</title>
+    <!-- Nhúng Bootstrap hoặc CSS của dự án -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .timeline { border-left: 3px solid #28a745; padding-left: 20px; margin-left: 10px; }
+        .timeline-item { position: relative; margin-bottom: 20px; }
+        .timeline-item::before {
+            content: ''; position: absolute; left: -26px; top: 5px;
+            width: 15px; height: 15px; background: #fff; border: 3px solid #28a745; border-radius: 50%;
+        }
+        .qr-container img { max-width: 200px; border: 1px solid #ddd; padding: 5px; }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>🌱 Giám sát Mùa vụ</h2>
+            <a href="/farm-info" class="btn btn-outline-secondary">Quay lại</a>
+        </div>
+
+        <% if (error) { %>
+            <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+
+        <% if (season) { %>
+            <div class="row">
+                <!-- Cột Trái: Thông tin chung -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title text-success"><%= season.batchCode %></h5>
+                            <p><strong>Sản phẩm:</strong> <%= season.productType %></p>
+                            <p><strong>Ngày bắt đầu:</strong> <%= season.startDate %></p>
+                            <p><strong>Trạng thái:</strong> 
+                                <span class="badge bg-primary"><%= season.status %></span>
+                            </p>
+                            <% if (season.txHash) { %>
+                                <div class="alert alert-info small">
+                                    <strong>Blockchain Hash:</strong><br>
+                                    <%= season.txHash.substring(0, 20) %>...
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Form thêm nhật ký -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">📝 Ghi nhật ký</div>
+                        <div class="card-body">
+                            <form action="/seasons/<%= season.id %>/processes" method="POST">
+                                <div class="mb-3">
+                                    <label class="form-label">Hoạt động</label>
+                                    <select name="processType" class="form-select">
+                                        <option value="WATERING">💧 Tưới nước</option>
+                                        <option value="FERTILIZING">💩 Bón phân</option>
+                                        <option value="PESTICIDE">💊 Phun thuốc</option>
+                                        <option value="HARVESTING">🌾 Thu hoạch</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Mô tả chi tiết</label>
+                                    <textarea name="description" class="form-control" rows="3" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Lưu nhật ký</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột Phải: Timeline -->
+                <div class="col-md-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">📅 Tiến trình canh tác</div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                <% if (processes && processes.length > 0) { %>
+                                    <% processes.forEach(function(proc) { %>
+                                        <div class="timeline-item">
+                                            <h6 class="fw-bold"><%= proc.processType %></h6>
+                                            <p class="text-muted small mb-1">
+                                                <%= new Date(proc.performedDate).toLocaleString('vi-VN') %>
+                                            </p>
+                                            <p class="mb-1"><%= proc.description %></p>
+                                            <% if (proc.txHash) { %>
+                                                <small class="text-success">✅ Đã lưu Blockchain</small>
+                                            <% } else { %>
+                                                <small class="text-warning">⏳ Đang đồng bộ...</small>
+                                            <% } %>
+                                        </div>
+                                    <% }); %>
+                                <% } else { %>
+                                    <p class="text-muted">Chưa có hoạt động nào được ghi nhận.</p>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>

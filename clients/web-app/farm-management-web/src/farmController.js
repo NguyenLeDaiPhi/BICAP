@@ -7,6 +7,9 @@ const BASE_API_URL = process.env.FARM_API_URL || 'http://farm-production-service
 // Thêm URL cho Auth service để fetch profile (tương tự profile.js)
 const AUTH_SERVICE_URL_UPDATE = process.env.AUTH_SERVICE_URL_UPDATE || 'http://default-url/api/update';
 
+// URL API Mùa vụ (Lấy từ biến môi trường hoặc mặc định)
+const SEASON_API_URL = process.env.FARMING_SEASONS_API_PATH || 'http://farm-production-service:8081/api/seasons';
+
 // 1. Hiển thị trang thông tin (Read)
 exports.getFarmInfoPage = async (req, res) => {
     try {
@@ -150,5 +153,59 @@ exports.updateFarmInfo = async (req, res) => {
             user: req.user,
             error: 'Lỗi cập nhật thông tin: ' + error.message
         });
+    }
+};
+
+// --- CÁC HÀM MỚI CHO SEASON MONITOR ---
+
+// 4. Xem chi tiết mùa vụ & Tiến trình
+exports.getSeasonMonitorPage = async (req, res) => {
+    try {
+        const batchId = req.params.id;
+        
+        // Gọi song song 2 API: Lấy thông tin lô & Lấy nhật ký
+        const [seasonResp, processResp] = await Promise.all([
+            axios.get(`${SEASON_API_URL}/${batchId}`, {
+                headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+            }),
+            axios.get(`${SEASON_API_URL}/${batchId}/processes`, {
+                headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+            })
+        ]);
+
+        res.render('season-monitor', {
+            season: seasonResp.data,
+            processes: processResp.data,
+            user: req.user,
+            error: null
+        });
+    } catch (error) {
+        console.error('Lỗi lấy thông tin mùa vụ:', error.message);
+        res.render('season-monitor', {
+            season: null,
+            processes: [],
+            user: req.user,
+            error: 'Không tìm thấy thông tin mùa vụ hoặc lỗi kết nối.'
+        });
+    }
+};
+
+// 5. Thêm nhật ký hoạt động (Tưới, Bón phân...)
+exports.addSeasonProcess = async (req, res) => {
+    try {
+        const batchId = req.params.id;
+        const { processType, description } = req.body;
+
+        await axios.post(`${SEASON_API_URL}/${batchId}/processes`, {
+            processType,
+            description
+        }, {
+            headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+        });
+
+        res.redirect(`/seasons/${batchId}`);
+    } catch (error) {
+        console.error('Lỗi thêm nhật ký:', error.message);
+        res.redirect(`/seasons/${req.params.id}?error=add_failed`);
     }
 };
