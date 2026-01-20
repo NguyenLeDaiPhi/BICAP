@@ -3,7 +3,11 @@ const orderService = require("./order.service");
 
 const showMarketplace = async (req, res) => {
   const keyword = req.query.name || "";
-  const products = await marketplaceService.getMarketplaceProducts(keyword);
+  const token = req.cookies.auth_token;
+  const products = await marketplaceService.getMarketplaceProducts(
+    keyword,
+    token
+  );
 
   res.render("marketplace", {
     user: req.user,
@@ -14,7 +18,8 @@ const showMarketplace = async (req, res) => {
 };
 
 const showMyOrders = async (req, res) => {
-  const orders = await orderService.getMyOrders(req.user.id);
+  const token = req.cookies.auth_token;
+  const orders = await orderService.getMyOrders(req.user.id, token);
 
   res.render("my-orders", {
     user: req.user,
@@ -24,7 +29,8 @@ const showMyOrders = async (req, res) => {
 };
 
 const showOrderDetail = async (req, res) => {
-  const order = await orderService.getOrderDetail(req.params.id);
+  const token = req.cookies.auth_token;
+  const order = await orderService.getOrderDetail(req.params.id, token);
 
   res.render("order-detail", {
     user: req.user,

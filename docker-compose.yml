@@ -137,7 +137,7 @@ services:
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
       - BICAP_APP_JWTEXPIRATIONMS=86400000
     ports:
-      - "8082:8081"
+      - "8082:8082"
     networks:
       - bicap-global-net
 
@@ -153,9 +153,9 @@ services:
       - NODE_ENV=development
       - RABBITMQ_URL=amqp://root:0862264719Phi@bicap-message-queue:5672
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
-      - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
+      - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/fetch-marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
       - "3000:3000"
     networks:

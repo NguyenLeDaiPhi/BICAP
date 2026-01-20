@@ -37,6 +37,8 @@ app.use(
 app.get("/login", auth.showLogin);
 app.post("/login", auth.login);
 app.post("/logout", auth.logout);
+app.get("/register", auth.showRegister);
+app.post("/register", auth.register);
 
 /* ================= PROTECTED PAGES ================= */
 app.get("/marketplace", auth.requireAuth, retailerController.showMarketplace);
@@ -114,7 +116,12 @@ app.post("/cart/remove", auth.requireAuth, (req, res) => {
 
 /* ================= HOME REDIRECT ================= */
 app.get("/", (req, res) => {
-  res.redirect("/marketplace");
+  const token = req.cookies.auth_token;
+  if (token) {
+    res.redirect("/marketplace");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 /* ================= START SERVER ================= */

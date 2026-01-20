@@ -59,7 +59,7 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
         product.setQuantity(request.getQuantity());
         product.setCategory(request.getCategory());
         product.setImageUrl(request.getImageUrl());
-        product.setStatus("PENDING");
+        product.setStatus("ACTIVE");
         product.setCreatedAt(LocalDateTime.now());
 
         // Send message to the trading order service
