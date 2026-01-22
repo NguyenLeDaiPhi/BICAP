@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= pageTitle %></title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+
+<div class="app">
+  <%- include("partials/sidebar", { user }) %>
+
+  <div class="main">
+    <%- include("partials/header", { pageTitle }) %>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <% if (!order) { %>
+          <p>Không tìm thấy đơn hàng</p>
+        <% } else { %>
+
+          <div class="card">
+            <p><strong>Mã đơn:</strong> #<%= order.id %></p>
+            <p><strong>Trạng thái:</strong> <%= order.status %></p>
+            <p><strong>Ngày đặt:</strong> <%= order.createdDate %></p>
+          </div>
+
+          <h3>Sản phẩm</h3>
+          <ul class="order-items">
+            <% order.items.forEach(i => { %>
+              <li>
+                <%= i.productName %> – SL: <%= i.quantity %>
+              </li>
+            <% }) %>
+          </ul>
+
+          <% if (order.status === "COMPLETED") { %>
+            <h3>Đánh giá đơn hàng</h3>
+            <form method="post" action="/orders/<%= order.id %>/feedback">
+              <textarea name="content" required></textarea>
+              <button class="primary-btn" type="submit">
+                Gửi đánh giá
+              </button>
+            </form>
+          <% } %>
+
+        <% } %>
+
+      </div>
+    </main>
+
+    <%- include("partials/footer") %>
+  </div>
+</div>
+
+<script src="/js/layout.js"></script>
+</body>
+</html>
