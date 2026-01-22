@@ -251,11 +251,13 @@ routes:
         config:
           path: /var/log/kong/retailer-marketplace-api.log
 
-  # New: Farming Seasons API
-  - name: farming-seasons-api
+  # --- START: FARM PRODUCTION SERVICE ROUTES (FOR SEASON MONITOR) ---
+
+  # Corrected: Route for creating and viewing seasons/batches
+  - name: production-batches-api
     service: farm-production-service
     paths:
-      - /api/farming-seasons
+      - /api/production-batches
     methods:
       - GET
       - POST
@@ -274,7 +276,33 @@ routes:
           credentials: true
       - name: file-log
         config:
-          path: /var/log/kong/farming-seasons-api.log
+          path: /var/log/kong/production-batches-api.log
+
+  # New: Route for exporting batches and generating QR codes
+  - name: export-batches-api
+    service: farm-production-service
+    paths:
+      - /api/export-batches
+    methods:
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/export-batches-api.log
+
+  # --- END: FARM PRODUCTION SERVICE ROUTES ---
 
   # Shipping Manager Service API
   - name: shipping-shipments-api
@@ -397,33 +425,33 @@ routes:
           methods: ["GET", "OPTIONS"]
           headers: ["Accept", "Content-Type", "Authorization"]
           credentials: true
-          - name: file-log
-            config:
-              path: /var/log/kong/shipping-reports-api.log
+      - name: file-log
+        config:
+          path: /var/log/kong/shipping-reports-api.log
 
-          - name: shipping-notifications-api
-            service: shipping-manager-service
-            paths:
-              - /api/notifications
-            methods:
-              - GET
-              - POST
-              - OPTIONS
-            strip_path: false
-            plugins:
-              - name: rate-limiting
-                config:
-                  minute: 100
-                  policy: local
-              - name: cors
-                config:
-                  origins: ["*"]
-                  methods: ["GET", "POST", "OPTIONS"]
-                  headers: ["Accept", "Content-Type", "Authorization"]
-                  credentials: true
-              - name: file-log
-                config:
-                  path: /var/log/kong/shipping-notifications-api.log
+  - name: shipping-notifications-api
+    service: shipping-manager-service
+    paths:
+      - /api/notifications
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/shipping-notifications-api.log
 
   # Public UI Routes (no JWT required)
   - name: retailer-public
@@ -490,8 +518,6 @@ routes:
       - /js
       - /index.html
       - /assets  # Added for farm-management-web static assets
-      - /src     # Added for farm-management-web scripts
-      - /public  # Added for farm-management-web uploads/public
     strip_path: false
     plugins:
       - name: cors
@@ -606,7 +632,7 @@ consumers:
       - key: retailer-secret-key  # Use in fetch headers if key-auth on auth-api
     acls:
       - group: retailer
-    jwt_secrets:  
+    jwt_secrets:
       - key: retailer-app  # Issuer in JWT has to match with key named retailer-app
         algorithm: HS256
         secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==  

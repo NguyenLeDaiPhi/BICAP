@@ -1,29 +1,39 @@
 package com.bicap.farm_management.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.bicap.farm_management.entity.ExportBatch;
 import com.bicap.farm_management.service.ExportBatchService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/export-batches")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") // Cho phép Frontend (React/Vue/Mobile) gọi API
 public class ExportBatchController {
-    @Autowired
-    private ExportBatchService exportService;
 
-    @PostMapping("/from-production/{batchId}")
-    public ResponseEntity<ExportBatch> createExport(@PathVariable Long batchId, @RequestBody ExportBatch exportBatch) {
-        ExportBatch created = exportService.createExportBatch(batchId, exportBatch);
-        return ResponseEntity.ok(created);
-    }
-    
-    // API để test xem ảnh QR Code trực tiếp (Nếu muốn)
-    @GetMapping(value = "/qr/{batchId}", produces = MediaType.IMAGE_PNG_VALUE)
-    public byte[] getQrImage(@PathVariable Long batchId) throws Exception {
-        // Đây chỉ là demo tạo ảnh động để test
-        return com.bicap.farm_management.util.QRCodeGenerator.generateQRCodeImage("Batch ID: " + batchId, 250, 250);
+    @Autowired
+    private ExportBatchService exportBatchService;
+
+    // 1. API Xuất hàng (Kết thúc mùa vụ + Tạo QR Code + Gửi Blockchain)
+    // Gọi: POST /api/export-batches/batch/{batchId}
+    // Body: { "quantity": 1000, "unit": "kg", "notes": "Xuất bán cho siêu thị" }
+    @PreAuthorize("hasRole('FARMMANAGER')")
+    @PostMapping("/batch/{batchId}")
+    public ResponseEntity<ExportBatch> createExportBatch(
+            @PathVariable Long batchId,
+            @RequestBody ExportBatch exportBatch) {
+        
+        // Gọi Service để xử lý logic nghiệp vụ
+        ExportBatch savedExport = exportBatchService.createExportBatch(batchId, exportBatch);
+        
+        // Trả về đối tượng đã lưu (bao gồm cả chuỗi Base64 của ảnh QR Code)
+        return ResponseEntity.ok(savedExport);
     }
 }
