@@ -196,6 +196,7 @@ services:
     container_name: admin-web
     depends_on:
       - kong-gateway
+      - admin-service
     environment:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
@@ -205,6 +206,8 @@ services:
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
       - API_GATEWAY_BASE_URL=http://localhost:8000
+      - ADMIN_SERVICE_URL=http://admin-service:8085
+      - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8081
     ports:
       - "3001:3001"
     networks:

@@ -28,10 +28,11 @@ public interface MarketplaceProductRepository extends JpaRepository<MarketplaceP
     long countByStatus(String status);
 
     // Admin: Tìm kiếm với bộ lọc (keyword, status, farmId) với phân trang
-    @Query("SELECT p FROM MarketplaceProduct p " +
-           "WHERE (:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "AND (:status IS NULL OR p.status = :status) " +
-           "AND (:farmId IS NULL OR p.farmManager.farmId = :farmId)")
+    // Sử dụng LEFT JOIN để lấy cả sản phẩm không có farmManager
+    @Query("SELECT p FROM MarketplaceProduct p LEFT JOIN p.farmManager fm " +
+           "WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:status IS NULL OR :status = '' OR p.status = :status) " +
+           "AND (:farmId IS NULL OR fm.farmId = :farmId)")
     Page<MarketplaceProduct> findWithFilters(
             @Param("keyword") String keyword,
             @Param("status") String status,

@@ -104,6 +104,8 @@
                     <select name="status" class="form-control">
                         <option value="">-- Tất cả trạng thái --</option>
                         <option value="ACTIVE" <%= status === 'ACTIVE' ? 'selected' : '' %>>Đang bán (Active)</option>
+                        <option value="APPROVED" <%= status === 'APPROVED' ? 'selected' : '' %>>Đã duyệt (Approved)</option>
+                        <option value="PENDING" <%= status === 'PENDING' ? 'selected' : '' %>>Chờ duyệt (Pending)</option>
                         <option value="BANNED" <%= status === 'BANNED' ? 'selected' : '' %>>Đã khóa (Banned)</option>
                     </select>
                 </div>
@@ -160,6 +162,10 @@
                           <td class="align-middle text-center text-sm">
                             <% if (p.status === 'ACTIVE') { %>
                                 <span class="badge badge-sm bg-gradient-success">Đang bán</span>
+                            <% } else if (p.status === 'APPROVED') { %>
+                                <span class="badge badge-sm bg-gradient-info">Đã duyệt</span>
+                            <% } else if (p.status === 'PENDING') { %>
+                                <span class="badge badge-sm bg-gradient-warning">Chờ duyệt</span>
                             <% } else if (p.status === 'BANNED') { %>
                                 <span class="badge badge-sm bg-gradient-danger">Đã khóa</span>
                             <% } else { %>
@@ -167,7 +173,7 @@
                             <% } %>
                           </td>
                           <td class="align-middle text-center">
-                            <% if (p.status === 'ACTIVE') { %>
+                            <% if (p.status === 'ACTIVE' || p.status === 'APPROVED') { %>
                                 <button class="btn btn-sm btn-outline-danger mb-0" onclick="openBanModal('<%= p.id %>', '<%= p.name %>')">
                                     <i class="material-symbols-rounded text-sm">block</i> Khóa
                                 </button>
@@ -176,7 +182,7 @@
                                     <i class="material-symbols-rounded text-sm">check_circle</i> Mở lại
                                 </button>
                             <% } %>
-                            <button class="btn btn-link text-info px-1 mb-0" onclick="showDetails('<%= JSON.stringify(p) %>')">
+                            <button class="btn btn-link text-info px-1 mb-0" onclick="showDetails(`<%= JSON.stringify(p).replace(/`/g, '\\`') %>`)">
                                 <i class="material-symbols-rounded text-sm">visibility</i>
                             </button>
                           </td>

@@ -183,16 +183,25 @@ router.get('/admin/products', requireAuth, requireAdmin, async (req, res) => {
     try {
         const { keyword = '', status = '', farmId = '', page = 0, size = 10 } = req.query;
         const headers = { Authorization: `Bearer ${req.accessToken}` };
-        
+
         console.log('Calling Admin Service for products at:', ADMIN_SERVICE_URL);
-        
+
+        // Chỉ gửi các tham số filter khi có giá trị, tránh truyền chuỗi rỗng gây lỗi/không khớp
+        const params = {
+            page,
+            size
+        };
+        if (keyword) params.keyword = keyword;
+        if (status) params.status = status;
+        if (farmId) params.farmId = farmId;
+
         // Gọi API lấy danh sách products từ Admin Service
-        const response = await axios.get(`${ADMIN_SERVICE_URL}/api/v1/admin/products`, { 
-            params: { keyword, status, farmId, page, size },
+        const response = await axios.get(`${ADMIN_SERVICE_URL}/api/v1/admin/products`, {
+            params,
             headers,
             timeout: 5000
         });
-        
+
         const payload = response.data || {};
         const products = payload.content || [];
         const pagination = {
@@ -201,7 +210,7 @@ router.get('/admin/products', requireAuth, requireAdmin, async (req, res) => {
             totalPages: payload.totalPages ?? 1,
             totalElements: payload.totalElements ?? products.length
         };
-        
+
         console.log('Products received:', products.length, 'items');
 
         res.render('admin-products', {
