@@ -397,33 +397,33 @@ routes:
           methods: ["GET", "OPTIONS"]
           headers: ["Accept", "Content-Type", "Authorization"]
           credentials: true
-          - name: file-log
-            config:
-              path: /var/log/kong/shipping-reports-api.log
+      - name: file-log
+        config:
+          path: /var/log/kong/shipping-reports-api.log
 
-          - name: shipping-notifications-api
-            service: shipping-manager-service
-            paths:
-              - /api/notifications
-            methods:
-              - GET
-              - POST
-              - OPTIONS
-            strip_path: false
-            plugins:
-              - name: rate-limiting
-                config:
-                  minute: 100
-                  policy: local
-              - name: cors
-                config:
-                  origins: ["*"]
-                  methods: ["GET", "POST", "OPTIONS"]
-                  headers: ["Accept", "Content-Type", "Authorization"]
-                  credentials: true
-              - name: file-log
-                config:
-                  path: /var/log/kong/shipping-notifications-api.log
+  - name: shipping-notifications-api
+    service: shipping-manager-service
+    paths:
+      - /api/notifications
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/shipping-notifications-api.log
 
   # Public UI Routes (no JWT required)
   - name: retailer-public

@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/vehicles")
@@ -31,14 +33,38 @@ public class VehicleController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<Vehicle> createVehicle(@RequestBody Vehicle vehicle) {
-        return ResponseEntity.ok(vehicleService.createVehicle(vehicle));
+    public ResponseEntity<?> createVehicle(@RequestBody Vehicle vehicle) {
+        try {
+            // Debug logging
+            System.out.println("📝 [DEBUG] Creating vehicle - Plate: " + vehicle.getPlate() + 
+                             ", Type: " + vehicle.getType() + 
+                             ", Status: " + vehicle.getStatus());
+            return ResponseEntity.ok(vehicleService.createVehicle(vehicle));
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ [ERROR] Validation error: " + e.getMessage());
+            // Trả về ErrorResponse object để Spring Boot tự động serialize thành JSON
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(400).body(errorResponse);
+        } catch (Exception e) {
+            System.out.println("❌ [ERROR] Unexpected error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Lỗi khi tạo xe: " + e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<Vehicle> updateVehicle(@PathVariable Long id, @RequestBody Vehicle vehicle) {
-        return ResponseEntity.ok(vehicleService.updateVehicle(id, vehicle));
+    public ResponseEntity<?> updateVehicle(@PathVariable Long id, @RequestBody Vehicle vehicle) {
+        try {
+            return ResponseEntity.ok(vehicleService.updateVehicle(id, vehicle));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi khi cập nhật xe: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

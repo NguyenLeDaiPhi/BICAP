@@ -15,7 +15,8 @@ public class Vehicle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String plate;
+    @Column(unique = true)
+    private String plate; // Biển số xe (phải unique)
     private String type;
     private String status; // AVAILABLE, BUSY
 }

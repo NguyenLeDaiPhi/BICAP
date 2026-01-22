@@ -11,6 +11,7 @@ const DriversPage = () => {
     name: '',
     phone: '',
     license: '',
+    citizenId: '',
     userId: null
   });
 
@@ -38,6 +39,7 @@ const DriversPage = () => {
         name: driver.name || '',
         phone: driver.phone || '',
         license: driver.license || '',
+        citizenId: driver.citizenId || '',
         userId: driver.userId || null
       });
     } else {
@@ -46,6 +48,7 @@ const DriversPage = () => {
         name: '',
         phone: '',
         license: '',
+        citizenId: '',
         userId: null
       });
     }
@@ -59,6 +62,7 @@ const DriversPage = () => {
       name: '',
       phone: '',
       license: '',
+      citizenId: '',
       userId: null
     });
   };
@@ -130,6 +134,7 @@ const DriversPage = () => {
                 <th>Họ tên</th>
                 <th>Số điện thoại</th>
                 <th>Bằng lái</th>
+                <th>Số CCCD</th>
                 <th>Hành động</th>
               </tr>
             </thead>
@@ -141,6 +146,7 @@ const DriversPage = () => {
                     <td>{driver.name}</td>
                     <td>{driver.phone}</td>
                     <td>{driver.license}</td>
+                    <td>{driver.citizenId || 'N/A'}</td>
                     <td>
                       <button
                         className="btn btn-sm btn-outline-primary me-2"
@@ -159,7 +165,7 @@ const DriversPage = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="text-center">
+                  <td colSpan="6" className="text-center">
                     Chưa có tài xế nào trong hệ thống.
                   </td>
                 </tr>
@@ -223,7 +229,7 @@ const DriversPage = () => {
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Bằng lái</label>
+                    <label className="form-label">Bằng lái <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control"
@@ -231,6 +237,19 @@ const DriversPage = () => {
                       onChange={(e) => setFormData({ ...formData, license: e.target.value })}
                       required
                     />
+                    <small className="form-text text-muted">Giấy phép lái xe phải là duy nhất</small>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Số căn cước công dân (CCCD) <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={formData.citizenId}
+                      onChange={(e) => setFormData({ ...formData, citizenId: e.target.value })}
+                      placeholder="VD: 001234567890"
+                      required
+                    />
+                    <small className="form-text text-muted">Số CCCD phải là duy nhất</small>
                   </div>
                   <div className="mb-3">
                     <label className="form-label">User ID (tùy chọn)</label>
