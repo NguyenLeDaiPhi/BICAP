@@ -98,6 +98,46 @@ const api = {
     }
   },
 
+  register: async (email, username, password, role) => {
+    try {
+      const registerData = {
+        email: email,
+        username: username,
+        password: password,
+        role: role || 'SHIPPINGMANAGER' // Không có ROLE_ prefix, auth service sẽ tự thêm
+      };
+
+      const response = await axios.post(`${AUTH_API_URL}/register`, registerData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Register API error:', error);
+      
+      let errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 400) {
+          errorMessage = typeof data === 'string' ? data : 'Thông tin đăng ký không hợp lệ';
+        } else if (data) {
+          errorMessage = typeof data === 'string' ? data : JSON.stringify(data);
+        }
+      } else if (error.request) {
+        errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra xem Auth Service đã chạy chưa.';
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      throw new Error(errorMessage);
+    }
+  },
+
   logout: () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
@@ -210,7 +250,7 @@ const api = {
         const data = error.response.data;
         
         if (status === 403 || status === 401) {
-          throw new Error('Access Denied: Bạn không có quyền thực hiện thao tác này. Vui lòng đảm bảo tài khoản có role SHIPPING_MANAGER.');
+          throw new Error('Access Denied: Bạn không có quyền thực hiện thao tác này. Vui lòng đảm bảo tài khoản có role ROLE_SHIPPINGMANAGER.');
         }
         
         throw new Error(typeof data === 'string' ? data : (data.message || 'Lỗi khi tạo tài xế'));
@@ -279,7 +319,7 @@ const api = {
         const data = error.response.data;
         
         if (status === 403 || status === 401) {
-          throw new Error('Access Denied: Bạn không có quyền thực hiện thao tác này. Vui lòng đảm bảo tài khoản có role SHIPPING_MANAGER.');
+          throw new Error('Access Denied: Bạn không có quyền thực hiện thao tác này. Vui lòng đảm bảo tài khoản có role ROLE_SHIPPINGMANAGER.');
         }
         
         throw new Error(typeof data === 'string' ? data : (data.message || 'Lỗi khi tạo xe'));

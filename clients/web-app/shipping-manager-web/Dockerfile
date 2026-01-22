@@ -19,5 +19,5 @@ COPY . .
 # Expose the port the app runs on (as requested)
 EXPOSE 3003
 
-# Command to run the application, pointing to the correct entrypoint
-CMD [ "npm", "start" ]
+# Command to run the application - chạy Express server trực tiếp với node
+CMD [ "node", "front-end/template/authentication.js" ]

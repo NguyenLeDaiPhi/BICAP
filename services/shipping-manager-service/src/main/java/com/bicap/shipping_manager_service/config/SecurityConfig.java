@@ -24,10 +24,24 @@ public class SecurityConfig {
 
     private final AuthTokenFilter authTokenFilter ;
 
+    /**
+     * CORS Configuration - CHỈ DÀNH CHO FRONTEND WEB APPS (Browser-based)
+     * Inter-service communication sử dụng RabbitMQ, không cần CORS
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"));
+        // Chỉ cho phép frontend web apps
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",  // Retailer Web
+            "http://localhost:3001",  // Admin Web
+            "http://localhost:3002",  // Farm Management Web
+            "http://localhost:3003",  // Shipping Manager Web
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:3001",
+            "http://127.0.0.1:3002",
+            "http://127.0.0.1:3003"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

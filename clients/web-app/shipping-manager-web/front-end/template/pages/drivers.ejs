@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="vi">
-<%- include('../partials/header') %>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Tài xế - Shipping Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 <body>
     <div class="d-flex">
         <%- include('../partials/sidebar') %>
@@ -8,8 +13,21 @@
         <div class="flex-grow-1 p-4" style="margin-left: 250px; background-color: #f8f9fa; min-height: 100vh;">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>👤 Quản lý Tài xế</h2>
-                <button class="btn btn-success">+ Thêm tài xế</button>
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createDriverModal">+ Thêm tài xế</button>
             </div>
+
+            <% if (typeof query !== 'undefined' && query.success) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <%= query.success %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+            <% if (typeof query !== 'undefined' && query.error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <%= query.error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
 
             <div class="card shadow-sm">
                 <table class="table table-striped">
@@ -19,6 +37,7 @@
                             <th>Họ tên</th>
                             <th>Số điện thoại</th>
                             <th>Bằng lái</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -29,16 +48,89 @@
                                     <td><%= driver.name %></td>
                                     <td><%= driver.phone %></td>
                                     <td><%= driver.license %></td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editDriverModal<%= driver.id %>">
+                                                Sửa
+                                            </button>
+                                            <form action="/drivers/<%= driver.id %>" method="POST" style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài xế này?');">
+                                                <input type="hidden" name="_method" value="DELETE">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                            </form>
+                                        </div>
+                                    </td>
                                 </tr>
+
+                                <!-- Edit Driver Modal -->
+                                <div class="modal fade" id="editDriverModal<%= driver.id %>" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <form action="/drivers/<%= driver.id %>" method="POST" class="modal-content">
+                                            <input type="hidden" name="_method" value="PUT">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Sửa thông tin tài xế</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" name="name" value="<%= driver.name %>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" name="phone" value="<%= driver.phone %>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Bằng lái <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" name="license" value="<%= driver.license %>" required>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             <% }); %>
                         <% } else { %>
-                            <tr><td colspan="4" class="text-center">Chưa có tài xế nào trong hệ thống.</td></tr>
+                            <tr><td colspan="5" class="text-center">Chưa có tài xế nào trong hệ thống.</td></tr>
                         <% } %>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Create Driver Modal -->
+            <div class="modal fade" id="createDriverModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <form action="/drivers" method="POST" class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Thêm tài xế mới</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="name" placeholder="VD: Nguyễn Văn A" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="phone" placeholder="VD: 0901234567" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Bằng lái <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="license" placeholder="VD: B2, C, D" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="submit" class="btn btn-primary">Thêm tài xế</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <%- include('../partials/footer') %>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

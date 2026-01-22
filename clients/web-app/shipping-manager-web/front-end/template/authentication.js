@@ -17,7 +17,7 @@ try {
 
 console.log('AUTH_SERVICE_URL', AUTH_SERVICE_URL);
 
-const APPLICATION_ROLE = "ROLE_SHIPPING_MANAGER"; // Sửa lại cho khớp với Java (có dấu gạch dưới)
+const APPLICATION_ROLE = "ROLE_SHIPPINGMANAGER"; // Role đúng theo ERole enum (không có dấu gạch dưới giữa SHIPPING và MANAGER)
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -100,7 +100,43 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.render('login', { error: null });
+    const message = req.query.message || null;
+    res.render('login', { error: null, message: message });
+});
+
+// -------------------------------------------------------------
+// REGISTER GET: Show registration form
+// -------------------------------------------------------------
+app.get('/register', (req, res) => {
+    res.render('register', { error: null });
+});
+
+// -------------------------------------------------------------
+// REGISTER POST: Register new user
+// -------------------------------------------------------------
+app.post('/register', async (req, res) => {
+    const { email, username, password, role } = req.body;
+    
+    try {
+        // 1. Call Java Backend to register
+        const response = await axios.post(`${AUTH_SERVICE_URL}/register`, {
+            email,
+            username,
+            password,
+            role: role || 'SHIPPINGMANAGER' // Không có ROLE_ prefix, UserRegistrationFactory sẽ tự thêm
+        });
+        
+        // 2. Registration successful, redirect to login
+        res.redirect('/login?message=Registration successful! Please login.');
+        
+    } catch (error) {
+        console.error('Register Route Error:', error.message);
+        const errorMsg = error.response && error.response.data 
+            ? (typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data))
+            : error.message;
+            
+        return res.status(400).render('register', { error: 'Registration Failed: ' + errorMsg });
+    }
 });
 
 // -------------------------------------------------------------
@@ -125,7 +161,7 @@ app.post('/login', async (req, res) => {
         // Java sends "roles" (plural) in the claim: .claim("roles", roles)
         const userRoles = decodedToken.roles;
 
-        // Check: Does the user have ROLE_SHIPPING_MANAGER?
+        // Check: Does the user have ROLE_SHIPPINGMANAGER?
         if (!userRoles || !userRoles.includes(APPLICATION_ROLE)) {
             console.error(`Role Mismatch: Required ${APPLICATION_ROLE}, Got ${userRoles}`);
             clearAuthCookie(res); 
@@ -160,6 +196,12 @@ app.get('/dashboard', requireAuth, async (req, res) => {
     // Gọi API lấy báo cáo và danh sách vận đơn
     const report = await apiService.getSummaryReport(token);
     const shipments = await apiService.getAllShipments(token);
+    const pendingDriverReports = await apiService.getPendingDriverReports(token);
+
+    // Tính toán thống kê từ shipments
+    const inTransitShipments = shipments.filter(s => s.status === 'IN_TRANSIT' || s.status === 'ASSIGNED').length;
+    const deliveredShipments = shipments.filter(s => s.status === 'DELIVERED').length;
+    const pendingShipments = shipments.filter(s => s.status === 'PENDING').length;
 
     res.render('dashboard', { 
         user: {
@@ -167,7 +209,13 @@ app.get('/dashboard', requireAuth, async (req, res) => {
             email: req.user.email,
             roles: req.user.roles
         },
-        report: report || {},
+        report: {
+            ...report,
+            inTransitShipments: inTransitShipments,
+            deliveredShipments: deliveredShipments,
+            pendingShipments: pendingShipments,
+            pendingDriverReportsCount: pendingDriverReports ? pendingDriverReports.length : 0
+        },
         shipments: shipments || []
     });
 });
@@ -179,7 +227,8 @@ app.get('/orders', requireAuth, async (req, res) => {
     
     res.render('pages/orders', {
         user: { username: req.user.sub },
-        orders: pendingOrders || []
+        orders: pendingOrders || [],
+        query: req.query // Pass query params for success/error messages
     });
 });
 
@@ -194,7 +243,8 @@ app.get('/shipments', requireAuth, async (req, res) => {
         user: { username: req.user.sub },
         shipments: shipments || [],
         drivers: drivers || [],
-        vehicles: vehicles || []
+        vehicles: vehicles || [],
+        query: req.query // Pass query params for success/error messages
     });
 });
 
@@ -202,35 +252,181 @@ app.get('/shipments', requireAuth, async (req, res) => {
 app.get('/vehicles', requireAuth, async (req, res) => {
     const token = req.cookies.auth_token;
     const vehicles = await apiService.getAllVehicles(token);
-    res.render('pages/vehicles', { user: { username: req.user.sub }, vehicles: vehicles || [] });
+    res.render('pages/vehicles', { 
+        user: { username: req.user.sub }, 
+        vehicles: vehicles || [],
+        query: req.query 
+    });
+});
+
+app.post('/vehicles', requireAuth, async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        await apiService.createVehicle(token, req.body);
+        res.redirect('/vehicles?success=Xe đã được thêm thành công');
+    } catch (error) {
+        console.error('Error creating vehicle:', error);
+        res.redirect('/vehicles?error=' + encodeURIComponent(error.message || 'Có lỗi xảy ra khi thêm xe'));
+    }
+});
+
+app.post('/vehicles/:id', requireAuth, async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        const vehicleId = req.params.id;
+        if (req.body._method === 'PUT') {
+            await apiService.updateVehicle(token, vehicleId, req.body);
+            res.redirect('/vehicles?success=Xe đã được cập nhật thành công');
+        } else if (req.body._method === 'DELETE') {
+            await apiService.deleteVehicle(token, vehicleId);
+            res.redirect('/vehicles?success=Xe đã được xóa thành công');
+        } else {
+            res.redirect('/vehicles?error=Phương thức không hợp lệ');
+        }
+    } catch (error) {
+        console.error('Error updating/deleting vehicle:', error);
+        const action = req.body._method === 'PUT' ? 'cập nhật' : 'xóa';
+        res.redirect('/vehicles?error=' + encodeURIComponent(`Có lỗi xảy ra khi ${action} xe: ${error.message || 'Vui lòng thử lại'}`));
+    }
 });
 
 // --- 4. Trang Quản lý Tài xế (Drivers) ---
 app.get('/drivers', requireAuth, async (req, res) => {
     const token = req.cookies.auth_token;
     const drivers = await apiService.getAllDrivers(token);
-    res.render('pages/drivers', { user: { username: req.user.sub }, drivers: drivers || [] });
+    res.render('pages/drivers', { 
+        user: { username: req.user.sub }, 
+        drivers: drivers || [],
+        query: req.query 
+    });
+});
+
+app.post('/drivers', requireAuth, async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        await apiService.createDriver(token, req.body);
+        res.redirect('/drivers?success=Tài xế đã được thêm thành công');
+    } catch (error) {
+        console.error('Error creating driver:', error);
+        res.redirect('/drivers?error=' + encodeURIComponent(error.message || 'Có lỗi xảy ra khi thêm tài xế'));
+    }
+});
+
+app.post('/drivers/:id', requireAuth, async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        const driverId = req.params.id;
+        if (req.body._method === 'PUT') {
+            await apiService.updateDriver(token, driverId, req.body);
+            res.redirect('/drivers?success=Tài xế đã được cập nhật thành công');
+        } else if (req.body._method === 'DELETE') {
+            await apiService.deleteDriver(token, driverId);
+            res.redirect('/drivers?success=Tài xế đã được xóa thành công');
+        } else {
+            res.redirect('/drivers?error=Phương thức không hợp lệ');
+        }
+    } catch (error) {
+        console.error('Error updating/deleting driver:', error);
+        const action = req.body._method === 'PUT' ? 'cập nhật' : 'xóa';
+        res.redirect('/drivers?error=' + encodeURIComponent(`Có lỗi xảy ra khi ${action} tài xế: ${error.message || 'Vui lòng thử lại'}`));
+    }
 });
 
 // --- 5. Trang Báo cáo (Reports) ---
 app.get('/reports', requireAuth, async (req, res) => {
     const token = req.cookies.auth_token;
-    // Giả sử lấy báo cáo tổng hợp
     const report = await apiService.getSummaryReport(token);
-    res.render('pages/reports', { user: { username: req.user.sub }, report: report || {} });
+    const driverReports = await apiService.getAllDriverReports(token);
+    const pendingDriverReports = await apiService.getPendingDriverReports(token);
+    const myAdminReports = await apiService.getMyAdminReports(token);
+    
+    res.render('pages/reports', { 
+        user: { username: req.user.sub }, 
+        report: report || {},
+        driverReports: driverReports || [],
+        pendingDriverReports: pendingDriverReports || [],
+        myAdminReports: myAdminReports || [],
+        query: req.query
+    });
+});
+
+app.post('/reports/admin', requireAuth, async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        const { title, description, reportType, priority } = req.body;
+        await apiService.sendReportToAdmin(token, {
+            title,
+            description,
+            reportType: reportType || 'GENERAL',
+            priority: priority || 'MEDIUM'
+        });
+        res.redirect('/reports?success=Báo cáo đã được gửi thành công');
+    } catch (error) {
+        console.error('Error sending report to admin:', error);
+        res.redirect('/reports?error=' + encodeURIComponent(error.message || 'Có lỗi xảy ra khi gửi báo cáo'));
+    }
+});
+
+// --- 6. Trang Gửi Thông báo (Notifications) ---
+app.get('/notifications', requireAuth, async (req, res) => {
+    res.render('pages/notifications', { 
+        user: { username: req.user.sub },
+        query: req.query
+    });
+});
+
+app.post('/notifications', requireAuth, async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        const { recipientType, title, message, priority, relatedOrderId } = req.body;
+        
+        const notificationData = {
+            recipientType,
+            title,
+            message,
+            priority: priority || 'MEDIUM'
+        };
+        
+        if (relatedOrderId && relatedOrderId.trim() !== '') {
+            notificationData.relatedOrderId = parseInt(relatedOrderId);
+        }
+        
+        await apiService.sendNotification(token, notificationData);
+        res.redirect('/notifications?success=Thông báo đã được gửi thành công');
+    } catch (error) {
+        console.error('Error sending notification:', error);
+        const errorMsg = error.response && error.response.data 
+            ? (typeof error.response.data === 'string' ? error.response.data : error.response.data.error || JSON.stringify(error.response.data))
+            : error.message;
+        res.redirect('/notifications?error=' + encodeURIComponent(errorMsg || 'Có lỗi xảy ra khi gửi thông báo'));
+    }
 });
 
 app.post('/shipments/create', requireAuth, async (req, res) => {
-    const token = req.cookies.auth_token;
-    await apiService.createShipment(token, req.body);
-    res.redirect('/shipments');
+    try {
+        const token = req.cookies.auth_token;
+        await apiService.createShipment(token, req.body);
+        res.redirect('/shipments?success=Tạo vận đơn thành công');
+    } catch (error) {
+        console.error('Error creating shipment:', error);
+        res.redirect('/orders?error=' + encodeURIComponent(error.message || 'Có lỗi xảy ra khi tạo vận đơn'));
+    }
 });
 
 app.post('/shipments/assign', requireAuth, async (req, res) => {
-    const token = req.cookies.auth_token;
-    const { shipmentId, driverId, vehicleId } = req.body;
-    const success = await apiService.assignDriver(token, shipmentId, driverId, vehicleId);
-    res.status(success ? 200 : 500).json({ message: success ? "Success" : "Failed" });
+    try {
+        const token = req.cookies.auth_token;
+        const { shipmentId, driverId, vehicleId } = req.body;
+        const success = await apiService.assignDriver(token, shipmentId, driverId, vehicleId);
+        if (success) {
+            res.redirect('/shipments?success=Gán xe thành công');
+        } else {
+            res.redirect('/shipments?error=Gán xe thất bại');
+        }
+    } catch (error) {
+        console.error('Error assigning driver:', error);
+        res.redirect('/shipments?error=' + encodeURIComponent(error.message || 'Có lỗi xảy ra'));
+    }
 });
 
 app.post('/logout', (req, res) => {
@@ -238,6 +434,6 @@ app.post('/logout', (req, res) => {
     res.redirect('/');
 });
 
-app.listen(port, () => {
-    console.log(`Server started on http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server started on http://0.0.0.0:${port}`);
 });

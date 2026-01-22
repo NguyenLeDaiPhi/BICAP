@@ -46,6 +46,14 @@
             </div>
             <div class="col-md-3">
                 <div class="card text-white bg-warning mb-3">
+                    <div class="card-header">Chờ xử lý</div>
+                    <div class="card-body">
+                        <h1 class="card-title"><%= report.pendingShipments || 0 %></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info mb-3">
                     <div class="card-header">Đang vận chuyển</div>
                     <div class="card-body">
                         <h1 class="card-title"><%= report.inTransitShipments || 0 %></h1>
@@ -57,6 +65,33 @@
                     <div class="card-header">Đã giao hàng</div>
                     <div class="card-body">
                         <h1 class="card-title"><%= report.deliveredShipments || 0 %></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-secondary mb-3">
+                    <div class="card-header">Tổng số tài xế</div>
+                    <div class="card-body">
+                        <h1 class="card-title"><%= report.totalDrivers || 0 %></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-dark mb-3">
+                    <div class="card-header">Tổng số xe</div>
+                    <div class="card-body">
+                        <h1 class="card-title"><%= report.totalVehicles || 0 %></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-danger mb-3">
+                    <div class="card-header">Báo cáo chờ xử lý</div>
+                    <div class="card-body">
+                        <h1 class="card-title"><%= report.pendingDriverReportsCount || 0 %></h1>
                     </div>
                 </div>
             </div>
