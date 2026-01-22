@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const { serialize } = require('cookie');
+const axios = require('axios');
 require('dotenv').config({ path: path.resolve(__dirname, '..', 'config', '.env') });
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
@@ -17,7 +18,9 @@ app.set("views", path.join(__dirname, "..", "front-end", "template"));
 app.set("view engine", "ejs");
 
 app.use(express.static(path.join(__dirname, "..", "front-end")));
+app.use('/assets', express.static(path.join(__dirname, "..", "assets"))); // serve CSS/JS/img
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json()); // Cho các route JSON ở admin.js (ví dụ reject lý do)
 app.use(cookieParser());
 
 // Set the clear authentication cookie for user when logout
@@ -74,29 +77,35 @@ app.post('/login', async(req, res) => {
     const { email, password } = req.body;
 
     try {
-        const apiResponse = await fetch(`${AUTH_SERVICE_URL}/login`, {
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json'},
-            body: JSON.stringify({ email, password })
+        console.log('Attempting login for:', email);
+        console.log('AUTH_SERVICE_URL:', AUTH_SERVICE_URL);
+        console.log('Full URL:', `${AUTH_SERVICE_URL}/login`);
+        
+        const apiResponse = await axios.post(`${AUTH_SERVICE_URL}/login`, { email, password }, {
+            headers: { 'Content-Type': 'application/json' }
         });
 
-        const responseText = await apiResponse.text();
+        console.log('Login successful, response status:', apiResponse.status);
 
-        if (!apiResponse.ok) {
-            console.log('Login from api: ', responseText);
-            return res.status(apiResponse.status).render('login', { error: responseText || "Invalid Credentials", success: null});
+        const accessToken =
+            typeof apiResponse.data === 'string'
+                ? apiResponse.data
+                : apiResponse.data?.accessToken || apiResponse.data?.access_token || apiResponse.data?.token;
+
+        if (!accessToken) {
+            return res.status(502).render('login', { error: 'Auth service did not return token', success: null });
         }
 
-        const accessToken = responseText;
-
         const decodedToken = jwt.verify(accessToken, JWT_SECRET);
-
         const userRoles = decodedToken.roles;
 
+        // Log ra để debug xem Java trả về Role gì
+        console.log("User Roles from Token:", userRoles); 
+
         if (!userRoles || !userRoles.includes(APPLICATION_ROLE)) {
-            console.error(`Role Mismatch: Required ${APPLICATION_ROLE}, Got ${userRoles}`);
+            console.error(`Role Mismatch: Required ${APPLICATION_ROLE}, Got ${JSON.stringify(userRoles)}`);
             clearAuthCookie(res);
-            return res.status(403).render('login', { error: `Access Denied. You need ${APPLICATION_ROLE}.` });
+            return res.status(403).render('login', { error: 'Bạn không có quyền truy cập Admin!', success: null });
         }
 
         const cookie = serialize('auth_token', accessToken, {
@@ -108,9 +117,32 @@ app.post('/login', async(req, res) => {
         });
         res.setHeader('Set-Cookie', cookie);
         res.redirect('/dashboard');
+
     } catch (error) {
-        console.error('Login Route Error:', error.message);
-        return res.status(503).render('login', { error: "Login failed: " + error.message, success: null});
+        const status = error.response?.status || 503;
+        
+        console.error('Login Error Details:');
+        console.error('Status:', status);
+        console.error('Response data:', error.response?.data);
+        console.error('Error message:', error.message);
+        
+        // --- PHẦN SỬA LỖI [object Object] ---
+        let msg = 'Login failed';
+        if (error.response && error.response.data) {
+            // Nếu Java trả về object, hãy lấy thuộc tính message hoặc error của nó
+            const data = error.response.data;
+            if (typeof data === 'object') {
+                msg = data.message || data.error || JSON.stringify(data);
+            } else {
+                msg = data; // Nếu là string
+            }
+        } else if (error.message) {
+            msg = error.message;
+        }
+        // ------------------------------------
+
+        console.error('Login Route Error:', msg);
+        return res.status(status).render('login', { error: msg, success: null});
     }
 });
 
@@ -118,6 +150,14 @@ app.post('/logout', (req, res) => {
     clearAuthCookie(res);
     res.redirect('/');
 });
+
+// Mount Admin routes (Dashboard + APIs)
+const adminRouter = require('./admin');
+app.use('/', adminRouter);
+
+// Mount Admin Order routes (Categories, Products, Orders)
+const adminOrderRouter = require('./adminOrder');
+app.use('/', adminOrderRouter);
 
 app.listen(port, () => {
     console.log(`Server started on http://localhost:${port}`);

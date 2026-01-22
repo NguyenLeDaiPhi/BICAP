@@ -20,19 +20,25 @@ public class RabbitMQConfigConsumer {
     @Value("${bicap.farm.product.routing_key:product.routing_key}")
     private String routingKey;
 
+<<<<<<< HEAD
     @Value("${bicap.auth.response.queue:bicap.auth.response.queue}")
     private String authResponseQueue;
 
+=======
+>>>>>>> admin_service
     @Bean
     public Queue productQueue() {
         return new Queue(productQueue, true);
     }
 
+<<<<<<< HEAD
     @Bean
     public Queue authQueue() {
         return new Queue(authResponseQueue, true);
     }
 
+=======
+>>>>>>> admin_service
     @Bean 
     public TopicExchange topicExchange() {
         return new TopicExchange(productExchange); 

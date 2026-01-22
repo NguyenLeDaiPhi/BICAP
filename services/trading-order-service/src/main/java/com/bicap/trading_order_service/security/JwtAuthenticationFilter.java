@@ -28,7 +28,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
+<<<<<<< HEAD
             FilterChain filterChain 
+=======
+            FilterChain filterChain
+>>>>>>> admin_service
     ) throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");

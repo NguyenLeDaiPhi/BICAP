@@ -27,6 +27,18 @@ public class MarketplaceProduct {
     private String status;
     private LocalDateTime createdAt;
 
+<<<<<<< HEAD
+=======
+    @Column(name = "category_id")
+    private Long categoryId;
+
+    @Column(name = "stock_quantity")
+    private Integer stockQuantity;
+
+    @Column(name = "ban_reason", columnDefinition = "TEXT")
+    private String banReason;
+
+>>>>>>> admin_service
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_manager_id")
     @JsonBackReference

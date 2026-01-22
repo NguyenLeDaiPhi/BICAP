@@ -16,7 +16,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3004;
 
 // Base64 String from Java properties (FIX: Remove extra 'Cg==' to eliminate trailing newline in decoded key)
 const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
