@@ -24,7 +24,8 @@ public class ExportBatchController {
     // 1. API Xuất hàng (Kết thúc mùa vụ + Tạo QR Code + Gửi Blockchain)
     // Gọi: POST /api/export-batches/batch/{batchId}
     // Body: { "quantity": 1000, "unit": "kg", "notes": "Xuất bán cho siêu thị" }
-    @PreAuthorize("hasRole('FARMMANAGER')")
+    // Use hasAuthority instead of hasRole to match SecurityConfig
+    @PreAuthorize("hasAuthority('ROLE_FARMMANAGER')")
     @PostMapping("/batch/{batchId}")
     public ResponseEntity<ExportBatch> createExportBatch(
             @PathVariable Long batchId,

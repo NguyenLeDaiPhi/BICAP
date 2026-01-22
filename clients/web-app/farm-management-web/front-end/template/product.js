@@ -53,9 +53,13 @@ async function loadProducts(farmId) {
     tableBody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading products...</td></tr>';
     
     try {
-        // PRODUCT_API_URL is defined in the EJS template
-        const response = await fetch(`${PRODUCT_API_URL}/farm/${farmId}`, {
-            credentials: 'include'
+        // Use proxy route through Node.js backend instead of direct API call
+        const response = await fetch(`/api/marketplace-products/farm/${farmId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include' // Quan trọng: gửi cookie
         });
 
         if (!response.ok) {
@@ -188,16 +192,18 @@ async function handleFormSubmit(event) {
         batchId: document.getElementById('batchId') ? document.getElementById('batchId').value : null
     };
 
-    const url = isEdit ? `${PRODUCT_API_URL}/${productId}` : PRODUCT_API_URL;
+    // Use proxy route through Node.js backend instead of direct API call
+    const url = isEdit ? `/api/marketplace-products/${productId}` : '/api/marketplace-products';
     const method = isEdit ? 'PUT' : 'POST';
 
     try {
+        // Backend sử dụng cookie (requireAuth middleware), không cần Authorization header
         const response = await fetch(url, {
             method: method,
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            credentials: 'include',
+            credentials: 'include', // Quan trọng: gửi cookie
             body: JSON.stringify(productData)
         });
 
@@ -233,9 +239,13 @@ async function deleteProduct(productId) {
     }
 
     try {
-        const response = await fetch(`${PRODUCT_API_URL}/${productId}`, {
+        // Use proxy route through Node.js backend instead of direct API call
+        const response = await fetch(`/api/marketplace-products/${productId}`, {
             method: 'DELETE',
-            credentials: 'include'
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include' // Quan trọng: gửi cookie
         });
 
         if (!response.ok) {

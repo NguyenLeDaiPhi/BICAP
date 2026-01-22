@@ -12,7 +12,7 @@
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
   <link href="/assets/css/nucleo-icons.css" rel="stylesheet" />
   <link href="/assets/css/nucleo-svg.css" rel="stylesheet" />
-  <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <link id="pagestyle" href="/assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
 </head>
@@ -216,8 +216,59 @@
                 <div class="card-body text-center py-5">
                     <i class="material-symbols-rounded text-muted" style="font-size: 64px;">agriculture</i>
                     <h5 class="mt-3">Chưa có thông tin trang trại</h5>
-                    <p class="text-muted">Bạn chưa tạo hoặc cập nhật thông tin trang trại. Vui lòng liên hệ quản trị viên để khởi tạo.</p>
-                    <a href="/dashboard" class="btn btn-primary mt-3">Quay lại trang chủ</a>
+                    <p class="text-muted">Bạn chưa tạo trang trại. Hãy tạo trang trại mới để bắt đầu sử dụng hệ thống.</p>
+                    <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#createFarmModal">
+                        <i class="material-symbols-rounded text-sm me-2">add</i> Tạo trang trại mới
+                    </button>
+                    <a href="/dashboard" class="btn btn-outline-secondary mt-3 ms-2">Quay lại trang chủ</a>
+                </div>
+            </div>
+
+            <!-- Modal: Tạo trang trại mới -->
+            <div class="modal fade" id="createFarmModal" tabindex="-1" aria-labelledby="createFarmModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createFarmModalLabel">Tạo trang trại mới</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="createFarmForm" action="/farm-info/create" method="POST">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="farmName" class="form-label">Tên trang trại <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="farmName" name="farmName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Địa chỉ <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="address" name="address" rows="2" required></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" value="<%= user?.email || '' %>">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phone" class="form-label">Số điện thoại</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="area" class="form-label">Diện tích (Ha)</label>
+                                        <input type="number" class="form-control" id="area" name="area" step="0.01" min="0">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Mô tả</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit" class="btn btn-primary">Tạo trang trại</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         <% } else { %>

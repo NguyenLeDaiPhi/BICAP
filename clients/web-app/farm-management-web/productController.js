@@ -22,16 +22,40 @@ exports.getProductsPage = async (req, res) => {
         const farmId = await getFarmId(ownerId, token);
 
         // Construct the correct marketplace URL for the frontend
-        const marketplaceApiHost = process.env.API_GATEWAY_BASE_URL || 'http://localhost:8000';
-        const marketplaceApiPath = process.env.MARKETPLACE_API_PATH.startsWith('/') 
-            ? process.env.MARKETPLACE_API_PATH 
-            : new URL(process.env.MARKETPLACE_API_PATH).pathname;
+        // Frontend runs in browser, so must use localhost or public IP, not Docker service name
+        let marketplaceApiHost = process.env.API_GATEWAY_BASE_URL || 'http://localhost:8000';
+        
+        // Replace Docker service names with localhost for browser access
+        if (marketplaceApiHost.includes('kong-gateway')) {
+            marketplaceApiHost = marketplaceApiHost.replace('kong-gateway', 'localhost');
+        }
+        
+        // Get marketplace API path
+        let marketplaceApiPath = '/api/marketplace-products';
+        if (process.env.MARKETPLACE_API_PATH) {
+            if (process.env.MARKETPLACE_API_PATH.startsWith('/')) {
+                marketplaceApiPath = process.env.MARKETPLACE_API_PATH;
+            } else {
+                try {
+                    const url = new URL(process.env.MARKETPLACE_API_PATH);
+                    marketplaceApiPath = url.pathname;
+                } catch (e) {
+                    // If not a valid URL, assume it's just a path
+                    marketplaceApiPath = process.env.MARKETPLACE_API_PATH.startsWith('/') 
+                        ? process.env.MARKETPLACE_API_PATH 
+                        : `/${process.env.MARKETPLACE_API_PATH}`;
+                }
+            }
+        }
+
+        const marketplaceApiUrl = `${marketplaceApiHost}${marketplaceApiPath}`;
+        console.log(`Product API URL for frontend: ${marketplaceApiUrl}`);
 
         res.render('products', {
             farmId: farmId,
             user: req.user,
             error: farmId ? null : 'Could not find your farm. Please create a farm first.',
-            marketplaceApiUrl: `${marketplaceApiHost}${marketplaceApiPath}`
+            marketplaceApiUrl: marketplaceApiUrl
         });
 
     } catch (error) {
@@ -40,7 +64,7 @@ exports.getProductsPage = async (req, res) => {
             farmId: null,
             user: req.user,
             error: 'Could not load product management page.',
-            marketplaceApiUrl: null
+            marketplaceApiUrl: 'http://localhost:8000/api/marketplace-products'
         });
     }
 };

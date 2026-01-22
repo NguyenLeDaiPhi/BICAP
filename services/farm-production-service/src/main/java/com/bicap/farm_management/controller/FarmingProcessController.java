@@ -26,7 +26,8 @@ public class FarmingProcessController {
     @Autowired
     private FarmingProcessService processService;
 
-    @PreAuthorize("hasRole('FARMMANAGER')")
+    // Use hasAuthority instead of hasRole to match SecurityConfig
+    @PreAuthorize("hasAuthority('ROLE_FARMMANAGER')")
     @PostMapping("/batch/{batchId}")
     public ResponseEntity<?> addProcess(@PathVariable Long batchId, @RequestBody FarmingProcess process, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
@@ -36,7 +37,8 @@ public class FarmingProcessController {
         return ResponseEntity.ok(processService.addProcess(batchId, process, userId));
     }
 
-    @PreAuthorize("hasAnyRole('FARMMANAGER', 'ADMIN', 'RETAILER')") // Cho phép các vai trò xem tiến trình
+    // Use hasAnyAuthority instead of hasAnyRole to match SecurityConfig
+    @PreAuthorize("hasAnyAuthority('ROLE_FARMMANAGER', 'ROLE_ADMIN', 'ROLE_RETAILER')") // Cho phép các vai trò xem tiến trình
     @GetMapping("/batch/{batchId}")
     public List<FarmingProcess> getHistory(@PathVariable Long batchId) {
         return processService.getProcessesByBatch(batchId);

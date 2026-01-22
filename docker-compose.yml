@@ -280,12 +280,21 @@ services:
     container_name: farm-management-web
     depends_on:
       - kong-gateway
+      - bicap-message-queue
     environment:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - NODE_ENV=development
+      - DOCKER_ENV=true
       - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
+      - RABBITMQ_ENABLED=true
       # Hướng tất cả các lệnh gọi API của frontend qua Kong Gateway một cách nhất quán
+      - FARM_API_URL=http://kong-gateway:8000/api/farm-features
+      - PRODUCTION_BATCH_API_URL=http://kong-gateway:8000/api/production-batches
+      - FARMING_PROCESS_API_URL=http://kong-gateway:8000/api/farming-processes
+      - EXPORT_BATCH_API_URL=http://kong-gateway:8000/api/export-batches
+      - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
+      - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/production-batches
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
       - "3002:3002"

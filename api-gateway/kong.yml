@@ -209,9 +209,16 @@ routes:
     methods:
       - GET
       - POST
+      - PUT
+      - DELETE
       - OPTIONS
     strip_path: false
     plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
       - name: rate-limiting
         config:
           minute: 100
@@ -219,7 +226,7 @@ routes:
       - name: cors
         config:
           origins: ["*"]
-          methods: ["GET", "POST", "OPTIONS"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
           headers: ["Accept", "Content-Type", "Authorization"]
           credentials: true
       - name: file-log
@@ -301,6 +308,57 @@ routes:
       - name: file-log
         config:
           path: /var/log/kong/export-batches-api.log
+
+  # Route for farming processes (update season progress)
+  - name: farming-processes-api
+    service: farm-production-service
+    paths:
+      - /api/farming-processes
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/farming-processes-api.log
+
+  # Route for farm features (get farm info)
+  - name: farm-features-api
+    service: farm-production-service
+    paths:
+      - /api/farm-features
+    methods:
+      - GET
+      - POST
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/farm-features-api.log
 
   # --- END: FARM PRODUCTION SERVICE ROUTES ---
 
@@ -518,6 +576,7 @@ routes:
       - /js
       - /index.html
       - /assets  # Added for farm-management-web static assets
+      - /uploads  # Added for uploaded files
     strip_path: false
     plugins:
       - name: cors
@@ -526,6 +585,33 @@ routes:
           methods: ["GET", "POST", "OPTIONS"]
           headers: ["Accept", "Content-Type"]
           credentials: true
+
+  # Farm Management Web API Routes (internal API endpoints)
+  - name: farm-management-api
+    service: farm-management-web
+    paths:
+      - /api/season-monitor
+      - /api/notifications
+      - /api/update
+      - /upload
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
 
   # Protected Routes (requires valid JWT from auth-service)
   - name: retailer-protected

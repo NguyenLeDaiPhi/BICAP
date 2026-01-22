@@ -42,9 +42,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 request.setAttribute("userId", userId);
 
                 // 3. Convert roles to GrantedAuthority
+                // Spring Security's hasRole() automatically adds "ROLE_" prefix
+                // So if token has "ROLE_FARMMANAGER", we need to pass it as-is
+                // If token has "FARMMANAGER", we need to add "ROLE_" prefix
+                System.out.println("🔐 [JWT Filter] Raw roles from token: " + rolesStr);
                 List<SimpleGrantedAuthority> authorities = Arrays.stream(rolesStr.split(","))
-                        .map(SimpleGrantedAuthority::new)
+                        .map(role -> {
+                            String trimmedRole = role.trim();
+                            // If role doesn't start with ROLE_, add it
+                            if (!trimmedRole.startsWith("ROLE_")) {
+                                trimmedRole = "ROLE_" + trimmedRole;
+                            }
+                            System.out.println("🔐 [JWT Filter] Creating authority: " + trimmedRole);
+                            return new SimpleGrantedAuthority(trimmedRole);
+                        })
                         .collect(Collectors.toList());
+                System.out.println("🔐 [JWT Filter] Total authorities: " + authorities.size());
+                authorities.forEach(auth -> System.out.println("  - " + auth.getAuthority()));
 
                 // 4. Create Authentication object
                 UsernamePasswordAuthenticationToken authentication = 

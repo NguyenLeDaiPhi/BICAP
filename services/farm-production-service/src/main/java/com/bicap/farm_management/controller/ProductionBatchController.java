@@ -25,7 +25,8 @@ public class ProductionBatchController {
 
     // 1. API Tạo Lô sản xuất (Sẽ tự động bắn tin nhắn sang Blockchain)
     // Gọi: POST /api/production-batches/farm/{farmId}
-    @PreAuthorize("hasRole('FARMMANAGER')")
+    // Use hasAuthority instead of hasRole to match SecurityConfig
+    @PreAuthorize("hasAuthority('ROLE_FARMMANAGER')")
     @PostMapping("/farm/{farmId}")
     public ProductionBatch createBatch(@PathVariable Long farmId, @RequestBody ProductionBatch batch) {
         return batchService.createBatch(farmId, batch);
@@ -33,7 +34,8 @@ public class ProductionBatchController {
 
     // 2. API Xem danh sách Lô sản xuất của một Trang trại
     // Gọi: GET /api/production-batches/farm/{farmId}
-    @PreAuthorize("hasAnyRole('FARMMANAGER', 'ADMIN')")
+    // Use hasAnyAuthority instead of hasRole to match SecurityConfig
+    @PreAuthorize("hasAnyAuthority('ROLE_FARMMANAGER', 'ROLE_ADMIN')")
     @GetMapping("/farm/{farmId}")
     public List<ProductionBatch> getBatchesByFarm(@PathVariable Long farmId) {
         return batchService.getBatchesByFarm(farmId);
@@ -41,7 +43,8 @@ public class ProductionBatchController {
 
     // 3. API Xem chi tiết mùa vụ (Monitor: Info + Process + Export + QR)
     // Gọi: GET /api/production-batches/{id}/detail
-    @PreAuthorize("hasAnyRole('FARMMANAGER', 'ADMIN')") // Hoặc có thể cho cả RETAILER xem
+    // Use hasAnyAuthority instead of hasRole to match SecurityConfig
+    @PreAuthorize("hasAnyAuthority('ROLE_FARMMANAGER', 'ROLE_ADMIN')") // Hoặc có thể cho cả RETAILER xem
     @GetMapping("/{id}/detail")
     public com.bicap.farm_management.dto.SeasonDetailResponse getSeasonDetail(@PathVariable Long id) {
         return batchService.getSeasonDetail(id);
