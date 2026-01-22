@@ -16,4 +16,9 @@ public interface IOrderService {
     OrderResponse confirmOrder(Long orderId);
 
     OrderResponse rejectOrder(Long orderId);
+
+    List<OrderResponse> getOrdersByBuyerEmail(String buyerEmail);
+
+       OrderResponse getOrderDetailByIdAndBuyerEmail(Long orderId, String buyerEmail);
+
 }

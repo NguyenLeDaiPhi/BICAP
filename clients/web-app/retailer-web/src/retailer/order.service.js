@@ -1,14 +1,10 @@
 const api = require("../../config/axios");
 
-const getMyOrders = async (userId, token) => {
+const getMyOrders = async (token) => {
   try {
-    const res = await api.get("/api/orders", {
+    const res = await api.get("/api/orders/my", {
       headers: {
         Authorization: `Bearer ${token}`,
-      },
-      params: {
-        // farmId is used in the backend for filtering orders by retailer
-        farmId: userId,
       },
     });
     return res.data;
@@ -20,7 +16,7 @@ const getMyOrders = async (userId, token) => {
 
 const getOrderDetail = async (orderId, token) => {
   try {
-    const res = await api.get(`/api/orders/${orderId}`, {
+    const res = await api.get(`/api/orders/detail/${orderId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -31,6 +27,7 @@ const getOrderDetail = async (orderId, token) => {
     return null;
   }
 };
+
 
 module.exports = {
   getMyOrders,

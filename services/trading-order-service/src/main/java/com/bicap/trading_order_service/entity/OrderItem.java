@@ -67,4 +67,8 @@ public class OrderItem {
     public void setUnitPrice(BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
     }
+    public MarketplaceProduct getProduct() {
+        return product;
+    }
+
 }

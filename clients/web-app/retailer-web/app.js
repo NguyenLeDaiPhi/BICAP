@@ -3,6 +3,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const session = require("express-session");
+const fetch = global.fetch; // Node 18+
 
 const auth = require("./src/auth/authentication");
 const retailerController = require("./src/retailer/retailer.controller");
@@ -57,7 +58,6 @@ app.get("/cart", auth.requireAuth, (req, res) => {
 
 /* ================= CART API ================= */
 
-/* ADD TO CART */
 app.post("/cart/add", auth.requireAuth, (req, res) => {
   const { product } = req.body;
 
@@ -80,35 +80,24 @@ app.post("/cart/add", auth.requireAuth, (req, res) => {
   res.json({ message: "Đã thêm vào giỏ hàng" });
 });
 
-/* UPDATE QTY */
 app.post("/cart/update", auth.requireAuth, (req, res) => {
   const { id, delta } = req.body;
 
-  if (!req.session.cart) {
-    return res.json({ success: false });
-  }
+  if (!req.session.cart) return res.json({ success: false });
 
   const item = req.session.cart.find((i) => i.id == id);
-  if (!item) {
-    return res.json({ success: false });
-  }
+  if (!item) return res.json({ success: false });
 
   item.quantity += delta;
   if (item.quantity < 1) item.quantity = 1;
 
-  res.json({
-    success: true,
-    quantity: item.quantity,
-  });
+  res.json({ success: true, quantity: item.quantity });
 });
 
-/* REMOVE ITEM */
 app.post("/cart/remove", auth.requireAuth, (req, res) => {
   const { id } = req.body;
 
-  if (!req.session.cart) {
-    return res.json({ success: false });
-  }
+  if (!req.session.cart) return res.json({ success: false });
 
   req.session.cart = req.session.cart.filter((i) => i.id != id);
   res.json({ success: true });
@@ -117,10 +106,43 @@ app.post("/cart/remove", auth.requireAuth, (req, res) => {
 /* ================= HOME REDIRECT ================= */
 app.get("/", (req, res) => {
   const token = req.cookies.auth_token;
-  if (token) {
-    res.redirect("/marketplace");
-  } else {
-    res.redirect("/login");
+  if (token) res.redirect("/marketplace");
+  else res.redirect("/login");
+});
+
+/* =================================================
+   🔥 API PROXY → KONG (ĐÃ FIX)
+   ================================================= */
+app.use("/api", auth.requireAuth, async (req, res) => {
+  try {
+    const kongUrl = `http://localhost:8000${req.originalUrl}`;
+    const authToken = req.cookies.auth_token;
+
+    const response = await fetch(kongUrl, {
+      method: req.method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body:
+        req.method === "GET" || req.method === "HEAD"
+          ? undefined
+          : JSON.stringify(req.body),
+    });
+
+    const contentType = response.headers.get("content-type");
+
+    if (contentType && contentType.includes("application/json")) {
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } else {
+      const text = await response.text();
+      res.status(response.status).send(text);
+    }
+
+  } catch (err) {
+    console.error("API proxy error:", err);
+    res.status(502).json({ message: "Gateway error" });
   }
 });
 

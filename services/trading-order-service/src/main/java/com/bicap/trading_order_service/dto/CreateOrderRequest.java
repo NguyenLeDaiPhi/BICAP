@@ -1,22 +1,25 @@
 package com.bicap.trading_order_service.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Email;
 import java.util.List;
 
 public class CreateOrderRequest {
 
+    // ✅ THAY buyerId → buyerEmail
     @NotNull
-    private Long buyerId;
+    @Email
+    private String buyerEmail;
 
     @NotNull
     private List<OrderItemRequest> items;
 
-    public Long getBuyerId() {
-        return buyerId;
+    public String getBuyerEmail() {
+        return buyerEmail;
     }
 
-    public void setBuyerId(Long buyerId) {
-        this.buyerId = buyerId;
+    public void setBuyerEmail(String buyerEmail) {
+        this.buyerEmail = buyerEmail;
     }
 
     public List<OrderItemRequest> getItems() {

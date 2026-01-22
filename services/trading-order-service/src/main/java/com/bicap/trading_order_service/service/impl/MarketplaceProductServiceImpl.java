@@ -88,4 +88,16 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
         response.setIsApproved("APPROVED".equals(product.getStatus()));
         return response;
     }
+    //search
+   @Override
+    public List<MarketplaceProduct> searchByName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            System.out.println(">>> SEARCH BY NAME = " + name);
+            return repository.findAll();
+
+        }
+        System.out.println(">>> SEARCH BY NAME = " + name);
+        return repository.findByNameContainingIgnoreCase(name.trim());
+        
+    }
 }

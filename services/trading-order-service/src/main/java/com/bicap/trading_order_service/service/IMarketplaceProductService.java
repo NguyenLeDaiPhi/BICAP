@@ -11,4 +11,6 @@ public interface IMarketplaceProductService {
     List<ProductResponse> getApprovedProducts();
     List<ProductResponse> getProductsByFarm(Long farmId);
     ProductResponse getProductDetail(Long id);
+
+     List<MarketplaceProduct> searchByName(String keyword);
 }

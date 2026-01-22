@@ -13,4 +13,6 @@ public interface MarketplaceProductRepository extends JpaRepository<MarketplaceP
 
     @Query("SELECT p FROM MarketplaceProduct p WHERE p.farmManager.farmId = :farmId")
     List<MarketplaceProduct> findByFarmId(@Param("farmId") Long farmId);
+
+    List<MarketplaceProduct> findByNameContainingIgnoreCase(String name);
 }

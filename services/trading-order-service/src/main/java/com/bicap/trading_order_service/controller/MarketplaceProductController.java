@@ -65,7 +65,14 @@ public class MarketplaceProductController {
      * RETAILER – danh sách sản phẩm đã duyệt
      */
     @GetMapping
-    public List<ProductResponse> getApprovedProducts() {
+    public List<?> getProducts(
+            @RequestParam(value = "name", required = false) String name
+    ) {
+        if (name != null && !name.trim().isEmpty()) {
+            // 🔍 SEARCH
+            return service.searchByName(name);
+        }
+        // 📦 GET ALL
         return service.getApprovedProducts();
     }
 

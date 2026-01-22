@@ -14,11 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
     controller = new AbortController();
 
     try {
-      // 🔹 Có keyword → search
-      // 🔹 Không keyword → load full marketplace
       const url = keyword
-        ? `/api/marketplace-search?name=${encodeURIComponent(keyword)}`
-        : `/api/marketplace-search`;
+        ? `/api/fetch-marketplace-products?name=${encodeURIComponent(keyword)}`
+        : `/api/fetch-marketplace-products`;
 
       const res = await fetch(url, {
         signal: controller.signal,
@@ -39,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // ✅ RENDER CARD MỚI (GIỐNG marketplace.ejs)
+      // ✅ RENDER CARD MỚI (CÓ ĐỦ DATA + CLASS)
       grid.innerHTML = products
         .map(
           (p) => `
@@ -62,7 +60,12 @@ document.addEventListener("DOMContentLoaded", () => {
               <button class="btn-outline" onclick="openQr(${p.id})">
                 Xem chi tiết
               </button>
-              <button class="btn-primary">
+              <button
+                class="btn-primary add-to-cart-btn"
+                data-id="${p.id}"
+                data-name="${p.name}"
+                data-price="${p.price}"
+              >
                 Thêm vào giỏ
               </button>
             </div>
@@ -78,23 +81,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-function addToCart(productId) {
+
+/* ================= ADD TO CART ================= */
+
+// ✅ EVENT DELEGATION – BẮT CẢ BUTTON RENDER SAU SEARCH
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".add-to-cart-btn");
+  if (!btn) return;
+
+  const product = {
+    id: Number(btn.dataset.id),
+    name: btn.dataset.name,
+    price: Number(btn.dataset.price),
+  };
+
   fetch("/cart/add", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ productId }),
-  }).then(res => {
+    body: JSON.stringify({ product }),
+  }).then((res) => {
     if (res.ok) {
       alert("Đã thêm vào giỏ hàng");
     } else {
       alert("Sản phẩm đã có trong giỏ");
     }
   });
-}
-document.addEventListener("click", (e) => {
-  if (!e.target.classList.contains("add-to-cart-btn")) return;
-
-  const productId = Number(e.target.dataset.id);
-  addToCart(productId);
 });
-

@@ -40,48 +40,46 @@ public class OrderService implements IOrderService {
      * 1️⃣ Retailer tạo đơn hàng
      */
     @Override
-@Transactional
-public OrderResponse createOrder(CreateOrderRequest request) {
+    @Transactional
+    public OrderResponse createOrder(CreateOrderRequest request) {
 
-    Order order = new Order();
-    order.setBuyerId(request.getBuyerId());
-    order.setStatus("CREATED");
+        Order order = new Order();
 
-    BigDecimal totalAmount = BigDecimal.ZERO;
+        // ✅ THAY buyerId → buyerEmail
+        order.setBuyerEmail(request.getBuyerEmail());
 
-    for (OrderItemRequest itemReq : request.getItems()) {
+        order.setStatus("CREATED");
 
-        MarketplaceProduct product = productRepository
-                .findById(itemReq.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+        BigDecimal totalAmount = BigDecimal.ZERO;
 
-        OrderItem item = new OrderItem();
-        item.setProductId(product.getId());
-        item.setQuantity(itemReq.getQuantity());
+        for (OrderItemRequest itemReq : request.getItems()) {
 
-        BigDecimal price = BigDecimal.valueOf(product.getPrice());
-        item.setUnitPrice(price);
+            MarketplaceProduct product = productRepository
+                    .findById(itemReq.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        BigDecimal itemTotal =
-                price.multiply(BigDecimal.valueOf(itemReq.getQuantity()));
-        totalAmount = totalAmount.add(itemTotal);
+            OrderItem item = new OrderItem();
+            item.setProductId(product.getId());
+            item.setQuantity(itemReq.getQuantity());
 
-        // ⭐ QUAN TRỌNG
-        order.addItem(item);
+            BigDecimal price = BigDecimal.valueOf(product.getPrice());
+            item.setUnitPrice(price);
+
+            BigDecimal itemTotal =
+                    price.multiply(BigDecimal.valueOf(itemReq.getQuantity()));
+            totalAmount = totalAmount.add(itemTotal);
+
+            order.addItem(item);
+        }
+
+        order.setTotalAmount(totalAmount);
+
+        Order savedOrder = orderRepository.save(order);
+
+        return OrderResponse.fromEntity(savedOrder);
     }
-
-    order.setTotalAmount(totalAmount);
-
-    Order savedOrder = orderRepository.save(order);
-
-    return OrderResponse.fromEntity(savedOrder);
-    }
-
-
     /**
      * 2️⃣ Retailer hoàn tất đơn hàng
-     * → Update trạng thái
-     * → Publish event RabbitMQ
      */
     @Override
     @Transactional
@@ -93,11 +91,11 @@ public OrderResponse createOrder(CreateOrderRequest request) {
         order.setStatus("COMPLETED");
         order = orderRepository.save(order);
 
-        // Publish event (không cho fail business)
+        // ✅ Publish event – bỏ buyerId
         try {
             OrderCompletedEvent event = new OrderCompletedEvent(
                     order.getId(),
-                    order.getBuyerId(),
+                    order.getBuyerEmail(),   // ⭐ THAY buyerId → buyerEmail
                     order.getTotalAmount()
             );
 
@@ -158,5 +156,32 @@ public OrderResponse createOrder(CreateOrderRequest request) {
 
         order.setStatus("REJECTED");
         return OrderResponse.fromEntity(orderRepository.save(order));
+    }
+
+    /**
+     * 6️⃣ Retailer – xem đơn hàng của tôi
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getOrdersByBuyerEmail(String buyerEmail) {
+
+        return orderRepository.findOrdersByBuyerEmail(buyerEmail)
+                .stream()
+                .map(OrderResponse::fromEntity)
+                .toList();
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderDetailByIdAndBuyerEmail(
+            Long orderId,
+            String buyerEmail
+        ) {
+            Order order = orderRepository
+                    .findByIdAndBuyerEmail(orderId, buyerEmail)
+                    .orElseThrow(() ->
+                        new RuntimeException("Order not found or access denied")
+                    );
+
+        return OrderResponse.fromEntity(order);
     }
 }
