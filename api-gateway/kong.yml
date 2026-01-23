@@ -261,6 +261,9 @@ routes:
   # --- START: FARM PRODUCTION SERVICE ROUTES (FOR SEASON MONITOR) ---
 
   # Corrected: Route for creating and viewing seasons/batches
+  # Thêm request-transformer để forward Authorization header từ cookie (nếu có)
+  # Nếu Node.js đã gửi Authorization header, Kong sẽ forward header đó
+  # Nếu không có, sẽ extract từ cookie
   - name: production-batches-api
     service: farm-production-service
     paths:
@@ -271,6 +274,14 @@ routes:
       - OPTIONS
     strip_path: false
     plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+          # Không replace header nếu đã có Authorization header từ Node.js
+          replace:
+            headers: []
       - name: rate-limiting
         config:
           minute: 100
@@ -295,6 +306,11 @@ routes:
       - OPTIONS
     strip_path: false
     plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
       - name: rate-limiting
         config:
           minute: 100
@@ -320,6 +336,11 @@ routes:
       - OPTIONS
     strip_path: false
     plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
       - name: rate-limiting
         config:
           minute: 100
@@ -346,6 +367,11 @@ routes:
       - OPTIONS
     strip_path: false
     plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
       - name: rate-limiting
         config:
           minute: 100

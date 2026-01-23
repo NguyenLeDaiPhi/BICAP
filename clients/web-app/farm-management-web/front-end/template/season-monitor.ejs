@@ -494,9 +494,21 @@
 
           content.innerHTML = html;
         } else {
-          const errorText = await response.text();
-          console.error('Error response:', response.status, errorText);
-          content.innerHTML = `<div class="alert alert-danger">Không thể tải chi tiết mùa vụ (${response.status}): ${errorText || 'Unknown error'}</div>`;
+          let errorMessage = `Không thể tải chi tiết mùa vụ (Status: ${response.status})`;
+          try {
+            const errorData = await response.json();
+            // Try multiple possible error message fields
+            errorMessage = errorData.error || 
+                           errorData.message || 
+                           errorData.errorMessage ||
+                           errorMessage;
+            console.error('Error response:', response.status, errorData);
+          } catch (e) {
+            const errorText = await response.text();
+            errorMessage = errorText || errorMessage;
+            console.error('Error response (text):', response.status, errorText);
+          }
+          content.innerHTML = `<div class="alert alert-danger"><strong>Lỗi:</strong> ${errorMessage}</div>`;
         }
       } catch (error) {
         content.innerHTML = '<div class="alert alert-danger">Lỗi: ' + error.message + '</div>';

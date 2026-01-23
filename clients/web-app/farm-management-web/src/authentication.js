@@ -1,5 +1,17 @@
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '..', 'config', '.env') });
+const fs = require('fs');
+
+// Try to load .env.local first (for local development), then fall back to .env
+const envLocalPath = path.resolve(__dirname, '..', 'config', '.env.local');
+const envPath = path.resolve(__dirname, '..', 'config', '.env');
+
+if (fs.existsSync(envLocalPath)) {
+    console.log('📝 Loading environment from .env.local (local development)');
+    require('dotenv').config({ path: envLocalPath });
+} else {
+    console.log('📝 Loading environment from .env');
+    require('dotenv').config({ path: envPath });
+}
 
 const farmController = require('./farmController');
 const productController = require('../productController');
@@ -10,7 +22,6 @@ const seasonMonitorController = require('./seasonMonitorController');
 const { serialize } = require('cookie');
 const jwt = require('jsonwebtoken');
 const multer = require('multer'); // Add multer for file uploads
-const fs = require('fs'); // For creating directories
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 const AUTH_SERVICE_URL_UPDATE = process.env.AUTH_SERVICE_URL_UPDATE;
@@ -134,8 +145,17 @@ app.get('/login', (req, res) => {
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;  
     
+    // Validate AUTH_SERVICE_URL
+    if (!AUTH_SERVICE_URL) {
+        console.error('❌ AUTH_SERVICE_URL is not defined in environment variables!');
+        return res.status(500).render('login', { error: 'Server configuration error: AUTH_SERVICE_URL is missing.' });
+    }
+    
+    const loginUrl = `${AUTH_SERVICE_URL}/login`;
+    console.log('🔐 Attempting login to:', loginUrl);
+    
     try {
-        const apiResponse = await fetch(`${AUTH_SERVICE_URL}/login`, {
+        const apiResponse = await fetch(loginUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
@@ -144,7 +164,19 @@ app.post('/login', async (req, res) => {
         const responseText = await apiResponse.text();
 
         if (!apiResponse.ok) {
-            console.error(`Login failed from API. Status: ${apiResponse.status} ${apiResponse.statusText}. URL: ${AUTH_SERVICE_URL}/login. Response: ${responseText}`);
+            console.error(`❌ Login failed from API. Status: ${apiResponse.status} ${apiResponse.statusText}. URL: ${loginUrl}. Response: ${responseText}`);
+            
+            // Check if it's a network/DNS error
+            if (responseText.includes('name resolution failed') || responseText.includes('ENOTFOUND') || responseText.includes('getaddrinfo')) {
+                const errorMsg = `Cannot connect to auth service at ${AUTH_SERVICE_URL}. ` +
+                               `If running locally, make sure to use 'localhost' instead of 'kong-gateway' in your .env file. ` +
+                               `Current URL: ${AUTH_SERVICE_URL}`;
+                console.error('❌ DNS/Network Error:', errorMsg);
+                return res.status(503).render('login', { 
+                    error: `Connection Error: Cannot reach authentication service. Please check your configuration. (URL: ${AUTH_SERVICE_URL})` 
+                });
+            }
+            
             return res.status(apiResponse.status).render('login', { error: responseText || 'Invalid credentials.' });
         }
     
@@ -201,12 +233,30 @@ app.post('/login', async (req, res) => {
         console.log('=== END JWT DEBUG ==='); 
         
         const userRoles = decodedToken.roles;
-
-        if (!userRoles || !userRoles.includes(APPLICATION_ROLE)) {
-            console.error(`Role Mismatch: Required ${APPLICATION_ROLE}, Got ${userRoles}`);
-            clearAuthCookie(res); 
-            return res.status(403).render('login', { error: `Access Denied. You need ${APPLICATION_ROLE}.` });
+        
+        // Check if user has required role - handle both string and array formats
+        let hasRequiredRole = false;
+        if (userRoles) {
+            if (Array.isArray(userRoles)) {
+                hasRequiredRole = userRoles.some(role => 
+                    role === APPLICATION_ROLE || 
+                    role === 'ROLE_FARMMANAGER' || 
+                    role === 'ROLE_ADMIN'
+                );
+            } else if (typeof userRoles === 'string') {
+                hasRequiredRole = userRoles.includes(APPLICATION_ROLE) || 
+                                 userRoles.includes('ROLE_FARMMANAGER') || 
+                                 userRoles.includes('ROLE_ADMIN');
+            }
         }
+
+        if (!hasRequiredRole) {
+            console.error(`❌ Role Mismatch: Required ${APPLICATION_ROLE}, Got ${JSON.stringify(userRoles)} (type: ${typeof userRoles})`);
+            clearAuthCookie(res); 
+            return res.status(403).render('login', { error: `Access Denied. You need ${APPLICATION_ROLE}. Current roles: ${JSON.stringify(userRoles)}` });
+        }
+        
+        console.log(`✓ Role check passed. User has ${APPLICATION_ROLE}. Roles: ${JSON.stringify(userRoles)}`);
 
         const cookie = serialize('auth_token', accessToken, {
             httpOnly: true, 
@@ -220,8 +270,24 @@ app.post('/login', async (req, res) => {
         res.redirect('/dashboard');
 
     } catch (error) {
-        console.error('Login Route Error:', error.message);
-        return res.status(503).render('login', { error: 'Login Error: ' + error.message });
+        console.error('❌ Login Route Error:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        
+        // Check for DNS/network errors
+        const errorMessage = error.message || String(error);
+        let userFriendlyError = 'Login Error: ' + errorMessage;
+        
+        if (errorMessage.includes('name resolution failed') || 
+            errorMessage.includes('ENOTFOUND') || 
+            errorMessage.includes('getaddrinfo') ||
+            errorMessage.includes('kong-gateway')) {
+            userFriendlyError = `Cannot connect to authentication service. ` +
+                              `The URL "${AUTH_SERVICE_URL}" cannot be resolved. ` +
+                              `If you're running locally (not in Docker), please update your .env file to use 'localhost' instead of 'kong-gateway'. ` +
+                              `See config/.env.local.example for the correct local configuration.`;
+        }
+        
+        return res.status(503).render('login', { error: userFriendlyError });
     }
 });
 
@@ -232,9 +298,38 @@ app.get('/register', (req, res) => {
 app.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
     
+    // Validate AUTH_SERVICE_URL
+    if (!AUTH_SERVICE_URL) {
+        console.error('❌ AUTH_SERVICE_URL is not defined in environment variables!');
+        return res.status(500).render('register', { error: 'Server configuration error: AUTH_SERVICE_URL is missing.' });
+    }
+    
+    const registerUrl = `${AUTH_SERVICE_URL}/register`;
+    console.log('🔐 Attempting registration to:', registerUrl);
+    console.log('🔐 AUTH_SERVICE_URL from env:', AUTH_SERVICE_URL);
+    
+    // Test Kong Gateway connection first
     try {
-        const apiResponse = await fetch(`${AUTH_SERVICE_URL}/register`, {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const kongTest = await fetch('http://localhost:8000', { 
+            method: 'GET',
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        console.log('✓ Kong Gateway is reachable at localhost:8000');
+    } catch (kongError) {
+        console.error('❌ Cannot reach Kong Gateway at localhost:8000');
+        console.error('   Make sure Kong Gateway is running: docker-compose up -d kong-gateway');
+        console.error('   Error:', kongError.message);
+    }
+    
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        const apiResponse = await fetch(registerUrl, {
             method: 'POST',
+            signal: controller.signal,
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -245,6 +340,7 @@ app.post('/register', async (req, res) => {
                 role: 'FARMMANAGER'
             }),
         });
+        clearTimeout(timeoutId);
         
         if (apiResponse.ok) {
             // It's possible the success response has no body or is not JSON.
@@ -252,13 +348,41 @@ app.post('/register', async (req, res) => {
             res.redirect('/login');
         } else {
             const errorText = await apiResponse.text();
-            console.error('Registration failed:', errorText);
+            console.error('❌ Registration failed:', errorText);
+            
+            // Check if it's a network/DNS error
+            if (errorText.includes('name resolution failed') || errorText.includes('ENOTFOUND') || errorText.includes('getaddrinfo')) {
+                const errorMsg = `Cannot connect to auth service at ${AUTH_SERVICE_URL}. ` +
+                               `If running locally, make sure to use 'localhost' instead of 'kong-gateway' in your .env file. ` +
+                               `Current URL: ${AUTH_SERVICE_URL}`;
+                console.error('❌ DNS/Network Error:', errorMsg);
+                return res.status(503).render('register', { 
+                    error: `Connection Error: Cannot reach authentication service. Please check your configuration. (URL: ${AUTH_SERVICE_URL})` 
+                });
+            }
+            
             return res.status(apiResponse.status).render('register', { error: errorText || 'Registration failed.' });
         }
 
     } catch (error) {
-        console.error('Registration Error:', error);
-        return res.status(503).render('register', { error: 'Service unavailable.' });
+        console.error('❌ Registration Error:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        
+        // Check for DNS/network errors
+        const errorMessage = error.message || String(error);
+        let userFriendlyError = 'Registration Error: ' + errorMessage;
+        
+        if (errorMessage.includes('name resolution failed') || 
+            errorMessage.includes('ENOTFOUND') || 
+            errorMessage.includes('getaddrinfo') ||
+            errorMessage.includes('kong-gateway')) {
+            userFriendlyError = `Cannot connect to authentication service. ` +
+                              `The URL "${AUTH_SERVICE_URL}" cannot be resolved. ` +
+                              `If you're running locally (not in Docker), please update your .env file to use 'localhost' instead of 'kong-gateway'. ` +
+                              `See config/.env.local.example for the correct local configuration.`;
+        }
+        
+        return res.status(503).render('register', { error: userFriendlyError });
     }
 });
 
@@ -281,10 +405,22 @@ app.get('/dashboard', requireAuth, (req, res) => {
 
 // Debug endpoint - xem token chứa gì
 app.get('/debug/user-info', requireAuth, (req, res) => {
+    const roles = req.user.roles;
+    const rolesArray = Array.isArray(roles) ? roles : (typeof roles === 'string' ? roles.split(',') : []);
+    const rolesString = typeof roles === 'string' ? roles : (Array.isArray(roles) ? roles.join(',') : String(roles));
+    
     res.json({
         message: 'Token decoded successfully',
         user: req.user,
-        availableFields: Object.keys(req.user)
+        availableFields: Object.keys(req.user),
+        roles: roles,
+        rolesType: typeof roles,
+        rolesArray: rolesArray,
+        rolesString: rolesString,
+        hasROLE_FARMMANAGER: rolesArray.includes('ROLE_FARMMANAGER') || rolesString.includes('ROLE_FARMMANAGER'),
+        hasROLE_ADMIN: rolesArray.includes('ROLE_ADMIN') || rolesString.includes('ROLE_ADMIN'),
+        APPLICATION_ROLE: APPLICATION_ROLE,
+        roleCheck: rolesArray.includes(APPLICATION_ROLE) || rolesString.includes(APPLICATION_ROLE)
     });
 });
 

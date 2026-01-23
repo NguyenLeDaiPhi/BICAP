@@ -19,13 +19,16 @@ public class FarmFeatureService {
 
     // Method create mới
     @Transactional
-    public Farm createFarm(FarmCreateDto dto) {
+    public Farm createFarm(FarmCreateDto dto, Long ownerId) {
         // Kiểm tra thủ công các trường bắt buộc
         if (dto.getFarmName() == null || dto.getFarmName().trim().isEmpty()) {
             throw new IllegalArgumentException("Tên trang trại là bắt buộc");
         }
         if (dto.getAddress() == null || dto.getAddress().trim().isEmpty()) {
             throw new IllegalArgumentException("Địa chỉ là bắt buộc");
+        }
+        if (ownerId == null) {
+            throw new IllegalArgumentException("Owner ID là bắt buộc");
         }
 
         // Optional: có thể trim dữ liệu để sạch hơn
@@ -36,6 +39,7 @@ public class FarmFeatureService {
         Double areaSize = dto.getAreaSize();
         String description = dto.getDescription() != null ? dto.getDescription().trim() : null;
         Farm newFarm = new Farm();
+        newFarm.setOwnerId(ownerId); // Set ownerId từ JWT token
         newFarm.setFarmName(farmName);
         newFarm.setAddress(address);
         newFarm.setEmail(email);
