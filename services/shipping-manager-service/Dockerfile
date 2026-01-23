@@ -9,11 +9,6 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 # Copy the built jar from the build stage to app.jar
 COPY --from=build /app/target/*.jar app.jar
-<<<<<<<< HEAD:services/shipping-manager-service/Dockerfile
-EXPOSE 8083
-ENTRYPOINT ["java", "-jar", "app.jar"]
-========
 ENV JAVA_OPTS=""
-EXPOSE 8082
+EXPOSE 8083
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
->>>>>>>> admin_service:services/trading-order-service/Dockerfile

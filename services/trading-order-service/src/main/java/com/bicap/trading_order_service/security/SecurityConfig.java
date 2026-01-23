@@ -34,8 +34,6 @@ public class SecurityConfig {
             // PHÂN QUYỀN
             .authorizeHttpRequests(auth -> auth
 
-<<<<<<< HEAD
-=======
                 // Swagger UI - public
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
@@ -48,7 +46,6 @@ public class SecurityConfig {
                 // 👑 Admin APIs - Category & Product Management
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
->>>>>>> admin_service
                 // test jwt
                 .requestMatchers("/api/orders/me")
                     .authenticated()

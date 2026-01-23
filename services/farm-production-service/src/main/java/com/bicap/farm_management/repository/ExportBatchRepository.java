@@ -15,4 +15,8 @@ public interface ExportBatchRepository extends JpaRepository<ExportBatch, Long> 
     // Sử dụng @Query để đảm bảo query đúng với tên cột trong database
     @Query("SELECT e FROM ExportBatch e WHERE e.productionBatch.id = :productionBatchId")
     List<ExportBatch> findByProductionBatchId(@Param("productionBatchId") Long productionBatchId);
+    
+    // Tìm các đợt xuất hàng thuộc về một farm cụ thể (thông qua productionBatch)
+    @Query("SELECT e FROM ExportBatch e WHERE e.productionBatch.farm.id = :farmId")
+    List<ExportBatch> findByProductionBatch_Farm_Id(@Param("farmId") Long farmId);
 }

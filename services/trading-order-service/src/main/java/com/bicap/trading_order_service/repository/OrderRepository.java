@@ -2,11 +2,8 @@ package com.bicap.trading_order_service.repository;
 
 import com.bicap.trading_order_service.entity.Order;
 
-<<<<<<< HEAD
-=======
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
->>>>>>> admin_service
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,8 +20,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     WHERE p.farmManager.farmId = :farmId
     """)
     List<Order> findOrdersByFarmId(@Param("farmId") Long farmId);
-<<<<<<< HEAD
-=======
 
     // Đếm đơn hàng theo status
     long countByStatus(String status);
@@ -65,5 +60,4 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     // Lấy đơn hàng theo trạng thái
     List<Order> findByStatusOrderByCreatedAtDesc(String status);
->>>>>>> admin_service
 }

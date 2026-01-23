@@ -27,8 +27,6 @@ public class MarketplaceProduct {
     private String status;
     private LocalDateTime createdAt;
 
-<<<<<<< HEAD
-=======
     @Column(name = "category_id")
     private Long categoryId;
 
@@ -38,7 +36,6 @@ public class MarketplaceProduct {
     @Column(name = "ban_reason", columnDefinition = "TEXT")
     private String banReason;
 
->>>>>>> admin_service
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_manager_id")
     @JsonBackReference

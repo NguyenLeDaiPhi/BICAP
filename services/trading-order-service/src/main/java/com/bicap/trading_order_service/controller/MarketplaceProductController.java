@@ -17,11 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-<<<<<<< HEAD
-@RequestMapping("/api/fetch-marketplace-products")
-=======
 @RequestMapping("/api/marketplace-products")
->>>>>>> admin_service
 public class MarketplaceProductController {
 
     private final IMarketplaceProductService service;

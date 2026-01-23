@@ -29,7 +29,6 @@ public class TradingOrderEventListener {
             String username = (String) message.get("username");
             String email = (String) message.get("email");
 
-<<<<<<< HEAD
             // Check if user exists to avoid duplicates
             FarmManager user = farmManagerRepository.findById(id).orElse(new FarmManager());
             
@@ -39,15 +38,6 @@ public class TradingOrderEventListener {
             user.setEmail(email);
             
             if (user.getRole() == null) user.setRole("ROLE_FARMMANAGER");
-=======
-            FarmManager user = new FarmManager();
-            user.setId(id);
-            user.setFarmId(id);
-            user.setIsNew(true);
-            user.setUsername(username);
-            user.setEmail(email);
-            user.setRole("ROLE_FARMMANAGER"); // Assuming context implies farmers
->>>>>>> admin_service
 
             farmManagerRepository.save(user);
             System.out.println("✅ [TRADING] Saved User: " + username);

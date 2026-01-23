@@ -2,7 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-<<<<<<<< HEAD:services/shipping-manager-service/pom.xml
     
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -21,26 +20,6 @@
         <java.version>21</java.version>
         <lombok.version>1.18.36</lombok.version>
         <spring-cloud.version>2024.0.0</spring-cloud.version>
-========
-
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
-        <relativePath/>
-    </parent>
-
-    <groupId>com.bicap</groupId>
-    <artifactId>admin_service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>admin_service</name>
-    <description>Admin Service</description>
-    <properties>
-        <java.version>21</java.version>
-        <maven.compiler.release>${java.version}</maven.compiler.release>
-        <lombok.version>1.18.30</lombok.version>
-        <spring-cloud.version>2023.0.1</spring-cloud.version>
->>>>>>>> admin_service:services/admin_service/pom.xml
     </properties>
     
     <dependencies>
@@ -53,10 +32,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-<<<<<<<< HEAD:services/shipping-manager-service/pom.xml
         
-========
->>>>>>>> admin_service:services/admin_service/pom.xml
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -66,18 +42,8 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-<<<<<<<< HEAD:services/shipping-manager-service/pom.xml
             <version>${lombok.version}</version>
             <optional>true</optional>
-========
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.6.0</version>
->>>>>>>> admin_service:services/admin_service/pom.xml
         </dependency>
         
         <dependency>
@@ -96,7 +62,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
-<<<<<<<< HEAD:services/shipping-manager-service/pom.xml
         
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -139,25 +104,6 @@
         </dependency>
         
         <dependency>
-========
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.11.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>core</artifactId>
-            <version>3.5.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>javase</artifactId>
-            <version>3.5.3</version>
-        </dependency>
-
-        <dependency>
->>>>>>>> admin_service:services/admin_service/pom.xml
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
@@ -177,23 +123,6 @@
 
     <build>
         <plugins>
-<<<<<<<< HEAD:services/shipping-manager-service/pom.xml
-========
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
-                <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
->>>>>>>> admin_service:services/admin_service/pom.xml
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -206,7 +135,6 @@
                     </excludes>
                 </configuration>
             </plugin>
-<<<<<<<< HEAD:services/shipping-manager-service/pom.xml
             
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -224,8 +152,6 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-========
->>>>>>>> admin_service:services/admin_service/pom.xml
         </plugins>
     </build>
 </project>
