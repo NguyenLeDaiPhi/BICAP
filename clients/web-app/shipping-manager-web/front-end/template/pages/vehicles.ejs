@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="vi">
-<%- include('../partials/header') %>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Phương tiện - Shipping Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 <body>
     <div class="d-flex">
         <%- include('../partials/sidebar') %>
@@ -8,8 +13,27 @@
         <div class="flex-grow-1 p-4" style="margin-left: 250px; background-color: #f8f9fa; min-height: 100vh;">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>🚛 Quản lý Phương tiện</h2>
-                <button class="btn btn-success">+ Thêm xe mới</button>
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createVehicleModal">+ Thêm xe mới</button>
             </div>
+
+            <% if (typeof query !== 'undefined' && query.success) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <%= query.success %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+            <% if (typeof query !== 'undefined' && query.error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <% 
+                        let errorMsg = query.error;
+                        if (errorMsg && (errorMsg.includes('status code') || errorMsg.includes('Request failed') || errorMsg === 'Network Error' || errorMsg.length < 10)) {
+                            errorMsg = 'Có lỗi xảy ra khi thêm xe. Vui lòng thử lại.';
+                        }
+                    %>
+                    <%= errorMsg %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
 
             <div class="row">
                 <% if (vehicles && vehicles.length > 0) { %>
@@ -19,12 +43,56 @@
                                 <div class="card-body">
                                     <h5 class="card-title"><%= vehicle.plate %></h5>
                                     <p class="card-text text-muted"><%= vehicle.type %></p>
-                                    <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="badge bg-<%= vehicle.status === 'AVAILABLE' ? 'success' : 'warning' %>">
                                             <%= vehicle.status %>
                                         </span>
                                     </div>
+                                    <div class="btn-group w-100" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editVehicleModal<%= vehicle.id %>">
+                                            Sửa
+                                        </button>
+                                        <form action="/vehicles/<%= vehicle.id %>" method="POST" style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa xe này?');">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                        </form>
+                                    </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Edit Vehicle Modal -->
+                        <div class="modal fade" id="editVehicleModal<%= vehicle.id %>" tabindex="-1">
+                            <div class="modal-dialog">
+                                <form action="/vehicles/<%= vehicle.id %>" method="POST" class="modal-content">
+                                    <input type="hidden" name="_method" value="PUT">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Sửa thông tin xe</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Biển số xe</label>
+                                            <input type="text" class="form-control" name="plate" value="<%= vehicle.plate %>" required>
+                                            <small class="form-text text-muted">Biển số xe phải là duy nhất (không trùng với xe đã có)</small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Loại xe</label>
+                                            <input type="text" class="form-control" name="type" value="<%= vehicle.type %>" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Trạng thái</label>
+                                            <select class="form-select" name="status" required>
+                                                <option value="AVAILABLE" <%= vehicle.status === 'AVAILABLE' ? 'selected' : '' %>>Sẵn sàng</option>
+                                                <option value="BUSY" <%= vehicle.status === 'BUSY' ? 'selected' : '' %>>Đang sử dụng</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     <% }); %>
@@ -32,8 +100,43 @@
                     <p class="text-center">Chưa có phương tiện nào.</p>
                 <% } %>
             </div>
+
+            <!-- Create Vehicle Modal -->
+            <div class="modal fade" id="createVehicleModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <form action="/vehicles" method="POST" class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Thêm xe mới</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Biển số xe <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="plate" placeholder="VD: 29A-12345" required>
+                                <small class="form-text text-muted">Biển số xe phải là duy nhất (không trùng với xe đã có)</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Loại xe <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="type" placeholder="VD: Xe tải, Xe container" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Trạng thái</label>
+                                <select class="form-select" name="status">
+                                    <option value="AVAILABLE" selected>Sẵn sàng</option>
+                                    <option value="BUSY">Đang sử dụng</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="submit" class="btn btn-primary">Thêm xe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <%- include('../partials/footer') %>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

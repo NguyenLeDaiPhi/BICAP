@@ -59,11 +59,12 @@ const ShipmentsPage = () => {
     }
 
     try {
-      await api.updateShipmentStatus(shipmentId, 'CANCELLED');
+      await api.cancelShipment(shipmentId);
       alert('Hủy vận đơn thành công!');
       loadData();
     } catch (err) {
-      alert('Lỗi khi hủy vận đơn: ' + (err.message || 'Vui lòng thử lại'));
+      const errorMsg = err.response?.data?.message || err.message || 'Vui lòng thử lại';
+      alert('Lỗi khi hủy vận đơn: ' + errorMsg);
       console.error(err);
     }
   };

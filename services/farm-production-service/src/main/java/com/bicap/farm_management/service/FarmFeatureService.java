@@ -7,6 +7,7 @@ import com.bicap.farm_management.repository.*;
 import com.zaxxer.hikari.util.ClockSource;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,13 +20,16 @@ public class FarmFeatureService {
 
     // Method create mới
     @Transactional
-    public Farm createFarm(FarmCreateDto dto) {
+    public Farm createFarm(FarmCreateDto dto, Long ownerId) {
         // Kiểm tra thủ công các trường bắt buộc
         if (dto.getFarmName() == null || dto.getFarmName().trim().isEmpty()) {
             throw new IllegalArgumentException("Tên trang trại là bắt buộc");
         }
         if (dto.getAddress() == null || dto.getAddress().trim().isEmpty()) {
             throw new IllegalArgumentException("Địa chỉ là bắt buộc");
+        }
+        if (ownerId == null) {
+            throw new IllegalArgumentException("Owner ID là bắt buộc");
         }
 
         // Optional: có thể trim dữ liệu để sạch hơn
@@ -36,6 +40,7 @@ public class FarmFeatureService {
         Double areaSize = dto.getAreaSize();
         String description = dto.getDescription() != null ? dto.getDescription().trim() : null;
         Farm newFarm = new Farm();
+        newFarm.setOwnerId(ownerId); // Set ownerId từ JWT token
         newFarm.setFarmName(farmName);
         newFarm.setAddress(address);
         newFarm.setEmail(email);
@@ -74,5 +79,29 @@ public class FarmFeatureService {
     public Farm getFarmByOwnerId(Long ownerId) {
     return farmRepository.findByOwnerId(ownerId)
             .orElseThrow(() -> new RuntimeException("Chưa tìm thấy trang trại nào cho tài khoản này."));
+    }
+    public java.util.List<Farm> getAllFarms() {
+        return farmRepository.findAll();
+    }
+
+    // Tạo farm mới cho owner khi admin duyệt role FARM_MANAGER
+    @Transactional
+    public Farm createFarmForOwner(Long ownerId) {
+        // Kiểm tra xem owner đã có farm chưa
+        if (farmRepository.findByOwnerId(ownerId).isPresent()) {
+            throw new RuntimeException("Owner đã có trang trại, không thể tạo thêm");
+        }
+        
+        Farm newFarm = new Farm();
+        newFarm.setOwnerId(ownerId);
+        newFarm.setFarmName("Trang trại mới"); // Giá trị mặc định
+        newFarm.setAddress("Chưa cập nhật");   // Giá trị mặc định
+        newFarm.setEmail("chuacapnhat@farm.com"); // Giá trị mặc định (database NOT NULL)
+        newFarm.setHotline("0000000000");      // Giá trị mặc định
+        newFarm.setAreaSize(0.0);              // Giá trị mặc định
+        newFarm.setDescription("Chưa có mô tả");
+        newFarm.setCreatedAt(LocalDateTime.now());
+        
+        return farmRepository.save(newFarm);
     }
 }

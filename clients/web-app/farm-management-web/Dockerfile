@@ -2,17 +2,19 @@ FROM node:18
 
 WORKDIR /app
 
-WORKDIR /user/src/app
-
+# Copy package files
 COPY package*.json ./
 
-RUN rm -f package-lock.json
+# Install dependencies
 RUN npm install
 
-COPY . . 
+# Copy all files
+COPY . .
 
+# Expose port
 EXPOSE 3002
 
-CMD ["npm", "start"]
+# Start server
+CMD ["node", "src/authentication.js"]
 
 

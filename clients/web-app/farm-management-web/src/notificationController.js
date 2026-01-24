@@ -1,9 +1,28 @@
 const amqp = require('amqplib');
+const fs = require('fs');
 
 // RabbitMQ Configuration
-const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
+// Auto-detect environment: nếu RABBITMQ_URL có chứa 'bicap-message-queue' nhưng không resolve được, fallback về localhost
+let RABBITMQ_URL = process.env.RABBITMQ_URL;
+if (!RABBITMQ_URL) {
+    // Default: localhost cho development
+    RABBITMQ_URL = 'amqp://root:root@localhost:5672';
+} else if (RABBITMQ_URL.includes('bicap-message-queue')) {
+    // Kiểm tra xem có phải đang chạy trong Docker không
+    // Nếu không phải Docker và không có DOCKER_ENV, fallback về localhost
+    // Tránh gọi Docker API để không gây lỗi khi Docker Desktop chưa chạy
+    const isDocker = process.env.DOCKER_ENV === 'true' || 
+                     process.env.HOSTNAME?.includes('container') ||
+                     (process.platform !== 'win32' && fs.existsSync('/.dockerenv'));
+    
+    if (!isDocker) {
+        console.log('⚠️  Detected local environment, using localhost instead of bicap-message-queue');
+        RABBITMQ_URL = RABBITMQ_URL.replace('bicap-message-queue', 'localhost');
+    }
+}
 const NOTIFICATION_QUEUE = 'farm.notifications';
 const NOTIFICATION_EXCHANGE = 'notifications.exchange';
+const RABBITMQ_ENABLED = process.env.RABBITMQ_ENABLED !== 'false'; // Default to true, can disable with RABBITMQ_ENABLED=false
 
 // In-memory notification storage
 const notifications = [];
@@ -15,14 +34,51 @@ const sseClients = new Set();
 // RabbitMQ connection
 let channel = null;
 let connection = null;
+let isConnecting = false;
+let retryCount = 0;
+const MAX_RETRY_COUNT = 10; // Giới hạn số lần retry
+const INITIAL_RETRY_DELAY = 5000; // 5 giây
+const MAX_RETRY_DELAY = 60000; // 60 giây tối đa
 
 /**
  * Initialize RabbitMQ connection and consume messages
  */
 async function initializeRabbitMQ() {
+    // Kiểm tra nếu RabbitMQ bị disable
+    if (!RABBITMQ_ENABLED) {
+        console.log('⚠️  RabbitMQ is disabled (RABBITMQ_ENABLED=false). Notifications will work in-memory only.');
+        return;
+    }
+
+    // Tránh nhiều connection attempts đồng thời
+    if (isConnecting) {
+        return;
+    }
+
+    // Kiểm tra số lần retry
+    if (retryCount >= MAX_RETRY_COUNT) {
+        console.error(`❌ RabbitMQ: Max retry count (${MAX_RETRY_COUNT}) reached. Stopping retry attempts.`);
+        console.log('   Notifications will work in-memory only. To re-enable, restart the server.');
+        return;
+    }
+
+    isConnecting = true;
+    
     try {
-        console.log('Connecting to RabbitMQ at:', RABBITMQ_URL);
-        connection = await amqp.connect(RABBITMQ_URL);
+        // Log URL nhưng ẩn password để bảo mật
+        const logUrl = RABBITMQ_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@');
+        console.log(`[${retryCount + 1}/${MAX_RETRY_COUNT}] Connecting to RabbitMQ at: ${logUrl}`);
+        
+        // Thêm timeout cho connection (10 giây)
+        const connectPromise = amqp.connect(RABBITMQ_URL, {
+            // Thêm heartbeat để detect connection issues sớm hơn
+            heartbeat: 60
+        });
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000)
+        );
+        
+        connection = await Promise.race([connectPromise, timeoutPromise]);
         channel = await connection.createChannel();
         
         // Declare exchange and queue
@@ -35,6 +91,7 @@ async function initializeRabbitMQ() {
         await channel.bindQueue(NOTIFICATION_QUEUE, NOTIFICATION_EXCHANGE, 'shipping.#');
         
         console.log(`✓ RabbitMQ connected. Listening on queue: ${NOTIFICATION_QUEUE}`);
+        retryCount = 0; // Reset retry count on success
         
         // Start consuming messages
         channel.consume(NOTIFICATION_QUEUE, (msg) => {
@@ -52,18 +109,62 @@ async function initializeRabbitMQ() {
 
         // Handle connection errors
         connection.on('error', (err) => {
-            console.error('RabbitMQ connection error:', err);
+            console.error('RabbitMQ connection error:', err.message);
+            isConnecting = false;
         });
 
         connection.on('close', () => {
-            console.log('RabbitMQ connection closed. Reconnecting in 5s...');
-            setTimeout(initializeRabbitMQ, 5000);
+            console.log('RabbitMQ connection closed.');
+            isConnecting = false;
+            channel = null;
+            connection = null;
+            
+            // Retry với exponential backoff (chỉ khi chưa đạt max retry)
+            // retryCount sẽ được tăng trong catch block của initializeRabbitMQ
+            if (retryCount < MAX_RETRY_COUNT) {
+                const delay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, retryCount), MAX_RETRY_DELAY);
+                console.log(`Reconnecting in ${delay / 1000} seconds...`);
+                setTimeout(() => {
+                    initializeRabbitMQ();
+                }, delay);
+            } else {
+                console.error(`❌ RabbitMQ: Max retry count reached. Stopping retry attempts.`);
+            }
         });
 
+        isConnecting = false;
+
     } catch (error) {
-        console.error('Failed to connect to RabbitMQ:', error.message);
-        console.log('Retrying in 5 seconds...');
-        setTimeout(initializeRabbitMQ, 5000);
+        isConnecting = false;
+        retryCount++;
+        
+        // Tính toán delay với exponential backoff
+        const delay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, retryCount - 1), MAX_RETRY_DELAY);
+        
+        // Phân tích lỗi và đưa ra gợi ý
+        let errorHint = '';
+        if (error.message.includes('ACCESS_REFUSED') || error.message.includes('403')) {
+            errorHint = '   💡 Hint: Check RabbitMQ username/password. Default: root:root';
+        } else if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+            errorHint = '   💡 Hint: RabbitMQ server may not be running. Check with: docker ps | grep rabbitmq';
+        } else if (error.message.includes('timeout')) {
+            errorHint = '   💡 Hint: RabbitMQ server may be slow to respond or unreachable';
+        }
+        
+        if (retryCount < MAX_RETRY_COUNT) {
+            console.error(`Failed to connect to RabbitMQ (attempt ${retryCount}/${MAX_RETRY_COUNT}): ${error.message}`);
+            if (errorHint) console.log(errorHint);
+            console.log(`Retrying in ${delay / 1000} seconds...`);
+            console.log('   Server will continue running. Notifications will work in-memory only until RabbitMQ is available.');
+            setTimeout(initializeRabbitMQ, delay);
+        } else {
+            console.error(`❌ RabbitMQ: Max retry count reached. Stopping retry attempts.`);
+            console.log('   Notifications will work in-memory only. To re-enable, restart the server.');
+            if (errorHint) console.log(errorHint);
+            const logUrl = RABBITMQ_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@');
+            console.log(`   Current RABBITMQ_URL: ${logUrl}`);
+            console.log(`   Current RABBITMQ_URL: ${RABBITMQ_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@')}`);
+        }
     }
 }
 
@@ -230,8 +331,15 @@ exports.sendTestNotification = async (req, res) => {
     }
 };
 
-// Initialize RabbitMQ connection on module load
-initializeRabbitMQ();
+// Initialize RabbitMQ connection on module load (non-blocking)
+// Sử dụng setImmediate để không block server startup
+setImmediate(() => {
+    if (RABBITMQ_ENABLED) {
+        initializeRabbitMQ();
+    } else {
+        console.log('⚠️  RabbitMQ is disabled. Notifications will work in-memory only.');
+    }
+});
 
 // Graceful shutdown
 process.on('SIGINT', async () => {

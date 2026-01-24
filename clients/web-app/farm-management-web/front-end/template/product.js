@@ -53,9 +53,13 @@ async function loadProducts(farmId) {
     tableBody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading products...</td></tr>';
     
     try {
-        // PRODUCT_API_URL is defined in the EJS template
-        const response = await fetch(`${PRODUCT_API_URL}/farm/${farmId}`, {
-            credentials: 'include'
+        // Use proxy route through Node.js backend instead of direct API call
+        const response = await fetch(`/api/marketplace-products/farm/${farmId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include' // Quan trọng: gửi cookie
         });
 
         if (!response.ok) {
@@ -188,25 +192,62 @@ async function handleFormSubmit(event) {
         batchId: document.getElementById('batchId') ? document.getElementById('batchId').value : null
     };
 
-    const url = isEdit ? `${PRODUCT_API_URL}/${productId}` : PRODUCT_API_URL;
+    // Use proxy route through Node.js backend instead of direct API call
+    const url = isEdit ? `/api/marketplace-products/${productId}` : '/api/marketplace-products';
     const method = isEdit ? 'PUT' : 'POST';
 
     try {
+        // Backend sử dụng cookie (requireAuth middleware), không cần Authorization header
         const response = await fetch(url, {
             method: method,
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            credentials: 'include',
+            credentials: 'include', // Quan trọng: gửi cookie
             body: JSON.stringify(productData)
         });
 
         if (!response.ok) {
             let errorMessage = 'Failed to save product';
+            let errorDetails = null;
             try {
                 const errorData = await response.json();
-                errorMessage = errorData.message || errorMessage;
+                console.error('❌ Error response data:', errorData);
+                
+                // Try multiple possible error message fields
+                errorMessage = errorData.error || 
+                               errorData.message || 
+                               errorData.errorMessage ||
+                               errorMessage;
+                
+                // Include details if available
+                if (errorData.details) {
+                    console.error('Error details:', errorData.details);
+                    errorDetails = errorData.details;
+                }
+                
+                // For 403 errors, show more context
+                if (response.status === 403) {
+                    const currentUser = errorData.currentUser || 'unknown';
+                    const currentRoles = errorData.currentRoles || 'none';
+                    const requiredRoles = errorData.message?.includes('ROLE_FARMMANAGER') 
+                        ? 'ROLE_FARMMANAGER hoặc ROLE_ADMIN' 
+                        : 'ROLE_FARMMANAGER hoặc ROLE_ADMIN';
+                    
+                    errorMessage = `Access Denied (403): Bạn không có quyền tạo sản phẩm.\n` +
+                                 `User: ${currentUser}\n` +
+                                 `Roles hiện tại: ${currentRoles}\n` +
+                                 `Roles yêu cầu: ${requiredRoles}`;
+                    
+                    console.error('🚫 Access Denied Details:', {
+                        user: currentUser,
+                        currentRoles: currentRoles,
+                        requiredRoles: ['ROLE_FARMMANAGER', 'ROLE_ADMIN'],
+                        fullError: errorData
+                    });
+                }
             } catch (e) {
+                console.error('Failed to parse error response:', e);
                 errorMessage += ` (Status: ${response.status})`;
             }
             throw new Error(errorMessage);
@@ -233,9 +274,13 @@ async function deleteProduct(productId) {
     }
 
     try {
-        const response = await fetch(`${PRODUCT_API_URL}/${productId}`, {
+        // Use proxy route through Node.js backend instead of direct API call
+        const response = await fetch(`/api/marketplace-products/${productId}`, {
             method: 'DELETE',
-            credentials: 'include'
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include' // Quan trọng: gửi cookie
         });
 
         if (!response.ok) {

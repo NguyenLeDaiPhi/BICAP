@@ -37,6 +37,9 @@
             <button type="submit">Log In</button>
         </form>
 
+        <% if (locals.message) { %>
+            <div class="success-message"><%= message %></div>
+        <% } %>
         <div class="link">
             Don't have an account? <a href="/register">Register here</a>
         </div>

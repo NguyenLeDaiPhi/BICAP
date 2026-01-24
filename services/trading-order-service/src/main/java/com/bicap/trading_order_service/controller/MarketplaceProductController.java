@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/fetch-marketplace-products")
+@RequestMapping("/api/marketplace-products")
 public class MarketplaceProductController {
 
     private final IMarketplaceProductService service;

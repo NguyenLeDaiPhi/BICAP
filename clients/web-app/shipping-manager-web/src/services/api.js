@@ -98,6 +98,46 @@ const api = {
     }
   },
 
+  register: async (email, username, password, role) => {
+    try {
+      const registerData = {
+        email: email,
+        username: username,
+        password: password,
+        role: role || 'SHIPPINGMANAGER' // Không có ROLE_ prefix, auth service sẽ tự thêm
+      };
+
+      const response = await axios.post(`${AUTH_API_URL}/register`, registerData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Register API error:', error);
+      
+      let errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 400) {
+          errorMessage = typeof data === 'string' ? data : 'Thông tin đăng ký không hợp lệ';
+        } else if (data) {
+          errorMessage = typeof data === 'string' ? data : JSON.stringify(data);
+        }
+      } else if (error.request) {
+        errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra xem Auth Service đã chạy chưa.';
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      throw new Error(errorMessage);
+    }
+  },
+
   logout: () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
@@ -160,6 +200,18 @@ const api = {
     }
   },
 
+  cancelShipment: async (shipmentId) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/shipments/${shipmentId}`, {
+        headers: getHeaders()
+      });
+      return true;
+    } catch (error) {
+      console.error('Error cancelling shipment:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
   // Drivers
   getAllDrivers: async () => {
     try {
@@ -198,7 +250,7 @@ const api = {
         const data = error.response.data;
         
         if (status === 403 || status === 401) {
-          throw new Error('Access Denied: Bạn không có quyền thực hiện thao tác này. Vui lòng đảm bảo tài khoản có role SHIPPING_MANAGER.');
+          throw new Error('Access Denied: Bạn không có quyền thực hiện thao tác này. Vui lòng đảm bảo tài khoản có role ROLE_SHIPPINGMANAGER.');
         }
         
         throw new Error(typeof data === 'string' ? data : (data.message || 'Lỗi khi tạo tài xế'));
@@ -267,7 +319,7 @@ const api = {
         const data = error.response.data;
         
         if (status === 403 || status === 401) {
-          throw new Error('Access Denied: Bạn không có quyền thực hiện thao tác này. Vui lòng đảm bảo tài khoản có role SHIPPING_MANAGER.');
+          throw new Error('Access Denied: Bạn không có quyền thực hiện thao tác này. Vui lòng đảm bảo tài khoản có role ROLE_SHIPPINGMANAGER.');
         }
         
         throw new Error(typeof data === 'string' ? data : (data.message || 'Lỗi khi tạo xe'));
@@ -319,6 +371,68 @@ const api = {
       return response.data;
     } catch (error) {
       console.error('Error fetching summary report:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Driver Reports
+  getAllDriverReports: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/reports/drivers`, {
+        headers: getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching driver reports:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getDriverReports: async (driverId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/reports/drivers/${driverId}`, {
+        headers: getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching driver reports:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getPendingDriverReports: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/reports/drivers/pending`, {
+        headers: getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching pending driver reports:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Admin Reports
+  sendReportToAdmin: async (reportData) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/reports/admin`, reportData, {
+        headers: getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error sending report to admin:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getMyAdminReports: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/reports/admin/my-reports`, {
+        headers: getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching my admin reports:', error);
       throw error.response?.data || error.message;
     }
   },

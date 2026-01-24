@@ -28,8 +28,13 @@ public class UserRegistrationFactory {
 
     public User createUser(AuthRequest authRequest) {
         String requestedRole = authRequest.getRole().toUpperCase();
+        
+        // Ensure role has ROLE_ prefix
+        if (!requestedRole.startsWith("ROLE_")) {
+            requestedRole = "ROLE_" + requestedRole;
+        }
 
-        if (requestedRole.equals("ADMIN") || requestedRole.equals("DELIVERYDRIVER")) {
+        if (requestedRole.equals("ROLE_ADMIN") || requestedRole.equals("ROLE_DELIVERYDRIVER")) {
             throw new IllegalArgumentException("Cannot self-register for high-priviledge roles.");
         }
 
@@ -37,15 +42,15 @@ public class UserRegistrationFactory {
 
         Set<Role> roles = new HashSet<>();
 
-        if (requestedRole.equals("FARMMANAGER")) {
+        if (requestedRole.equals("ROLE_FARMMANAGER")) {
             roles.add(getRole(ERole.ROLE_FARMMANAGER));
             user.setStatus(UserStatus.ACTIVE);
         }
-        else if (requestedRole.equals("RETAILER")) {
+        else if (requestedRole.equals("ROLE_RETAILER")) {
             roles.add(getRole(ERole.ROLE_RETAILER));
             user.setStatus(UserStatus.ACTIVE);
         }
-        else if (requestedRole.equals("SHIPPINGMANAGER")) {
+        else if (requestedRole.equals("ROLE_SHIPPINGMANAGER")) {
             roles.add(getRole(ERole.ROLE_SHIPPINGMANAGER));
             user.setStatus(UserStatus.ACTIVE);
         }

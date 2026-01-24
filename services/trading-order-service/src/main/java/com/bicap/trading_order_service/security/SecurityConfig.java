@@ -23,32 +23,58 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // JWT → STATELESS
+            // ===============================
+            // STATELESS JWT
+            // ===============================
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
-            // REST API không dùng CSRF
+            // ===============================
+            // CSRF OFF (REST API)
+            // ===============================
             .csrf(csrf -> csrf.disable())
 
-            // PHÂN QUYỀN
+            // ===============================
+            // AUTHORIZATION
+            // ===============================
             .authorizeHttpRequests(auth -> auth
 
-                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // ===== PRE-FLIGHT =====
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // test jwt
+                // ===== SWAGGER =====
+                .requestMatchers(
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    "/swagger-ui.html"
+                ).permitAll()
+
+                // ===== PUBLIC APIs =====
+                .requestMatchers(HttpMethod.GET, "/api/v1/categories/**")
+                    .permitAll()
+
+                // ===== INTERNAL SERVICE CALL =====
+                .requestMatchers("/api/admin/**")
+                    .permitAll()
+
+                // ===== ADMIN =====
+                .requestMatchers("/api/v1/admin/**")
+                    .hasRole("ADMIN")
+
+                // ===== TEST JWT =====
                 .requestMatchers("/api/orders/me")
                     .authenticated()
-                    
-                // Payments
-               .requestMatchers("/api/payments/**")
+
+                // ===== PAYMENT =====
+                .requestMatchers("/api/payments/**")
                     .hasRole("RETAILER")
 
-                // 🛒 Retailer tạo đơn
+                // ===== RETAILER =====
                 .requestMatchers(HttpMethod.POST, "/api/orders")
                     .hasRole("RETAILER")
 
-                // 🌾 Farm manager
+                // ===== FARM MANAGER =====
                 .requestMatchers("/api/orders/by-farm/**")
                     .hasRole("FARMMANAGER")
                 .requestMatchers("/api/orders/*/confirm")
@@ -56,16 +82,18 @@ public class SecurityConfig {
                 .requestMatchers("/api/orders/*/reject")
                     .hasRole("FARMMANAGER")
 
-                // 🚚 Shipping manager
+                // ===== SHIPPING MANAGER =====
                 .requestMatchers("/api/orders/*/complete")
                     .hasRole("SHIPPINGMANAGER")
 
-                // còn lại chỉ cần đăng nhập
+                // ===== DEFAULT =====
                 .anyRequest()
                     .authenticated()
             )
 
+            // ===============================
             // JWT FILTER
+            // ===============================
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
