@@ -747,7 +747,7 @@ consumers:
     jwt_secrets:
       - key: retailer-app  # Issuer in JWT has to match with key named retailer-app
         algorithm: HS256
-        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==  
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u  
 
   - username: admin-app-user
     keyauth_credentials:
@@ -757,7 +757,7 @@ consumers:
     jwt_secrets:
       - key: admin-app
         algorithm: HS256
-        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
         
   - username: shipping-manager-app-user
     keyauth_credentials:
@@ -767,7 +767,7 @@ consumers:
     jwt_secrets:
       - key: shipping-manager-app
         algorithm: HS256
-        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
 
   - username: farm-management-app-user
     keyauth_credentials:
@@ -777,7 +777,7 @@ consumers:
     jwt_secrets:
       - key: farm-management-app
         algorithm: HS256
-        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
 
 # Global logging (optional)
 plugins:

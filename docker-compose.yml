@@ -6,6 +6,7 @@ services:
   auth-db:
     image: mysql:8.0
     container_name: auth-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=bicap_auth_db
@@ -24,6 +25,7 @@ services:
   bicap-message-queue:
     image: rabbitmq:3-management
     container_name: bicap-message-queue
+    restart: unless-stopped
     environment:
       - RABBITMQ_DEFAULT_USER=root
       - RABBITMQ_DEFAULT_PASS=root
@@ -37,6 +39,7 @@ services:
     build:
       context: ./services/auth-service
     container_name: auth-service
+    restart: unless-stopped
     depends_on:
       auth-db:
         condition: service_healthy
@@ -61,6 +64,7 @@ services:
   farm-production-db:
     image: mysql:8.0
     container_name: farm-production-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=farm_production_db
@@ -69,7 +73,7 @@ services:
     networks:
       - bicap-global-net
     volumes:
-      - ./database/farm-production-db/bicap_farm_db.sql:/docker-entrypoint-initdb.d/01_bicap_farm_db.sql
+      - ./database/farm-production-database/bicap_farm_db.sql:/docker-entrypoint-initdb.d/01_bicap_farm_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
@@ -80,6 +84,7 @@ services:
     build:
       context: ./services/farm-production-service
     container_name: farm-production-service
+    restart: unless-stopped
     depends_on:
       farm-production-db:
         condition: service_healthy
@@ -103,6 +108,7 @@ services:
   trading-order-db:
     image: mysql:8.0
     container_name: trading-order-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=bicap_order_db
@@ -122,6 +128,7 @@ services:
     build:
       context: ./services/trading-order-service
     container_name: trading-order-service
+    restart: unless-stopped
     depends_on:
       trading-order-db:
         condition: service_healthy
@@ -147,6 +154,7 @@ services:
   shipping-db:
     image: mysql:8.0
     container_name: shipping-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=shipping_db
@@ -165,6 +173,7 @@ services:
   blockchain-db:
     image: mysql:8.0
     container_name: blockchain-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=bicap_blockchain_db
@@ -185,6 +194,7 @@ services:
     build:
       context: ./services/blockchain-adapter-service
     container_name: blockchain-adapter-service
+    restart: unless-stopped
     depends_on:
       blockchain-db:
         condition: service_healthy
@@ -199,7 +209,7 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
-      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
       - BICAP_APP_JWTEXPIRATIONMS=86400000
     ports:
       - "8084:8084"
@@ -210,6 +220,7 @@ services:
     build:
       context: ./services/shipping-manager-service
     container_name: shipping-manager-service
+    restart: unless-stopped
     depends_on:
       shipping-db:
         condition: service_healthy
@@ -241,6 +252,7 @@ services:
     build:
       context: ./services/admin_service
     container_name: admin-service
+    restart: unless-stopped
     depends_on:
       auth-db:
         condition: service_healthy
@@ -258,7 +270,7 @@ services:
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
-      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
       - FARM_SERVICE_URL=http://farm-production-service:8081
       - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
     ports:
@@ -270,6 +282,7 @@ services:
     build:
       context: ./clients/web-app/retailer-web
     container_name: retailer-web
+    restart: unless-stopped
     depends_on:
       - kong-gateway
     environment:
@@ -290,6 +303,7 @@ services:
     build:
       context: ./clients/web-app/admin-web
     container_name: admin-web
+    restart: unless-stopped
     depends_on:
       - kong-gateway
       - admin-service
@@ -313,6 +327,7 @@ services:
     build:
       context: ./clients/web-app/farm-management-web
     container_name: farm-management-web
+    restart: unless-stopped
     depends_on:
       - kong-gateway
       - bicap-message-queue
@@ -340,6 +355,7 @@ services:
     build: 
       context: ./clients/web-app/shipping-manager-web
     container_name: shipping-manager-web
+    restart: unless-stopped
     depends_on:
       - kong-gateway
     environment:
@@ -361,6 +377,7 @@ services:
   kong-gateway:
     image: kong:latest
     container_name: kong-gateway
+    restart: unless-stopped
     environment:
       - KONG_DATABASE=off
       - KONG_DECLARATIVE_CONFIG=/usr/local/kong/declarative/kong.yml
@@ -377,7 +394,3 @@ services:
       - bicap-global-net
     volumes:
       - ./api-gateway/kong.yml:/usr/local/kong/declarative/kong.yml
-      - kong-logs:/var/log/kong
-
-volumes:
-  kong-logs:

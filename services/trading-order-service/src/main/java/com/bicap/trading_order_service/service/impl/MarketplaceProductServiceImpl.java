@@ -8,7 +8,6 @@ import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.repository.FarmManagerRepository;
 import com.bicap.trading_order_service.service.IMarketplaceProductService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,10 +17,7 @@ import java.util.stream.Collectors;
 @Service
 public class MarketplaceProductServiceImpl implements IMarketplaceProductService {
 
-    @Autowired
     private final MarketplaceProductRepository repository;
-    
-    @Autowired
     private final FarmManagerRepository farmManagerRepository;
 
     public MarketplaceProductServiceImpl(MarketplaceProductRepository repository, FarmManagerRepository farmManagerRepository) {

@@ -12,10 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FeedbackService implements IFeedbackService {
 
-    @Autowired
     private final OrderRepository orderRepository;
-
-    @Autowired
     private final OrderFeedbackRepository feedbackRepository;
 
     public FeedbackService(OrderRepository orderRepository,
