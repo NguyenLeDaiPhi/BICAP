@@ -46,6 +46,7 @@ public class OrderService implements IOrderService {
 
         Order order = new Order();
         order.setBuyerEmail(buyerEmail);
+        order.setShippingAddress(request.getShippingAddress());
         order.setStatus("CREATED");
 
         BigDecimal totalAmount = BigDecimal.ZERO;

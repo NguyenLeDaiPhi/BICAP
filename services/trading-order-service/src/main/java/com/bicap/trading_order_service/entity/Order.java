@@ -16,7 +16,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ✅ THAY buyer_id → buyer_email
+    @Column(name = "shipping_address", nullable = false)
+    private String shippingAddress;
+
     @Column(name = "buyer_email", nullable = false, length = 255)
     private String buyerEmail;
 
@@ -73,6 +75,14 @@ public class Order {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public void setShippingAddress (String shippingAddress){
+        this.shippingAddress = shippingAddress;
+    }
+
+    public String getShipingAddress(){
+        return shippingAddress;
     }
 
     public List<OrderItem> getItems() {

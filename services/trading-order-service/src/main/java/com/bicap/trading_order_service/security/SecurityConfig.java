@@ -34,13 +34,19 @@ public class SecurityConfig {
             // PHÂN QUYỀN
             .authorizeHttpRequests(auth -> auth
 
+                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                 // test jwt
                 .requestMatchers("/api/orders/me")
                     .authenticated()
+                    
+                // Payments
+               .requestMatchers("/api/payments/**")
+                    .hasRole("RETAILER")
 
                 // 🛒 Retailer tạo đơn
                 .requestMatchers(HttpMethod.POST, "/api/orders")
-                    .hasAuthority("ROLE_RETAILER")
+                    .hasRole("RETAILER")
 
                 // 🌾 Farm manager
                 .requestMatchers("/api/orders/by-farm/**")

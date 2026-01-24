@@ -7,9 +7,19 @@ public class CreateOrderRequest {
 
     @NotNull
     private List<OrderItemRequest> items;
+    @NotNull
+    private String shippingAddress;
 
     public List<OrderItemRequest> getItems() {
         return items;
+    }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippinhAddress(String shippingAddress){
+        this.shippingAddress = shippingAddress;
     }
 
     public void setItems(List<OrderItemRequest> items) {
