@@ -11,6 +11,10 @@ const DriversPage = () => {
     name: '',
     phone: '',
     license: '',
+<<<<<<< HEAD
+=======
+    citizenId: '',
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     userId: null
   });
 
@@ -38,6 +42,10 @@ const DriversPage = () => {
         name: driver.name || '',
         phone: driver.phone || '',
         license: driver.license || '',
+<<<<<<< HEAD
+=======
+        citizenId: driver.citizenId || '',
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         userId: driver.userId || null
       });
     } else {
@@ -46,6 +54,10 @@ const DriversPage = () => {
         name: '',
         phone: '',
         license: '',
+<<<<<<< HEAD
+=======
+        citizenId: '',
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         userId: null
       });
     }
@@ -59,6 +71,10 @@ const DriversPage = () => {
       name: '',
       phone: '',
       license: '',
+<<<<<<< HEAD
+=======
+      citizenId: '',
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
       userId: null
     });
   };
@@ -130,6 +146,10 @@ const DriversPage = () => {
                 <th>Họ tên</th>
                 <th>Số điện thoại</th>
                 <th>Bằng lái</th>
+<<<<<<< HEAD
+=======
+                <th>Số CCCD</th>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                 <th>Hành động</th>
               </tr>
             </thead>
@@ -141,6 +161,10 @@ const DriversPage = () => {
                     <td>{driver.name}</td>
                     <td>{driver.phone}</td>
                     <td>{driver.license}</td>
+<<<<<<< HEAD
+=======
+                    <td>{driver.citizenId || 'N/A'}</td>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                     <td>
                       <button
                         className="btn btn-sm btn-outline-primary me-2"
@@ -159,7 +183,11 @@ const DriversPage = () => {
                 ))
               ) : (
                 <tr>
+<<<<<<< HEAD
                   <td colSpan="5" className="text-center">
+=======
+                  <td colSpan="6" className="text-center">
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                     Chưa có tài xế nào trong hệ thống.
                   </td>
                 </tr>
@@ -223,7 +251,11 @@ const DriversPage = () => {
                     />
                   </div>
                   <div className="mb-3">
+<<<<<<< HEAD
                     <label className="form-label">Bằng lái</label>
+=======
+                    <label className="form-label">Bằng lái <span className="text-danger">*</span></label>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                     <input
                       type="text"
                       className="form-control"
@@ -231,6 +263,22 @@ const DriversPage = () => {
                       onChange={(e) => setFormData({ ...formData, license: e.target.value })}
                       required
                     />
+<<<<<<< HEAD
+=======
+                    <small className="form-text text-muted">Giấy phép lái xe phải là duy nhất</small>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Số căn cước công dân (CCCD) <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={formData.citizenId}
+                      onChange={(e) => setFormData({ ...formData, citizenId: e.target.value })}
+                      placeholder="VD: 001234567890"
+                      required
+                    />
+                    <small className="form-text text-muted">Số CCCD phải là duy nhất</small>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                   </div>
                   <div className="mb-3">
                     <label className="form-label">User ID (tùy chọn)</label>

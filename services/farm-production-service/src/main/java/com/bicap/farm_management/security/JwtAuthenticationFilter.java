@@ -30,30 +30,84 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String jwt = parseJwt(request);
+        if (jwt == null) {
+            System.out.println("⚠️ [JWT Filter] No JWT token found in request");
+        } else if (!jwtUtils.validateToken(jwt)) {
+            System.out.println("⚠️ [JWT Filter] JWT token validation failed");
+        }
+        
         if (jwt != null && jwtUtils.validateToken(jwt)) {
-            Claims claims = jwtUtils.getClaimsFromToken(jwt);
-                
-                // 1. Extract User Details
-                String username = claims.getSubject();
-                Long userId = claims.get("userId", Long.class);
-                String rolesStr = claims.get("roles", String.class);
+            try {
+                Claims claims = jwtUtils.getClaimsFromToken(jwt);
+                    
+                    // 1. Extract User Details
+                    String username = claims.getSubject();
+                    Long userId = claims.get("userId", Long.class);
+                    Object rolesObj = claims.get("roles");
+                    String rolesStr = null;
+                    
+                    // Handle roles as String or List
+                    if (rolesObj instanceof String) {
+                        rolesStr = ((String) rolesObj).trim();
+                    } else if (rolesObj instanceof List) {
+                        rolesStr = ((List<?>) rolesObj).stream()
+                                .map(obj -> {
+                                    if (obj == null) return "";
+                                    return (obj instanceof String) ? ((String) obj).trim() : obj.toString().trim();
+                                })
+                                .filter(s -> !s.isEmpty())
+                                .collect(Collectors.joining(","));
+                    } else if (rolesObj != null) {
+                        rolesStr = rolesObj.toString().trim();
+                    }
 
-                // 2. Set userId to request attribute for Controllers to use
-                request.setAttribute("userId", userId);
+                    System.out.println("🔐 [JWT Filter] Request: " + request.getRequestURI());
+                    System.out.println("🔐 [JWT Filter] Username: " + username);
+                    System.out.println("🔐 [JWT Filter] UserId: " + userId);
+                    System.out.println("🔐 [JWT Filter] Raw roles from token (type: " + (rolesObj != null ? rolesObj.getClass().getSimpleName() : "null") + "): " + rolesStr);
 
-                // 3. Convert roles to GrantedAuthority
-                List<SimpleGrantedAuthority> authorities = Arrays.stream(rolesStr.split(","))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+                    // 2. Set userId to request attribute for Controllers to use
+                    if (userId != null) {
+                        request.setAttribute("userId", userId);
+                    }
 
-                // 4. Create Authentication object
-                UsernamePasswordAuthenticationToken authentication = 
-                        new UsernamePasswordAuthenticationToken(username, null, authorities);
-                
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    // 3. Convert roles to GrantedAuthority
+                    List<SimpleGrantedAuthority> authorities;
+                    if (rolesStr == null || rolesStr.isBlank()) {
+                        System.out.println("⚠️ [JWT Filter] No roles found in token! User will not have access to protected endpoints.");
+                        authorities = List.of();
+                    } else {
+                        authorities = Arrays.stream(rolesStr.split(","))
+                                .map(role -> {
+                                    String trimmedRole = role.trim();
+                                    if (!trimmedRole.startsWith("ROLE_")) {
+                                        trimmedRole = "ROLE_" + trimmedRole;
+                                    }
+                                    System.out.println("🔐 [JWT Filter] Creating authority: " + trimmedRole);
+                                    return new SimpleGrantedAuthority(trimmedRole);
+                                })
+                                .collect(Collectors.toList());
+                    }
+                    System.out.println("🔐 [JWT Filter] Total authorities: " + authorities.size());
+                    if (authorities.isEmpty()) {
+                        System.out.println("⚠️ [JWT Filter] WARNING: No authorities set! Access will be denied.");
+                    } else {
+                        authorities.forEach(auth -> System.out.println("  ✓ " + auth.getAuthority()));
+                    }
 
-                // 5. Set Security Context
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    // 4. Create Authentication object
+                    UsernamePasswordAuthenticationToken authentication = 
+                            new UsernamePasswordAuthenticationToken(username, null, authorities);
+                    
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    // 5. Set Security Context
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    System.out.println("✓ [JWT Filter] Authentication set successfully");
+            } catch (Exception e) {
+                System.err.println("❌ [JWT Filter] Error processing token: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
 
         filterChain.doFilter(request, response);

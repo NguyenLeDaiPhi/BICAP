@@ -6,6 +6,7 @@ import com.bicap.farm_management.repository.FarmRepository;
 import com.bicap.farm_management.service.FarmFeatureService;
 import com.bicap.farm_management.dto.FarmLogDTO;
 import com.bicap.farm_management.service.FarmLogService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,18 @@ public class FarmFeatureController {
     private FarmLogService farmLogService;
 
     @PostMapping("/")
-    public ResponseEntity<Farm> createFarm(@RequestBody FarmCreateDto dto) {
-        Farm createdFarm = farmFeatureService.createFarm(dto);
+    public ResponseEntity<?> createFarm(@RequestBody FarmCreateDto dto, HttpServletRequest request) {
+        // Lấy userId từ request attribute (đã được JwtAuthenticationFilter set vào)
+        Long userId = (Long) request.getAttribute("userId");
+
+        // Kiểm tra xem có lấy được không (đề phòng token lỗi hoặc auth service chưa gửi ID)
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Không tìm thấy User ID. Vui lòng đăng nhập lại.");
+        }
+
+        // Tạo farm với ownerId từ JWT token
+        Farm createdFarm = farmFeatureService.createFarm(dto, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdFarm);
     }
     

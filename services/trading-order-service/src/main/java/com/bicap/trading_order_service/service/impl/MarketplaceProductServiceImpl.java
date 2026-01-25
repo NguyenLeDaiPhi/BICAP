@@ -8,7 +8,6 @@ import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.repository.FarmManagerRepository;
 import com.bicap.trading_order_service.service.IMarketplaceProductService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +19,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class MarketplaceProductServiceImpl implements IMarketplaceProductService {
 
-    @Autowired
     private final MarketplaceProductRepository repository;
-    
-    @Autowired
     private final FarmManagerRepository farmManagerRepository;
 
     public MarketplaceProductServiceImpl(MarketplaceProductRepository repository, FarmManagerRepository farmManagerRepository) {
@@ -93,5 +89,16 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
         // Map isApproved boolean if needed by frontend logic, usually derived from status
         response.setIsApproved("APPROVED".equals(product.getStatus()));
         return response;
+    }
+
+    //search
+    @Override
+    public List<MarketplaceProduct> searchByName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            System.out.println(">>> SEARCH BY NAME = " + name);
+            return repository.findAll();
+        }
+        System.out.println(">>> SEARCH BY NAME = " + name);
+        return repository.findByNameContainingIgnoreCase(name.trim());
     }
 }

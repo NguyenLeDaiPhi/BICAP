@@ -17,7 +17,10 @@ public class Driver {
 
     private String name;
     private String phone;
-    private String license;
+    private String license; // Giấy phép lái xe
+    
+    @Column(unique = true)
+    private String citizenId; // Số căn cước công dân (CMND/CCCD)
     
     // ID người dùng từ Auth Service (để tài xế đăng nhập App)
     private Long userId; 

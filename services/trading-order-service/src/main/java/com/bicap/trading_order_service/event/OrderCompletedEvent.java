@@ -7,16 +7,20 @@ import java.math.BigDecimal;
 
 @Data
 public class OrderCompletedEvent implements Serializable {
+
     private Long orderId;
-    private Long buyerId;
+
+    // Use buyerEmail instead of buyerId
+    private String buyerEmail;
+
     private BigDecimal totalAmount;
 
     public OrderCompletedEvent() {
     }
 
-    public OrderCompletedEvent(Long orderId, Long buyerId, BigDecimal totalAmount) {
+    public OrderCompletedEvent(Long orderId, String buyerEmail, BigDecimal totalAmount) {
         this.orderId = orderId;
-        this.buyerId = buyerId;
+        this.buyerEmail = buyerEmail;
         this.totalAmount = totalAmount;
     }
 }

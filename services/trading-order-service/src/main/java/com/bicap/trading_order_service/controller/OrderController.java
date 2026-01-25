@@ -55,9 +55,18 @@ public class OrderController {
     @PreAuthorize("hasAuthority('ROLE_RETAILER')")
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(
-            @RequestBody CreateOrderRequest request
+            @RequestBody CreateOrderRequest request,
+            Authentication authentication
     ) {
-        return ResponseEntity.ok(orderService.createOrder(request));
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String buyerEmail = authentication.getName(); // ← LẤY TỪ JWT
+
+        return ResponseEntity.ok(
+                orderService.createOrder(request, buyerEmail)
+        );
     }
 
     // =======================
@@ -107,5 +116,41 @@ public class OrderController {
             this.username = username;
             this.roles = roles;
         }
+    }
+
+    /**
+     * =======================
+     * RETAILER – MY ORDERS
+     * =======================
+     */
+    @GetMapping("/my")
+    public ResponseEntity<List<OrderResponse>> getMyOrders(Authentication authentication) {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // Lấy email từ JWT (trong project của bạn = email)
+        String buyerEmail = authentication.getName();
+
+        return ResponseEntity.ok(
+                orderService.getOrdersByBuyerEmail(buyerEmail)
+        );
+    }
+
+    @GetMapping("/detail/{orderId}")
+    public ResponseEntity<OrderResponse> getOrderDetail(
+            @PathVariable Long orderId,
+            Authentication authentication
+    ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String buyerEmail = authentication.getName();
+
+        return ResponseEntity.ok(
+                orderService.getOrderDetailByIdAndBuyerEmail(orderId, buyerEmail)
+        );
     }
 }

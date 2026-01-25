@@ -25,6 +25,18 @@ public class VehicleService {
     }
 
     public Vehicle createVehicle(Vehicle vehicle) {
+        // Validate: Biển số xe không được để trống
+        if (vehicle.getPlate() == null || vehicle.getPlate().trim().isEmpty()) {
+            throw new IllegalArgumentException("Biển số xe không được để trống");
+        }
+        
+        // Validate: Kiểm tra biển số xe không trùng với xe đã tồn tại
+        String plate = vehicle.getPlate().trim().toUpperCase();
+        vehicleRepository.findByPlateIgnoreCase(plate).ifPresent(existingVehicle -> {
+            throw new IllegalArgumentException("Biển số này đã được dùng");
+        });
+        
+        vehicle.setPlate(plate); // Normalize to uppercase
         if (vehicle.getStatus() == null) vehicle.setStatus("AVAILABLE");
         return vehicleRepository.save(vehicle);
     }
@@ -35,8 +47,15 @@ public class VehicleService {
                 .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
         
         // Update fields
-        if (vehicle.getPlate() != null) {
-            existing.setPlate(vehicle.getPlate());
+        if (vehicle.getPlate() != null && !vehicle.getPlate().trim().isEmpty()) {
+            String newPlate = vehicle.getPlate().trim().toUpperCase();
+            // Kiểm tra nếu biển số mới khác biển số hiện tại và đã tồn tại
+            if (!newPlate.equalsIgnoreCase(existing.getPlate())) {
+                vehicleRepository.findByPlateIgnoreCase(newPlate).ifPresent(conflictVehicle -> {
+                    throw new IllegalArgumentException("Biển số này đã được dùng");
+                });
+            }
+            existing.setPlate(newPlate);
         }
         if (vehicle.getType() != null) {
             existing.setType(vehicle.getType());

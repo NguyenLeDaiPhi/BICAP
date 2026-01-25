@@ -35,7 +35,12 @@ exports.getFarmInfoPage = async (req, res) => {
                 roles: req.user?.roles || [],
                 ...req.user  // Spread req.user để giữ các field khác nếu cần
             },
+<<<<<<< HEAD
             error: null
+=======
+            error: null,
+            showCreateButton: false // Đã có farm rồi
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         });
     } catch (error) {
         console.error('✗ Lỗi lấy thông tin farm:', error.message);
@@ -44,11 +49,20 @@ exports.getFarmInfoPage = async (req, res) => {
             console.error('API Error Data:', error.response.data);
         }
         
+<<<<<<< HEAD
         // Nếu chưa có farm, hiển thị thông báo
         res.render('farm-info', { 
             farm: null, 
             user: req.user,
             error: 'Bạn chưa tạo trang trại nào hoặc không tìm thấy dữ liệu.' 
+=======
+        // Nếu chưa có farm (404 hoặc lỗi khác), hiển thị nút tạo farm
+        res.render('farm-info', { 
+            farm: null, 
+            user: req.user,
+            error: null, // Không hiển thị error, chỉ hiển thị nút tạo
+            showCreateButton: true // Hiển thị nút tạo farm
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         });
     }
 };
@@ -112,7 +126,55 @@ exports.getEditFarmPage = async (req, res) => {
     }
 };
 
+<<<<<<< HEAD
 // 3. Xử lý cập nhật (Update)
+=======
+// 3. Tạo trang trại mới (Create)
+exports.createFarm = async (req, res) => {
+    try {
+        const ownerId = req.user.userId || req.user.id || req.user.sub;
+        console.log(`Tạo farm mới cho Owner ID: ${ownerId}`);
+
+        // Chuẩn bị dữ liệu tạo farm
+        const farmData = {
+            farmName: req.body.farmName,
+            address: req.body.address,
+            email: req.body.email || req.user.email,
+            hotline: req.body.phone,
+            areaSize: req.body.area ? parseFloat(req.body.area) : null,
+            description: req.body.description
+        };
+
+        // Gọi API tạo farm
+        const createResponse = await axios.post(`${BASE_API_URL}/`, farmData, {
+            headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+        });
+
+        console.log('✓ Tạo farm thành công:', createResponse.data);
+        
+        // Sau khi tạo, cập nhật ownerId (nếu API không tự động set)
+        if (createResponse.data && !createResponse.data.ownerId) {
+            const updateData = { ownerId: ownerId };
+            await axios.put(`${BASE_API_URL}/${createResponse.data.id}/info`, updateData, {
+                headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+            });
+        }
+
+        res.redirect('/farm-info');
+    } catch (error) {
+        console.error('Lỗi tạo farm:', error.message);
+        console.error('Error response:', error.response?.data);
+        res.status(500).render('farm-info', {
+            farm: null,
+            user: req.user,
+            error: 'Lỗi tạo trang trại: ' + (error.response?.data?.message || error.message),
+            showCreateButton: true
+        });
+    }
+};
+
+// 4. Xử lý cập nhật (Update)
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 exports.updateFarmInfo = async (req, res) => {
     try {
         // Bước 1: Lấy lại thông tin Farm để biết FarmID (an toàn nhất)

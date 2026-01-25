@@ -72,7 +72,7 @@ public class JwtUtils {
 
     /**
      * ✅ Chuẩn hoá role
-     * JWT hiện tại: roles = "ROLE_RETAILER"
+     * JWT hiện tại: roles = "ROLE_RETAILER" hoặc List<String>
      */
     public List<String> getRoles(String token) {
         Claims claims = parseClaims(token);
@@ -83,9 +83,11 @@ public class JwtUtils {
         if (rolesObj instanceof String roleStr) {
             return List.of(roleStr);
         }
-        
-        if (rolesObj instanceof List) {
-            return ((List<?>) rolesObj).stream().map(Object::toString).collect(Collectors.toList());
+
+        if (rolesObj instanceof List<?> roleList) {
+            return roleList.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toList());
         }
 
         return List.of();

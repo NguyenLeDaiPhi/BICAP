@@ -1,11 +1,19 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <html>
 <head>
   <title>Hồ sơ cá nhân</title>
+=======
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title><%= pageTitle || "Hồ sơ cá nhân" %></title>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
   <link rel="stylesheet" href="/css/theme.css">
 </head>
 <body>
 
+<<<<<<< HEAD
 <%- include("partials/header") %>
 
 <div class="layout">
@@ -26,5 +34,53 @@
 
 <%- include("partials/footer") %>
 
+=======
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <%- include("partials/sidebar", { user }) %>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- HEADER (GIỮ TIÊU ĐỀ Ở ĐÂY) -->
+    <%- include("partials/header", { pageTitle: pageTitle }) %>
+
+    <!-- CONTENT -->
+    <main class="content">
+      <div class="content-inner profile-wrapper">
+
+        <div class="profile-card">
+
+          <div class="profile-row">
+            <span class="label">Tên đăng nhập</span>
+            <span class="value"><%= user.username %></span>
+          </div>
+
+          <div class="profile-row">
+            <span class="label">Email</span>
+            <span class="value"><%= user.email %></span>
+          </div>
+
+          <div class="profile-row">
+            <span class="label">Vai trò</span>
+            <span class="value">
+              <%= Array.isArray(user.roles) ? user.roles.join(", ") : user.roles %>
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <%- include("partials/footer") %>
+
+  </div>
+</div>
+
+<script src="/js/layout.js"></script>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 </body>
 </html>

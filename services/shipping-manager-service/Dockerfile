@@ -9,6 +9,6 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 # Copy the built jar from the build stage to app.jar
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8086
 ENV JAVA_OPTS=""
+EXPOSE 8083
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

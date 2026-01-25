@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
+    // Tìm xe theo biển số (để kiểm tra trùng)
+    java.util.Optional<Vehicle> findByPlateIgnoreCase(String plate);
 }

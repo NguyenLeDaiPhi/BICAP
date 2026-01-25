@@ -95,6 +95,7 @@ public class ProductServiceImpl implements IProductService {
         ProductResponseDTO.ProductResponseDTOBuilder builder = ProductResponseDTO.builder()
                 .id(product.getId())
                 .name(product.getName())
+                .category(product.getCategory())
                 .description(product.getDescription())
                 .quantity(product.getQuantity())
                 .unit(product.getUnit())
@@ -102,12 +103,17 @@ public class ProductServiceImpl implements IProductService {
                 .imageUrl(product.getImageUrl())
                 .status(product.getStatus())
                 .batchId(product.getBatchId())
-                .banReason(product.getBanReason());
+                .createdAt(product.getCreatedAt())
+                .banReason(product.getBanReason())
+                .categoryId(product.getCategoryId())
+                .stockQuantity(product.getStockQuantity());
 
         // Lấy thông tin FarmManager
         FarmManager farmManager = product.getFarmManager();
         if (farmManager != null) {
             builder.farmId(farmManager.getFarmId())
+                   .farmManagerId(farmManager.getId())
+                   .farmManagerUsername(farmManager.getUsername())
                    .farmManagerEmail(farmManager.getEmail());
             
             // TODO: Gọi Farm Service để lấy tên Farm nếu cần

@@ -5,8 +5,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class ShippingManagerServiceApplicationTests {
+
     @Test
     void contextLoads() {
     }
-}
 
+}

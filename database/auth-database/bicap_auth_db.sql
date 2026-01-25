@@ -201,7 +201,10 @@ CREATE TABLE `user_roles` (
 
 LOCK TABLES `user_roles` WRITE;
 /*!40000 ALTER TABLE `user_roles` DISABLE KEYS */;
+<<<<<<< HEAD
 INSERT INTO `user_roles` VALUES (1,1);
+=======
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 /*!40000 ALTER TABLE `user_roles` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -256,7 +259,10 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
+<<<<<<< HEAD
 INSERT INTO `users` VALUES (1,'admin@gmail.com','$2a$10$gJLTpxAlKirbI4RkK/LfFeUvRnJce/BAqQVbrLS6Jev4jgp1XCHIS','ACTIVE','admin');
+=======
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

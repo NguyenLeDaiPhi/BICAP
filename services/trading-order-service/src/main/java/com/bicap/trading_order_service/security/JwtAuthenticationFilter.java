@@ -3,6 +3,7 @@ package com.bicap.trading_order_service.security;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -13,8 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -30,17 +31,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain 
+            FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
+        /* =====================================================
+           1️⃣ LẤY TOKEN – HEADER HOẶC COOKIE
+        ===================================================== */
+        String token = null;
 
-        if (header == null || !header.startsWith("Bearer ")) {
+        // Ưu tiên Authorization header (Postman)
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            token = header.substring(7);
+        }
+
+        // Nếu không có header → lấy từ cookie (Frontend)
+        if (token == null && request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("auth_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = header.substring(7);
+        /* =====================================================
+           2️⃣ PARSE JWT
+        ===================================================== */
         Claims claims = jwtUtils.parseClaims(token);
 
         if (claims == null) {
@@ -51,15 +73,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = claims.getSubject();
         String email = claims.get("email", String.class);
 
-        // Handle roles as List or String
-        List<String> roles = new ArrayList<>();
+        /* =====================================================
+           3️⃣ XỬ LÝ ROLES (STRING hoặc LIST)
+        ===================================================== */
         Object rolesObj = claims.get("roles");
 
-        if (rolesObj instanceof String) {
-            roles.add((String) rolesObj);
-        } else if (rolesObj instanceof List) {
-            roles = ((List<?>) rolesObj).stream()
-                    .map(Object::toString)
+        if (rolesObj == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        List<String> roles = new ArrayList<>();
+
+        if (rolesObj instanceof String roleStr) {
+            roles.add(roleStr.trim());
+        } else if (rolesObj instanceof List<?> roleList) {
+            roles = roleList.stream()
+                    .map(r -> r.toString().trim())
                     .collect(Collectors.toList());
         }
 
@@ -71,6 +101,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         List<SimpleGrantedAuthority> authorities =
                 roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 
+        /* =====================================================
+           4️⃣ SET SECURITY CONTEXT
+        ===================================================== */
         JwtUser jwtUser = new JwtUser(
                 username,
                 email,

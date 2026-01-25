@@ -209,9 +209,22 @@ routes:
     methods:
       - GET
       - POST
+<<<<<<< HEAD
       - OPTIONS
     strip_path: false
     plugins:
+=======
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
       - name: rate-limiting
         config:
           minute: 100
@@ -219,7 +232,11 @@ routes:
       - name: cors
         config:
           origins: ["*"]
+<<<<<<< HEAD
           methods: ["GET", "POST", "OPTIONS"]
+=======
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
           headers: ["Accept", "Content-Type", "Authorization"]
           credentials: true
       - name: file-log
@@ -235,6 +252,7 @@ routes:
       - GET
       - POST
       - OPTIONS
+<<<<<<< HEAD
     strip_path: false
     plugins:
       - name: request-transformer
@@ -273,6 +291,9 @@ routes:
       - POST
       - OPTIONS
     strip_path: false
+=======
+    strip_path: true
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     plugins:
       - name: rate-limiting
         config:
@@ -286,7 +307,141 @@ routes:
           credentials: true
       - name: file-log
         config:
+<<<<<<< HEAD
           path: /var/log/kong/farming-seasons-api.log
+=======
+          path: /var/log/kong/retailer-marketplace-api.log
+
+  # --- START: FARM PRODUCTION SERVICE ROUTES (FOR SEASON MONITOR) ---
+
+  # Corrected: Route for creating and viewing seasons/batches
+  # Thêm request-transformer để forward Authorization header từ cookie (nếu có)
+  # Nếu Node.js đã gửi Authorization header, Kong sẽ forward header đó
+  # Nếu không có, sẽ extract từ cookie
+  - name: production-batches-api
+    service: farm-production-service
+    paths:
+      - /api/production-batches
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+          # Không replace header nếu đã có Authorization header từ Node.js
+          replace:
+            headers: []
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/production-batches-api.log
+
+  # New: Route for exporting batches and generating QR codes
+  - name: export-batches-api
+    service: farm-production-service
+    paths:
+      - /api/export-batches
+    methods:
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/export-batches-api.log
+
+  # Route for farming processes (update season progress)
+  - name: farming-processes-api
+    service: farm-production-service
+    paths:
+      - /api/farming-processes
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/farming-processes-api.log
+
+  # Route for farm features (get farm info)
+  - name: farm-features-api
+    service: farm-production-service
+    paths:
+      - /api/farm-features
+    methods:
+      - GET
+      - POST
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/farm-features-api.log
+
+  # --- END: FARM PRODUCTION SERVICE ROUTES ---
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
   # Shipping Manager Service API
   - name: shipping-shipments-api
@@ -502,8 +657,12 @@ routes:
       - /js
       - /index.html
       - /assets  # Added for farm-management-web static assets
+<<<<<<< HEAD
       - /src     # Added for farm-management-web scripts
       - /public  # Added for farm-management-web uploads/public
+=======
+      - /uploads  # Added for uploaded files
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     strip_path: false
     plugins:
       - name: cors
@@ -513,6 +672,36 @@ routes:
           headers: ["Accept", "Content-Type"]
           credentials: true
 
+<<<<<<< HEAD
+=======
+  # Farm Management Web API Routes (internal API endpoints)
+  - name: farm-management-api
+    service: farm-management-web
+    paths:
+      - /api/season-monitor
+      - /api/notifications
+      - /api/update
+      - /upload
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
   # Protected Routes (requires valid JWT from auth-service)
   - name: retailer-protected
     service: retailer-web
@@ -618,10 +807,17 @@ consumers:
       - key: retailer-secret-key  # Use in fetch headers if key-auth on auth-api
     acls:
       - group: retailer
+<<<<<<< HEAD
     jwt_secrets:  
       - key: retailer-app  # Issuer in JWT has to match with key named retailer-app
         algorithm: HS256
         secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==  
+=======
+    jwt_secrets:
+      - key: retailer-app  # Issuer in JWT has to match with key named retailer-app
+        algorithm: HS256
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u  
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
   - username: admin-app-user
     keyauth_credentials:
@@ -631,7 +827,11 @@ consumers:
     jwt_secrets:
       - key: admin-app
         algorithm: HS256
+<<<<<<< HEAD
         secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+=======
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         
   - username: shipping-manager-app-user
     keyauth_credentials:
@@ -641,7 +841,11 @@ consumers:
     jwt_secrets:
       - key: shipping-manager-app
         algorithm: HS256
+<<<<<<< HEAD
         secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+=======
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
   - username: farm-management-app-user
     keyauth_credentials:
@@ -651,7 +855,11 @@ consumers:
     jwt_secrets:
       - key: farm-management-app
         algorithm: HS256
+<<<<<<< HEAD
         secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+=======
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
 # Global logging (optional)
 plugins:

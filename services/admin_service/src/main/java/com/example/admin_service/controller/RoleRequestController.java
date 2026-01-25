@@ -2,6 +2,7 @@ package com.example.admin_service.controller;
 
 import com.example.admin_service.dto.RoleRequestDTO;
 import com.example.admin_service.dto.RoleRequestResponseDTO;
+import com.example.admin_service.entity.RoleRequest;
 import com.example.admin_service.service.RoleApprovalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

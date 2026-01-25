@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "marketplace_products")
-@Data  // or keep manual getters/setters if you prefer
+@Data
 public class MarketplaceProduct {
 
     @Id

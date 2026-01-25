@@ -5,26 +5,43 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ProductResponseDTO {
+    
     private Long id;
     private String name;
-    private String categoryName; // Matches EJS: p.categoryName
+    private String category;
+    private String categoryName;
     private String description;
     private Integer quantity;
     private String unit;
     private Double price;
     private String imageUrl;
-    private String batchId;
     private String status;
-    private String banReason;
-
-    // Farm details
+    private String batchId;
+    private LocalDateTime createdAt;
+    
+    // Thông tin Farm
     private Long farmId;
-    private String farmName;   // Matches EJS: p.farmName
-    private String ownerName;  // Matches EJS: p.ownerName
+    private String farmName;
+    private String ownerName;
+    
+    // Thông tin User (Farm Manager)
+    private Long farmManagerId;
+    private String farmManagerUsername;
     private String farmManagerEmail;
+    
+    // Thông tin ban (nếu có)
+    private String banReason;
+    
+    // Thông tin category
+    private Long categoryId;
+    
+    // Stock
+    private Integer stockQuantity;
 }

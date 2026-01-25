@@ -23,28 +23,56 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // JWT → STATELESS
+            // ===============================
+            // STATELESS JWT
+            // ===============================
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
-            // REST API không dùng CSRF
+            // ===============================
+            // CSRF OFF (REST API không dùng CSRF)
+            // ===============================
             .csrf(csrf -> csrf.disable())
 
-            // PHÂN QUYỀN
+            // ===============================
+            // PHÂN QUYỀN (AUTHORIZATION)
+            // ===============================
             .authorizeHttpRequests(auth -> auth
 
-                // 🔓 Internal Admin API - cho phép admin-service gọi internal
-                .requestMatchers("/api/admin/**")
+                // ===== PRE-FLIGHT =====
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // ===== SWAGGER =====
+                .requestMatchers(
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    "/swagger-ui.html"
+                ).permitAll()
+
+                // ===== PUBLIC APIs =====
+                .requestMatchers(HttpMethod.GET, "/api/v1/categories/**")
                     .permitAll()
-                
+
                 // 🔓 Allow error page
                 .requestMatchers("/error", "/error/**")
                     .permitAll()
 
-                // test jwt
+                // 🔓 Internal Admin API - cho phép admin-service gọi internal
+                .requestMatchers("/api/admin/**")
+                    .permitAll()
+
+                // ===== ADMIN =====
+                .requestMatchers("/api/v1/admin/**")
+                    .hasRole("ADMIN")
+
+                // ===== TEST JWT =====
                 .requestMatchers("/api/orders/me")
                     .authenticated()
+
+                // ===== PAYMENT =====
+                .requestMatchers("/api/payments/**")
+                    .hasRole("RETAILER")
 
                 // 🛒 Retailer tạo đơn
                 .requestMatchers(HttpMethod.POST, "/api/orders")
@@ -62,12 +90,14 @@ public class SecurityConfig {
                 .requestMatchers("/api/orders/*/complete")
                     .hasRole("SHIPPINGMANAGER")
 
-                // còn lại chỉ cần đăng nhập
+                // ===== DEFAULT - còn lại chỉ cần đăng nhập =====
                 .anyRequest()
                     .authenticated()
             )
 
+            // ===============================
             // JWT FILTER
+            // ===============================
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class

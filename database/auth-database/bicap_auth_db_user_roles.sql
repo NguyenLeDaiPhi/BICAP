@@ -38,7 +38,10 @@ CREATE TABLE `user_roles` (
 
 LOCK TABLES `user_roles` WRITE;
 /*!40000 ALTER TABLE `user_roles` DISABLE KEYS */;
+<<<<<<< HEAD
 INSERT INTO `user_roles` VALUES (1,1),(2,2);
+=======
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 /*!40000 ALTER TABLE `user_roles` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

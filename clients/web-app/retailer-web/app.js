@@ -3,6 +3,10 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const session = require("express-session");
+<<<<<<< HEAD
+=======
+const fetch = global.fetch; // Node 18+
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
 const auth = require("./src/auth/authentication");
 const retailerController = require("./src/retailer/retailer.controller");
@@ -57,7 +61,10 @@ app.get("/cart", auth.requireAuth, (req, res) => {
 
 /* ================= CART API ================= */
 
+<<<<<<< HEAD
 /* ADD TO CART */
+=======
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 app.post("/cart/add", auth.requireAuth, (req, res) => {
   const { product } = req.body;
 
@@ -80,6 +87,7 @@ app.post("/cart/add", auth.requireAuth, (req, res) => {
   res.json({ message: "Đã thêm vào giỏ hàng" });
 });
 
+<<<<<<< HEAD
 /* UPDATE QTY */
 app.post("/cart/update", auth.requireAuth, (req, res) => {
   const { id, delta } = req.body;
@@ -92,10 +100,20 @@ app.post("/cart/update", auth.requireAuth, (req, res) => {
   if (!item) {
     return res.json({ success: false });
   }
+=======
+app.post("/cart/update", auth.requireAuth, (req, res) => {
+  const { id, delta } = req.body;
+
+  if (!req.session.cart) return res.json({ success: false });
+
+  const item = req.session.cart.find((i) => i.id == id);
+  if (!item) return res.json({ success: false });
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
   item.quantity += delta;
   if (item.quantity < 1) item.quantity = 1;
 
+<<<<<<< HEAD
   res.json({
     success: true,
     quantity: item.quantity,
@@ -109,6 +127,15 @@ app.post("/cart/remove", auth.requireAuth, (req, res) => {
   if (!req.session.cart) {
     return res.json({ success: false });
   }
+=======
+  res.json({ success: true, quantity: item.quantity });
+});
+
+app.post("/cart/remove", auth.requireAuth, (req, res) => {
+  const { id } = req.body;
+
+  if (!req.session.cart) return res.json({ success: false });
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
   req.session.cart = req.session.cart.filter((i) => i.id != id);
   res.json({ success: true });
@@ -117,10 +144,50 @@ app.post("/cart/remove", auth.requireAuth, (req, res) => {
 /* ================= HOME REDIRECT ================= */
 app.get("/", (req, res) => {
   const token = req.cookies.auth_token;
+<<<<<<< HEAD
   if (token) {
     res.redirect("/marketplace");
   } else {
     res.redirect("/login");
+=======
+  if (token) res.redirect("/marketplace");
+  else res.redirect("/login");
+});
+
+/* =================================================
+   🔥 API PROXY → KONG (ĐÃ FIX)
+   ================================================= */
+app.use("/api", auth.requireAuth, async (req, res) => {
+  try {
+    const kongUrl = `http://localhost:8000${req.originalUrl}`;
+    const authToken = req.cookies.auth_token;
+
+    const response = await fetch(kongUrl, {
+      method: req.method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body:
+        req.method === "GET" || req.method === "HEAD"
+          ? undefined
+          : JSON.stringify(req.body),
+    });
+
+    const contentType = response.headers.get("content-type");
+
+    if (contentType && contentType.includes("application/json")) {
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } else {
+      const text = await response.text();
+      res.status(response.status).send(text);
+    }
+
+  } catch (err) {
+    console.error("API proxy error:", err);
+    res.status(502).json({ message: "Gateway error" });
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
   }
 });
 

@@ -24,7 +24,17 @@
             <% } %>
             <% if (typeof query !== 'undefined' && query.error) { %>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
+<<<<<<< HEAD
                     <%= query.error %>
+=======
+                    <% 
+                        let errorMsg = query.error;
+                        if (errorMsg && (errorMsg.includes('status code') || errorMsg.includes('Request failed') || errorMsg === 'Network Error' || errorMsg.length < 10)) {
+                            errorMsg = 'Có lỗi xảy ra khi thêm xe. Vui lòng thử lại.';
+                        }
+                    %>
+                    <%= errorMsg %>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <% } %>
@@ -68,6 +78,10 @@
                                         <div class="mb-3">
                                             <label class="form-label">Biển số xe</label>
                                             <input type="text" class="form-control" name="plate" value="<%= vehicle.plate %>" required>
+<<<<<<< HEAD
+=======
+                                            <small class="form-text text-muted">Biển số xe phải là duy nhất (không trùng với xe đã có)</small>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Loại xe</label>
@@ -106,6 +120,10 @@
                             <div class="mb-3">
                                 <label class="form-label">Biển số xe <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="plate" placeholder="VD: 29A-12345" required>
+<<<<<<< HEAD
+=======
+                                <small class="form-text text-muted">Biển số xe phải là duy nhất (không trùng với xe đã có)</small>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Loại xe <span class="text-danger">*</span></label>

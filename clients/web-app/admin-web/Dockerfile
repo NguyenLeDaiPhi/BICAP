@@ -11,7 +11,11 @@ COPY package*.json ./
 
 # Install application dependencies
 RUN rm -f package-lock.json
+<<<<<<< HEAD
 RUN npm install
+=======
+RUN npm install --include=dev
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
 # Copy all application source code
 COPY . .

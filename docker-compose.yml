@@ -6,6 +6,10 @@ services:
   auth-db:
     image: mysql:8.0
     container_name: auth-db
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=bicap_auth_db
@@ -24,6 +28,10 @@ services:
   bicap-message-queue:
     image: rabbitmq:3-management
     container_name: bicap-message-queue
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     environment:
       - RABBITMQ_DEFAULT_USER=root
       - RABBITMQ_DEFAULT_PASS=root
@@ -37,6 +45,10 @@ services:
     build:
       context: ./services/auth-service
     container_name: auth-service
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     depends_on:
       auth-db:
         condition: service_healthy
@@ -50,7 +62,11 @@ services:
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
+<<<<<<< HEAD
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+=======
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
       - BICAP_APP_JWTEXPIRATIONMS=86400000
       - SPRING_APPLICATION_JSON={"server":{"port":8080}}
     ports:
@@ -61,6 +77,10 @@ services:
   farm-production-db:
     image: mysql:8.0
     container_name: farm-production-db
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=farm_production_db
@@ -69,7 +89,11 @@ services:
     networks:
       - bicap-global-net
     volumes:
+<<<<<<< HEAD
       - ./database/farm-production-db/bicap_farm_db.sql:/docker-entrypoint-initdb.d/01_bicap_farm_db.sql
+=======
+      - ./database/farm-production-database/bicap_farm_db.sql:/docker-entrypoint-initdb.d/01_bicap_farm_db.sql
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
@@ -80,6 +104,10 @@ services:
     build:
       context: ./services/farm-production-service
     container_name: farm-production-service
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     depends_on:
       farm-production-db:
         condition: service_healthy
@@ -93,7 +121,11 @@ services:
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
+<<<<<<< HEAD
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+=======
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
       - BICAP_APP_JWTEXPIRATIONMS=86400000
     ports:
       - "8081:8081"
@@ -103,6 +135,10 @@ services:
   trading-order-db:
     image: mysql:8.0
     container_name: trading-order-db
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=bicap_order_db
@@ -122,6 +158,10 @@ services:
     build:
       context: ./services/trading-order-service
     container_name: trading-order-service
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     depends_on:
       trading-order-db:
         condition: service_healthy
@@ -136,7 +176,11 @@ services:
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
+<<<<<<< HEAD
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+=======
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
       - BICAP_APP_JWTEXPIRATIONMS=86400000
       - SERVER_PORT=8082
     ports:
@@ -147,6 +191,10 @@ services:
   shipping-db:
     image: mysql:8.0
     container_name: shipping-db
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=shipping_db
@@ -165,6 +213,10 @@ services:
   blockchain-db:
     image: mysql:8.0
     container_name: blockchain-db
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=bicap_blockchain_db
@@ -185,6 +237,10 @@ services:
     build:
       context: ./services/blockchain-adapter-service
     container_name: blockchain-adapter-service
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     depends_on:
       blockchain-db:
         condition: service_healthy
@@ -199,7 +255,11 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
+<<<<<<< HEAD
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+=======
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
       - BICAP_APP_JWTEXPIRATIONMS=86400000
     ports:
       - "8084:8084"
@@ -210,6 +270,10 @@ services:
     build:
       context: ./services/shipping-manager-service
     container_name: shipping-manager-service
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     depends_on:
       shipping-db:
         condition: service_healthy
@@ -228,7 +292,11 @@ services:
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
+<<<<<<< HEAD
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+=======
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
       - BICAP_APP_JWTEXPIRATIONMS=86400000
       - application.config.farm-service-url=http://farm-production-service:8081
       - application.config.blockchain-service-url=http://blockchain-adapter-service:8084
@@ -241,6 +309,10 @@ services:
     build:
       context: ./services/admin_service
     container_name: admin-service
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     depends_on:
       auth-db:
         condition: service_healthy
@@ -258,7 +330,11 @@ services:
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
+<<<<<<< HEAD
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+=======
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
       - FARM_SERVICE_URL=http://farm-production-service:8081
       - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
     ports:
@@ -270,17 +346,29 @@ services:
     build:
       context: ./clients/web-app/retailer-web
     container_name: retailer-web
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     depends_on:
       - kong-gateway
     environment:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - NODE_ENV=development
+<<<<<<< HEAD
       - RABBITMQ_URL=amqp://root:0862264719Phi@bicap-message-queue:5672
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/fetch-marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+=======
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
+      - FARM_API_URL=http://farm-production-service:8081/api/farm-features
+      - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/fetch-marketplace-products
+      - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
+      - API_GATEWAY_BASE_URL=http://localhost:8000
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     ports:
       - "3000:3000"
     networks:
@@ -290,6 +378,10 @@ services:
     build:
       context: ./clients/web-app/admin-web
     container_name: admin-web
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     depends_on:
       - kong-gateway
       - admin-service
@@ -301,32 +393,60 @@ services:
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
+<<<<<<< HEAD
       # UPDATED: Changed localhost to kong-gateway for internal Docker communication
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+=======
+      - API_GATEWAY_BASE_URL=http://localhost:8000
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
       - ADMIN_SERVICE_URL=http://admin-service:8085
       - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
     ports:
       - "3001:3001"
     networks:
       - bicap-global-net
+<<<<<<< HEAD
     # UPDATED: Added restart policy to handle startup dependency delays
     restart: on-failure
+=======
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     
   farm-management-web: 
     build:
       context: ./clients/web-app/farm-management-web
     container_name: farm-management-web
+<<<<<<< HEAD
     depends_on:
       - kong-gateway
+=======
+    restart: unless-stopped
+    depends_on:
+      - kong-gateway
+      - bicap-message-queue
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     environment:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - NODE_ENV=development
+<<<<<<< HEAD
       - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
       - MARKETPLACE_API_PATH=http://localhost:8000/api/marketplace-products
       - FARMING_SEASONS_API_PATH=http://localhost:8000/api/farming-seasons
       - API_GATEWAY_BASE_URL=http://localhost:8000
+=======
+      - DOCKER_ENV=true
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
+      - RABBITMQ_ENABLED=true
+      # Hướng tất cả các lệnh gọi API của frontend qua Kong Gateway một cách nhất quán
+      - FARM_API_URL=http://kong-gateway:8000/api/farm-features
+      - PRODUCTION_BATCH_API_URL=http://kong-gateway:8000/api/production-batches
+      - FARMING_PROCESS_API_URL=http://kong-gateway:8000/api/farming-processes
+      - EXPORT_BATCH_API_URL=http://kong-gateway:8000/api/export-batches
+      - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
+      - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/production-batches
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     ports:
       - "3002:3002"
     networks:
@@ -336,6 +456,10 @@ services:
     build: 
       context: ./clients/web-app/shipping-manager-web
     container_name: shipping-manager-web
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     depends_on:
       - kong-gateway
     environment:
@@ -357,6 +481,10 @@ services:
   kong-gateway:
     image: kong:latest
     container_name: kong-gateway
+<<<<<<< HEAD
+=======
+    restart: unless-stopped
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     environment:
       - KONG_DATABASE=off
       - KONG_DECLARATIVE_CONFIG=/usr/local/kong/declarative/kong.yml
@@ -373,7 +501,10 @@ services:
       - bicap-global-net
     volumes:
       - ./api-gateway/kong.yml:/usr/local/kong/declarative/kong.yml
+<<<<<<< HEAD
       - kong-logs:/var/log/kong
 
 volumes:
   kong-logs:
+=======
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d

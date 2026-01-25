@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/drivers")
@@ -37,14 +39,37 @@ public class DriverController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<Driver> createDriver(@RequestBody Driver driver) {
-        return ResponseEntity.ok(driverService.createDriver(driver));
+    public ResponseEntity<?> createDriver(@RequestBody Driver driver) {
+        try {
+            System.out.println("📝 [DEBUG] Creating driver - Name: " + driver.getName() + 
+                             ", Phone: " + driver.getPhone() + 
+                             ", License: " + driver.getLicense() + 
+                             ", CitizenId: " + driver.getCitizenId());
+            return ResponseEntity.ok(driverService.createDriver(driver));
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ [ERROR] Validation error: " + e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(400).body(errorResponse);
+        } catch (Exception e) {
+            System.out.println("❌ [ERROR] Unexpected error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Lỗi khi tạo tài xế: " + e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<Driver> updateDriver(@PathVariable Long id, @RequestBody Driver driver) {
-        return ResponseEntity.ok(driverService.updateDriver(id, driver));
+    public ResponseEntity<?> updateDriver(@PathVariable Long id, @RequestBody Driver driver) {
+        try {
+            return ResponseEntity.ok(driverService.updateDriver(id, driver));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi khi cập nhật tài xế: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

@@ -82,4 +82,25 @@ public class ProductionBatchService {
             System.err.println("⚠️ Không tìm thấy Batch ID: " + batchId + " để cập nhật.");
         }
     }
+
+    @Autowired
+    private com.bicap.farm_management.repository.FarmingProcessRepository processRepository;
+    
+    @Autowired
+    private com.bicap.farm_management.repository.ExportBatchRepository exportBatchRepository;
+
+    // CHỨC NĂNG MỚI: Lấy chi tiết toàn bộ mùa vụ (Monitor)
+    public com.bicap.farm_management.dto.SeasonDetailResponse getSeasonDetail(Long batchId) {
+        // 1. Lấy thông tin mùa vụ
+        ProductionBatch batch = batchRepository.findById(batchId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy mùa vụ với ID: " + batchId));
+
+        // 2. Lấy danh sách nhật ký canh tác (Tiến trình)
+        List<com.bicap.farm_management.entity.FarmingProcess> processes = processRepository.findByProductionBatchId(batchId);
+
+        // 3. Lấy danh sách đợt xuất hàng (đã có QR)
+        List<com.bicap.farm_management.entity.ExportBatch> exports = exportBatchRepository.findByProductionBatchId(batchId);
+
+        return new com.bicap.farm_management.dto.SeasonDetailResponse(batch, processes, exports);
+    }
 }

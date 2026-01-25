@@ -6,21 +6,21 @@ import java.util.List;
 public class CreateOrderRequest {
 
     @NotNull
-    private Long buyerId;
-
-    @NotNull
     private List<OrderItemRequest> items;
-
-    public Long getBuyerId() {
-        return buyerId;
-    }
-
-    public void setBuyerId(Long buyerId) {
-        this.buyerId = buyerId;
-    }
+    
+    @NotNull
+    private String shippingAddress;
 
     public List<OrderItemRequest> getItems() {
         return items;
+    }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(String shippingAddress){
+        this.shippingAddress = shippingAddress;
     }
 
     public void setItems(List<OrderItemRequest> items) {

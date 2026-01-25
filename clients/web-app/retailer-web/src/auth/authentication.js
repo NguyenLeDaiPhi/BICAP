@@ -12,7 +12,11 @@ console.log('AUTH_SERVICE_URL', AUTH_SERVICE_URL);
 const APPLICATION_ROLE = "RETAILER";
 
 // Base64 String from Java properties (FIX: Remove extra 'Cg==' to eliminate trailing newline in decoded key)
+<<<<<<< HEAD
 const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
+=======
+const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 // Convert the Base64 string to a Buffer, exactly like Java's Decoders.BASE64.decode()
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 

@@ -37,6 +37,10 @@
                             <th>Họ tên</th>
                             <th>Số điện thoại</th>
                             <th>Bằng lái</th>
+<<<<<<< HEAD
+=======
+                            <th>Số CCCD</th>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                             <th>Hành động</th>
                         </tr>
                     </thead>
@@ -48,6 +52,10 @@
                                     <td><%= driver.name %></td>
                                     <td><%= driver.phone %></td>
                                     <td><%= driver.license %></td>
+<<<<<<< HEAD
+=======
+                                    <td><%= driver.citizenId || 'N/A' %></td>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                                     <td>
                                         <div class="btn-group" role="group">
                                             <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editDriverModal<%= driver.id %>">
@@ -82,6 +90,15 @@
                                                 <div class="mb-3">
                                                     <label class="form-label">Bằng lái <span class="text-danger">*</span></label>
                                                     <input type="text" class="form-control" name="license" value="<%= driver.license %>" required>
+<<<<<<< HEAD
+=======
+                                                    <small class="form-text text-muted">Giấy phép lái xe phải là duy nhất</small>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Số căn cước công dân (CCCD) <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" name="citizenId" value="<%= driver.citizenId || '' %>" required>
+                                                    <small class="form-text text-muted">Số CCCD phải là duy nhất</small>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -93,7 +110,11 @@
                                 </div>
                             <% }); %>
                         <% } else { %>
+<<<<<<< HEAD
                             <tr><td colspan="5" class="text-center">Chưa có tài xế nào trong hệ thống.</td></tr>
+=======
+                            <tr><td colspan="6" class="text-center">Chưa có tài xế nào trong hệ thống.</td></tr>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                         <% } %>
                     </tbody>
                 </table>
@@ -119,6 +140,15 @@
                             <div class="mb-3">
                                 <label class="form-label">Bằng lái <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="license" placeholder="VD: B2, C, D" required>
+<<<<<<< HEAD
+=======
+                                <small class="form-text text-muted">Giấy phép lái xe phải là duy nhất</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Số căn cước công dân (CCCD) <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="citizenId" placeholder="VD: 001234567890" required>
+                                <small class="form-text text-muted">Số CCCD phải là duy nhất</small>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                             </div>
                         </div>
                         <div class="modal-footer">

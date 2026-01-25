@@ -4,7 +4,11 @@
   "description": "auth-service",
   "main": "npm start",
   "scripts": {
+<<<<<<< HEAD
     "start": "nodemon src/authentication.js"
+=======
+    "start": "node src/authentication.js"
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
   },
   "dependencies": {
     "body-parser": "^2.2.1",

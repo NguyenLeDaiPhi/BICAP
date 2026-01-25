@@ -26,6 +26,7 @@
           <p>Giỏ hàng trống</p>
         <% } else { %>
 
+<<<<<<< HEAD
         <!-- LIST ITEM (SCROLL) -->
         <div class="cart-list">
           <% cart.forEach(item => { %>
@@ -36,23 +37,39 @@
             >
 
               <!-- IMAGE -->
+=======
+        <!-- LIST ITEM -->
+        <div class="cart-list">
+          <% cart.forEach(item => { %>
+            <div class="cart-item"
+                 data-id="<%= item.id %>"
+                 data-price="<%= item.price %>">
+
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
               <div class="cart-image">
                 <img src="/img/product-placeholder.png" alt="<%= item.name %>">
               </div>
 
+<<<<<<< HEAD
               <!-- INFO -->
+=======
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
               <div class="cart-info">
                 <h4><%= item.name %></h4>
                 <p class="price"><%= item.price %> VND/KG</p>
               </div>
 
+<<<<<<< HEAD
               <!-- QTY -->
+=======
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
               <div class="cart-qty">
                 <button class="qty-btn minus" data-id="<%= item.id %>">−</button>
                 <span class="qty"><%= item.quantity %></span>
                 <button class="qty-btn plus" data-id="<%= item.id %>">+</button>
               </div>
 
+<<<<<<< HEAD
               <!-- ITEM TOTAL -->
               <div class="cart-total">
                 <span class="item-total">
@@ -65,27 +82,54 @@
                 <button class="remove-btn" data-id="<%= item.id %>">✕</button>
               </div>
 
+=======
+              <div class="cart-total">
+                <span class="item-total">
+                  <%= item.price * item.quantity %> VND
+                </span>
+              </div>
+
+              <div class="cart-remove">
+                <button class="remove-btn" data-id="<%= item.id %>">✕</button>
+              </div>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
             </div>
           <% }) %>
         </div>
 
+<<<<<<< HEAD
         <!-- FOOTER (STICKY) -->
+=======
+        <!-- FOOTER -->
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         <div class="cart-footer">
           <div class="cart-summary">
             Tổng tiền: <strong id="grandTotal">0</strong> VND
           </div>
+<<<<<<< HEAD
           <button class="btn-checkout">
             Thanh toán
           </button>
+=======
+          <button type="button" class="btn-checkout">Thanh toán</button>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         </div>
 
         <% } %>
       </div>
+<<<<<<< HEAD
 <!-- PAYMENT POPUP -->
 <div class="payment-overlay" id="paymentOverlay" onclick="closePayment()">
   <div class="payment-modal" onclick="event.stopPropagation()">
 
     <!-- HEADER -->
+=======
+
+      <!-- ================= PAYMENT POPUP ================= -->
+<div class="payment-overlay" id="paymentOverlay" onclick="closePayment()">
+  <div class="payment-modal" onclick="event.stopPropagation()">
+
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     <div class="payment-header">
       <h3>Thanh toán</h3>
       <p>
@@ -94,6 +138,7 @@
       </p>
     </div>
 
+<<<<<<< HEAD
     <!-- METHODS -->
     <div class="payment-methods">
       <label class="payment-method">
@@ -115,6 +160,56 @@
     <!-- ACTION -->
     <button class="btn-checkout btn-next">
       Tiếp theo
+=======
+    <div class="payment-methods">
+      <label class="payment-method">
+        <input type="radio" name="paymentMethod" value="momo" checked>
+        <span>📱 MoMo</span>
+      </label>
+    </div>
+    <!-- SHIPPING ADDRESS -->
+    <div class="payment-address">
+      <label for="shippingAddress">📍 Địa chỉ giao hàng</label>
+      <textarea
+        id="shippingAddress"
+        placeholder="Nhập địa chỉ giao hàng..."
+        rows="3"
+        style="width:100%;margin-top:8px"
+      ></textarea>
+    </div>
+
+    <button
+  type="button"
+  class="btn-checkout btn-next"
+  onclick="handlePaymentNext()"
+>
+  Tiếp theo
+</button>
+
+  </div>
+</div>
+
+<!-- ================= MOMO QR MODAL ================= -->
+<div class="payment-overlay hidden" id="qrOverlay">
+  <div class="payment-modal qr-modal" onclick="event.stopPropagation()">
+
+    <h3>Quét mã QR MoMo</h3>
+
+    <img
+      id="momoQr"
+      src=""
+      alt="MoMo QR"
+      style="width:240px;margin:20px auto;display:block"
+    />
+
+    <p style="text-align:center">
+      Tổng tiền:
+      <strong><span id="qrTotal">0</span> VND</strong>
+    </p>
+
+    <button type="button" class="btn-checkout" onclick="confirmMomoPayment()">
+      Tôi đã thanh toán
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     </button>
 
   </div>
@@ -126,8 +221,13 @@
   </div>
 </div>
 
+<<<<<<< HEAD
 <!-- JS -->
 <script src="/js/cart.js"></script>
 
+=======
+<script src="/js/cart.js"></script>
+<script src="/js/layout.js"></script>
+>>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 </body>
 </html>
