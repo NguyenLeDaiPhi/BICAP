@@ -47,6 +47,14 @@ CREATE TABLE `marketplace_products` (
 
 LOCK TABLES `marketplace_products` WRITE;
 /*!40000 ALTER TABLE `marketplace_products` DISABLE KEYS */;
+INSERT INTO `marketplace_products` VALUES 
+(1,'BATCH-2026-001','Rau củ','2026-01-25 10:00:00.000000','Cà chua đỏ tươi từ trang trại hữu cơ, không thuốc trừ sâu','https://images.unsplash.com/photo-1546470427-227c7369a9a9?w=400','Cà chua hữu cơ',45000,100,'PENDING','kg',1),
+(2,'BATCH-2026-002','Rau củ','2026-01-25 11:00:00.000000','Dưa leo tươi giòn, trồng theo phương pháp thủy canh','https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=400','Dưa leo sạch',25000,150,'PENDING','kg',1),
+(3,'BATCH-2026-003','Trái cây','2026-01-25 12:00:00.000000','Xoài cát Hòa Lộc chín cây, ngọt thanh tự nhiên','https://images.unsplash.com/photo-1553279768-865429fa0078?w=400','Xoài cát Hòa Lộc',65000,80,'PENDING','kg',1),
+(4,'BATCH-2026-004','Rau lá','2026-01-25 13:00:00.000000','Rau muống nước tươi xanh, thu hoạch sáng sớm','https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400','Rau muống nước',15000,200,'PENDING','bó',2),
+(5,'BATCH-2026-005','Trái cây','2026-01-25 14:00:00.000000','Thanh long ruột đỏ Bình Thuận, ngọt dịu tự nhiên','https://images.unsplash.com/photo-1527325678964-54921661f888?w=400','Thanh long ruột đỏ',55000,120,'PENDING','kg',2),
+(6,'BATCH-2026-006','Gia vị','2026-01-25 15:00:00.000000','Gừng tươi Đà Lạt, vị cay nồng đậm đà','https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=400','Gừng tươi Đà Lạt',40000,50,'ACTIVE','kg',1),
+(7,'BATCH-2026-007','Rau củ','2026-01-25 16:00:00.000000','Khoai lang mật vàng ruột cam, ngọt bùi','https://images.unsplash.com/photo-1596097635121-14b63a7a7e20?w=400','Khoai lang mật',30000,100,'ACTIVE','kg',2);
 /*!40000 ALTER TABLE `marketplace_products` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

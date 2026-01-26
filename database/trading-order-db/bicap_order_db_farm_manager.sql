@@ -39,7 +39,9 @@ CREATE TABLE `farm_manager` (
 
 LOCK TABLES `farm_manager` WRITE;
 /*!40000 ALTER TABLE `farm_manager` DISABLE KEYS */;
-INSERT INTO `farm_manager` VALUES (1,'manager@gmail.com',1,'ROLE_FARMMANAGER','manager');
+INSERT INTO `farm_manager` VALUES 
+(1,'farmmanager@bicap.com',1,'ROLE_FARMMANAGER','farmmanager'),
+(2,'farm2@bicap.com',2,'ROLE_FARMMANAGER','farm2manager');
 /*!40000 ALTER TABLE `farm_manager` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
