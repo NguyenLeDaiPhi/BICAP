@@ -9,10 +9,10 @@ const router = express.Router();
 
 // Cấu hình URL tới các Services
 const ADMIN_SERVICE_URL = process.env.ADMIN_SERVICE_URL || 'http://localhost:8085';
-const TRADING_ORDER_SERVICE_URL = process.env.TRADING_ORDER_SERVICE_URL || 'http://localhost:8083';
+const TRADING_ORDER_SERVICE_URL = process.env.TRADING_ORDER_SERVICE_URL || 'http://localhost:8082';
 
 // Đồng bộ secret/role với authentication.js để đọc JWT trong cookie
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
+const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 const APPLICATION_ROLE = 'ROLE_ADMIN';
 
@@ -22,9 +22,15 @@ router.use(cookieParser());
 // Lấy JWT từ cookie và gán req.user
 const requireAuth = (req, res, next) => {
     const token = req.cookies?.auth_token;
-    if (!token) return res.redirect('/login');
+    console.log('[adminOrder requireAuth] Path:', req.path);
+    console.log('[adminOrder requireAuth] Token exists:', !!token);
+    if (!token) {
+        console.log('[adminOrder requireAuth] No token, redirecting to login');
+        return res.redirect('/login');
+    }
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
+        console.log('[adminOrder requireAuth] Token verified for user:', decoded.sub);
         req.user = {
             sub: decoded.sub,
             username: decoded.sub,
@@ -34,6 +40,7 @@ const requireAuth = (req, res, next) => {
         req.accessToken = token;
         return next();
     } catch (err) {
+        console.log('[adminOrder requireAuth] Token verify error:', err.message);
         return res.redirect('/login');
     }
 };
@@ -49,33 +56,43 @@ const requireAdmin = (req, res, next) => {
 };
 
 // =========================================================
-// 1. ROUTE: QUẢN LÝ DANH MỤC (Categories)
+// 1. ROUTE: XÉT DUYỆT SẢN PHẨM LÊN SÀN (Product Approval)
 // =========================================================
 
-// Trang quản lý danh mục
+// Trang xét duyệt sản phẩm (hiển thị sản phẩm PENDING)
 router.get('/admin/categories', requireAuth, requireAdmin, async (req, res) => {
     try {
         const headers = { Authorization: `Bearer ${req.accessToken}` };
+        const { page = 0, keyword = '' } = req.query;
         
-        console.log('Calling Admin Service for categories at:', ADMIN_SERVICE_URL);
+        console.log('Calling Trading Order Service for pending products at:', TRADING_ORDER_SERVICE_URL);
         
-        // Gọi API lấy danh sách categories từ Admin Service
-        const response = await axios.get(`${ADMIN_SERVICE_URL}/api/v1/admin/categories`, { 
+        // Gọi API lấy danh sách sản phẩm PENDING từ Trading Order Service
+        let apiUrl = `${TRADING_ORDER_SERVICE_URL}/api/admin/products/pending?page=${page}&size=10`;
+        if (keyword) {
+            apiUrl += `&keyword=${encodeURIComponent(keyword)}`;
+        }
+        
+        const response = await axios.get(apiUrl, { 
             headers,
-            timeout: 5000
+            timeout: 10000
         });
         
-        const categories = response.data || [];
-        console.log('Categories received:', categories.length, 'items');
+        const products = response.data || { content: [], totalPages: 0 };
+        console.log('Pending products received:', products.content?.length || 0, 'items');
 
         res.render('admin-categories', {
-            categories: categories,
+            products: products,
+            currentPage: parseInt(page),
+            keyword: keyword,
             user: req.user
         });
     } catch (e) {
-        console.error('Lỗi gọi Categories API:', e.message);
+        console.error('Lỗi gọi Pending Products API:', e.message);
         res.render('admin-categories', {
-            categories: [],
+            products: { content: [], totalPages: 0 },
+            currentPage: 0,
+            keyword: '',
             user: req.user
         });
     }
@@ -297,6 +314,59 @@ router.put('/api/v1/admin/products/:id/unban', requireAuth, requireAdmin, async 
         console.error('Lỗi mở khóa product:', error.response?.data || error.message);
         const statusCode = error.response?.status || 500;
         const message = error.response?.data?.message || 'Lỗi khi mở khóa sản phẩm';
+        res.status(statusCode).json({ message });
+    }
+});
+
+// API Proxy: Duyệt sản phẩm lên sàn (approve)
+router.put('/api/v1/admin/products/:id/approve', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const headers = { 
+            Authorization: `Bearer ${req.accessToken}`,
+            'Content-Type': 'application/json'
+        };
+        
+        console.log('Approving product:', id);
+        
+        // Gọi API Trading Order Service để approve sản phẩm
+        const response = await axios.put(`${TRADING_ORDER_SERVICE_URL}/api/admin/products/${id}/approve`, null, {
+            headers,
+            timeout: 10000
+        });
+        
+        res.status(200).json(response.data || { message: 'Đã duyệt sản phẩm thành công!' });
+    } catch (error) {
+        console.error('Lỗi duyệt product:', error.response?.data || error.message);
+        const statusCode = error.response?.status || 500;
+        const message = error.response?.data?.message || 'Lỗi khi duyệt sản phẩm';
+        res.status(statusCode).json({ message });
+    }
+});
+
+// API Proxy: Từ chối sản phẩm (reject)
+router.put('/api/v1/admin/products/:id/reject', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body;
+        const headers = { 
+            Authorization: `Bearer ${req.accessToken}`,
+            'Content-Type': 'application/json'
+        };
+        
+        console.log('Rejecting product:', id, 'Reason:', reason);
+        
+        // Gọi API Trading Order Service để reject sản phẩm
+        const response = await axios.put(`${TRADING_ORDER_SERVICE_URL}/api/admin/products/${id}/reject`, 
+            { reason: reason },
+            { headers, timeout: 10000 }
+        );
+        
+        res.status(200).json(response.data || { message: 'Đã từ chối sản phẩm!' });
+    } catch (error) {
+        console.error('Lỗi từ chối product:', error.response?.data || error.message);
+        const statusCode = error.response?.status || 500;
+        const message = error.response?.data?.message || 'Lỗi khi từ chối sản phẩm';
         res.status(statusCode).json({ message });
     }
 });

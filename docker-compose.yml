@@ -14,7 +14,6 @@ services:
     networks:
       - bicap-global-net
     volumes:
-      - ./database/init-grant-privileges.sql:/docker-entrypoint-initdb.d/00_init_grant_privileges.sql
       - ./database/auth-database/bicap_auth_db.sql:/docker-entrypoint-initdb.d/01_bicap_auth_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
@@ -70,7 +69,6 @@ services:
     networks:
       - bicap-global-net
     volumes:
-      - ./database/init-grant-privileges.sql:/docker-entrypoint-initdb.d/00_init_grant_privileges.sql
       - ./database/farm-production-database/bicap_farm_db.sql:/docker-entrypoint-initdb.d/01_bicap_farm_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
@@ -113,7 +111,6 @@ services:
     networks:
       - bicap-global-net
     volumes:
-      - ./database/init-grant-privileges.sql:/docker-entrypoint-initdb.d/00_init_grant_privileges.sql
       - ./database/trading-order-db/bicap_order_db.sql:/docker-entrypoint-initdb.d/01_bicap_order_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
@@ -158,7 +155,6 @@ services:
     networks:
       - bicap-global-net
     volumes:
-      - ./database/init-grant-privileges.sql:/docker-entrypoint-initdb.d/00_init_grant_privileges.sql
       - ./database/shipping-db/bicap_shipping_db.sql:/docker-entrypoint-initdb.d/01_bicap_shipping_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
@@ -177,7 +173,6 @@ services:
     networks:
       - bicap-global-net
     volumes:
-      - ./database/init-grant-privileges.sql:/docker-entrypoint-initdb.d/00_init_grant_privileges.sql
       - ./database/blockchain-adapter-database/bicap_blockchain_db_blockchain_records.sql:/docker-entrypoint-initdb.d/01_blockchain_records.sql
       - ./database/blockchain-adapter-database/bicap_blockchain_db_trace_logs.sql:/docker-entrypoint-initdb.d/02_trace_logs.sql
     healthcheck:
@@ -204,7 +199,7 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
-      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
       - BICAP_APP_JWTEXPIRATIONMS=86400000
     ports:
       - "8084:8084"
@@ -263,7 +258,7 @@ services:
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
-      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
       - FARM_SERVICE_URL=http://farm-production-service:8081
       - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
     ports:
@@ -281,8 +276,6 @@ services:
       - "3312:3306"
     networks:
       - bicap-global-net
-    volumes:
-      - ./database/init-grant-privileges.sql:/docker-entrypoint-initdb.d/00_init_grant_privileges.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
@@ -306,8 +299,8 @@ services:
       - spring.jpa.hibernate.ddl-auto=update
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
-      - SPRING_RABBITMQ_PASSWORD=0862264719Phi
-      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+      - SPRING_RABBITMQ_PASSWORD=root
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
       - BICAP_APP_JWTEXPIRATIONMS=86400000
       - SERVER_PORT=8086
     ports:
@@ -331,7 +324,7 @@ services:
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
       - API_GATEWAY_BASE_URL=http://localhost:8000
     ports:
-      - "3000:3000"
+      - "3004:3004"
     networks:
       - bicap-global-net
 

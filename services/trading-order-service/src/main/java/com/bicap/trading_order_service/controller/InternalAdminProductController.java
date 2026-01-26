@@ -98,4 +98,45 @@ public class InternalAdminProductController {
         stats.put("totalPending", adminProductService.countByStatus("PENDING"));
         return ResponseEntity.ok(stats);
     }
+
+    /**
+     * GET /api/admin/products/pending - Lấy danh sách sản phẩm chờ duyệt
+     */
+    @GetMapping("/pending")
+    @Operation(summary = "Lấy danh sách sản phẩm PENDING", description = "Internal API cho Admin duyệt sản phẩm")
+    public ResponseEntity<Page<ProductResponseDTO>> getPendingProducts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ProductResponseDTO> products = adminProductService.getPendingProducts(keyword, page, size);
+        return ResponseEntity.ok(products);
+    }
+
+    /**
+     * PUT /api/admin/products/{id}/approve - Duyệt sản phẩm lên sàn
+     */
+    @PutMapping("/{id}/approve")
+    @Operation(summary = "Duyệt sản phẩm lên sàn", description = "Chuyển sản phẩm từ PENDING sang ACTIVE")
+    public ResponseEntity<ProductResponseDTO> approveProduct(@PathVariable Long id) {
+        ProductResponseDTO approvedProduct = adminProductService.approveProduct(id);
+        return ResponseEntity.ok(approvedProduct);
+    }
+
+    /**
+     * PUT /api/admin/products/{id}/reject - Từ chối sản phẩm
+     */
+    @PutMapping("/{id}/reject")
+    @Operation(summary = "Từ chối sản phẩm", description = "Chuyển sản phẩm từ PENDING sang REJECTED")
+    public ResponseEntity<ProductResponseDTO> rejectProduct(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body
+    ) {
+        String reason = body.get("reason");
+        if (reason == null || reason.trim().isEmpty()) {
+            reason = "Không đạt yêu cầu";
+        }
+        ProductResponseDTO rejectedProduct = adminProductService.rejectProduct(id, reason);
+        return ResponseEntity.ok(rejectedProduct);
+    }
 }

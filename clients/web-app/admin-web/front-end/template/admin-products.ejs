@@ -104,7 +104,6 @@
                     <select name="status" class="form-control">
                         <option value="">-- Tất cả trạng thái --</option>
                         <option value="ACTIVE" <%= status === 'ACTIVE' ? 'selected' : '' %>>Đang bán (Active)</option>
-                        <option value="APPROVED" <%= status === 'APPROVED' ? 'selected' : '' %>>Đã duyệt (Approved)</option>
                         <option value="PENDING" <%= status === 'PENDING' ? 'selected' : '' %>>Chờ duyệt (Pending)</option>
                         <option value="BANNED" <%= status === 'BANNED' ? 'selected' : '' %>>Đã khóa (Banned)</option>
                     </select>
@@ -182,7 +181,7 @@
                                     <i class="material-symbols-rounded text-sm">check_circle</i> Mở lại
                                 </button>
                             <% } %>
-                            <button class="btn btn-link text-info px-1 mb-0" onclick="showDetails(`<%= JSON.stringify(p).replace(/`/g, '\\`') %>`)">
+                            <button class="btn btn-link text-info px-1 mb-0" onclick='showDetails(<%= JSON.stringify(JSON.stringify(p)) %>)'>
                                 <i class="material-symbols-rounded text-sm">visibility</i>
                             </button>
                           </td>

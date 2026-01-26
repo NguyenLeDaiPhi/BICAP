@@ -8,7 +8,7 @@ const axios = require('axios');
 require('dotenv').config({ path: path.resolve(__dirname, '..', 'config', '.env') });
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
+const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 const APPLICATION_ROLE = 'ROLE_ADMIN';
 const app = express();

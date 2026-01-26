@@ -16,6 +16,13 @@ public class FarmFeatureController {
 
     @Autowired
     private FarmFeatureService farmFeatureService;
+
+    // Lấy danh sách tất cả farms (cho Admin)
+    @GetMapping
+    public ResponseEntity<?> getAllFarms() {
+        return ResponseEntity.ok(farmFeatureService.getAllFarms());
+    }
+
     @PostMapping("/")
     public ResponseEntity<?> createFarm(@RequestBody FarmCreateDto dto, HttpServletRequest request) {
         // Lấy userId từ request attribute (đã được JwtAuthenticationFilter set vào)

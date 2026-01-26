@@ -15,7 +15,7 @@ const ADMIN_SERVICE_URL = process.env.ADMIN_SERVICE_URL || 'http://localhost:808
 const FARM_SERVICE_URL = process.env.FARM_SERVICE_URL || 'http://localhost:8081';
 
 // Đồng bộ secret/role với authentication.js để đọc JWT trong cookie
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
+const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 const APPLICATION_ROLE = 'ROLE_ADMIN';
 
@@ -25,9 +25,15 @@ router.use(cookieParser());
 // Lấy JWT từ cookie và gán req.user
 const requireAuth = (req, res, next) => {
     const token = req.cookies?.auth_token;
-    if (!token) return res.redirect('/login');
+    console.log('[requireAuth] Path:', req.path);
+    console.log('[requireAuth] Token exists:', !!token);
+    if (!token) {
+        console.log('[requireAuth] No token, redirecting to login');
+        return res.redirect('/login');
+    }
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
+        console.log('[requireAuth] Token verified for user:', decoded.sub);
         req.user = {
             sub: decoded.sub,
             username: decoded.sub,
@@ -37,6 +43,7 @@ const requireAuth = (req, res, next) => {
         req.accessToken = token;
         return next();
     } catch (err) {
+        console.log('[requireAuth] Token verify error:', err.message);
         return res.redirect('/login');
     }
 };
