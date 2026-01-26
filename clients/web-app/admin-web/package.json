@@ -2,10 +2,10 @@
   "name": "admin-web",
   "version": "1.0.0",
   "description": "auth-service",
-  "main": "npm start",
+  "main": "src/authentication.js",
   "scripts": {
-    "start": "nodemon src/authentication.js",
-    "start:prod": "node src/authentication.js"
+    "start": "node src/authentication.js",
+    "dev": "nodemon src/authentication.js"
   },
   "dependencies": {
     "body-parser": "^2.2.1",
