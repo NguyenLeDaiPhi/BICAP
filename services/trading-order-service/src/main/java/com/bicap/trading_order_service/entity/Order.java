@@ -31,6 +31,12 @@ public class Order {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "delivery_images", columnDefinition = "TEXT")
+    private String deliveryImages; // JSON array of image URLs: ["url1", "url2"]
+
+    @Column(name = "delivery_confirmed_at")
+    private LocalDateTime deliveryConfirmedAt;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<OrderItem> items = new ArrayList<>();
@@ -97,5 +103,21 @@ public class Order {
     public void removeItem(OrderItem item) {
         items.remove(item);
         item.setOrder(null);
+    }
+
+    public String getDeliveryImages() {
+        return deliveryImages;
+    }
+
+    public void setDeliveryImages(String deliveryImages) {
+        this.deliveryImages = deliveryImages;
+    }
+
+    public LocalDateTime getDeliveryConfirmedAt() {
+        return deliveryConfirmedAt;
+    }
+
+    public void setDeliveryConfirmedAt(LocalDateTime deliveryConfirmedAt) {
+        this.deliveryConfirmedAt = deliveryConfirmedAt;
     }
 }

@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.bicap.trading_order_service.entity.Order;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class OrderResponse {
 
@@ -15,6 +17,12 @@ public class OrderResponse {
 
     // Danh sách items
     private List<OrderItemResponse> items;
+
+    // Delivery images (uploaded by retailer when receiving products)
+    private List<String> deliveryImages;
+    
+    // Delivery confirmed timestamp
+    private LocalDateTime deliveryConfirmedAt;
 
     /* ===== CONSTRUCTORS ===== */
 
@@ -44,6 +52,10 @@ public class OrderResponse {
     /* ===== FACTORY METHOD ===== */
 
     public static OrderResponse fromEntity(Order order) {
+        return fromEntity(order, new ObjectMapper());
+    }
+
+    public static OrderResponse fromEntity(Order order, ObjectMapper objectMapper) {
 
         List<OrderItemResponse> items = order.getItems()
             .stream()
@@ -55,13 +67,31 @@ public class OrderResponse {
             ))
             .toList();
 
-        return new OrderResponse(
+        // Parse delivery images JSON
+        List<String> deliveryImages = null;
+        if (order.getDeliveryImages() != null && !order.getDeliveryImages().isEmpty()) {
+            try {
+                deliveryImages = objectMapper.readValue(
+                    order.getDeliveryImages(),
+                    new TypeReference<List<String>>() {}
+                );
+            } catch (Exception e) {
+                // If parsing fails, set to empty list
+                deliveryImages = List.of();
+            }
+        }
+
+        OrderResponse response = new OrderResponse(
                 order.getId(),
                 order.getTotalAmount(),
                 order.getStatus(),
                 order.getCreatedAt(),
                 items
         );
+        response.setDeliveryImages(deliveryImages);
+        response.setDeliveryConfirmedAt(order.getDeliveryConfirmedAt());
+        
+        return response;
     }
 
     /* ===== GETTERS ===== */
@@ -84,5 +114,21 @@ public class OrderResponse {
 
     public List<OrderItemResponse> getItems() {
         return items;
+    }
+
+    public List<String> getDeliveryImages() {
+        return deliveryImages;
+    }
+
+    public void setDeliveryImages(List<String> deliveryImages) {
+        this.deliveryImages = deliveryImages;
+    }
+
+    public LocalDateTime getDeliveryConfirmedAt() {
+        return deliveryConfirmedAt;
+    }
+
+    public void setDeliveryConfirmedAt(LocalDateTime deliveryConfirmedAt) {
+        this.deliveryConfirmedAt = deliveryConfirmedAt;
     }
 }

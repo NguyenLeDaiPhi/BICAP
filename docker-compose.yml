@@ -21,6 +21,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    mem_reservation: 256m
 
   bicap-message-queue:
     image: rabbitmq:3-management
@@ -79,6 +82,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    mem_reservation: 256m
 
   farm-production-service:
     build:
@@ -123,6 +129,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    mem_reservation: 256m
 
   trading-order-service:
     build:
@@ -169,6 +178,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    mem_reservation: 256m
 
   blockchain-db:
     image: mysql:8.0
@@ -189,6 +201,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    mem_reservation: 256m
 
   blockchain-adapter-service:
     build:
@@ -243,6 +258,7 @@ services:
       - BICAP_APP_JWTEXPIRATIONMS=86400000
       - application.config.farm-service-url=http://farm-production-service:8081
       - application.config.blockchain-service-url=http://blockchain-adapter-service:8084
+      - application.config.trading-order-service-url=http://trading-order-service:8082
     ports:
       - "8083:8083"
     networks:
@@ -271,8 +287,10 @@ services:
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
       - FARM_SERVICE_URL=http://farm-production-service:8081
       - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
+      - BLOCKCHAIN_SERVICE_URL=http://blockchain-adapter-service:8084
     ports:
       - "8085:8085"
     networks:
@@ -365,9 +383,9 @@ services:
       - FARM_API_URL=http://kong-gateway:8000/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
       - SHIPPING_SERVICE_URL=http://kong-gateway:8000/api
-      - REACT_APP_SHIPPING_API_URL=http://localhost:8000/api
+      - REACT_APP_SHIPPING_API_URL=http://kong-gateway:8000/api
     ports:
       - "3003:3003"
     networks:

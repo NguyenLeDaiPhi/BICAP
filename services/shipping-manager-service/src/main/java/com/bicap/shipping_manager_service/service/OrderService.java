@@ -20,13 +20,13 @@ public class OrderService {
     private final ShipmentRepository shipmentRepository;
     private final RestTemplate restTemplate;
     
-    @Value("${application.config.farm-service-url:http://localhost:8081}")
-    private String farmServiceUrl;
+    @Value("${application.config.trading-order-service-url:http://localhost:8082}")
+    private String tradingOrderServiceUrl;
 
     public List<Map<String, Object>> getConfirmedOrders(String userToken) {
         try {
-            // Call Farm Service to get all orders
-            String url = farmServiceUrl + "/api/orders";
+            // Call Trading Order Service to get all confirmed orders
+            String url = tradingOrderServiceUrl + "/api/admin/orders/status/CONFIRMED";
             
             // Prepare headers with JWT token
             HttpHeaders headers = new HttpHeaders();
@@ -42,14 +42,14 @@ public class OrderService {
                 response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
             } catch (org.springframework.web.client.HttpClientErrorException e) {
                 // If 401/403, log and return empty list
-                System.err.println("Error calling Farm Service: " + e.getStatusCode() + " - " + e.getMessage());
+                System.err.println("Error calling Trading Order Service: " + e.getStatusCode() + " - " + e.getMessage());
                 if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403) {
-                    System.err.println("Farm Service requires authentication with ROLE_FARMMANAGER or ROLE_ADMIN.");
+                    System.err.println("Trading Order Service requires authentication with ROLE_SHIPPINGMANAGER or ROLE_ADMIN.");
                     System.err.println("Current user may not have the required role.");
                 }
                 return new ArrayList<>();
             } catch (Exception e) {
-                System.err.println("Unexpected error calling Farm Service: " + e.getMessage());
+                System.err.println("Unexpected error calling Trading Order Service: " + e.getMessage());
                 e.printStackTrace();
                 return new ArrayList<>();
             }

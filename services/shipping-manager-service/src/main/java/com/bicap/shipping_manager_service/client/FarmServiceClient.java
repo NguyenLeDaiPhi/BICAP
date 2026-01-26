@@ -5,8 +5,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "farm-production-service", url = "${application.config.farm-service-url}")
+@FeignClient(name = "trading-order-service", url = "${application.config.trading-order-service-url}")
 public interface FarmServiceClient {
-    @GetMapping("/api/trading/order/{orderId}")
+    @GetMapping("/api/admin/orders/{orderId}")
     OrderResponse getOrderDetails(@PathVariable("orderId") Long orderId);
 }
