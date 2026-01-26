@@ -195,7 +195,7 @@ router.delete('/api/v1/admin/categories/:id/permanent', requireAuth, requireAdmi
 // 2. ROUTE: GIÁM SÁT SẢN PHẨM (Products)
 // =========================================================
 
-// Trang giám sát sản phẩm
+// Trang giám sát sản phẩm (có thể lọc theo status)
 router.get('/admin/products', requireAuth, requireAdmin, async (req, res) => {
     try {
         const { keyword = '', status = '', farmId = '', page = 0, size = 10 } = req.query;
@@ -218,6 +218,12 @@ router.get('/admin/products', requireAuth, requireAdmin, async (req, res) => {
             headers,
             timeout: 5000
         });
+
+        // Check if response is HTML (Login Page) instead of JSON
+        if (response.headers['content-type'] && response.headers['content-type'].includes('text/html')) {
+            console.error('Error: Admin Service returned HTML (Login Page). Check Security Configuration.');
+            throw new Error('Admin Service returned HTML instead of JSON');
+        }
 
         const payload = response.data || {};
         const products = payload.content || [];
@@ -387,6 +393,105 @@ router.get('/api/v1/admin/products/statistics', requireAuth, requireAdmin, async
         const statusCode = error.response?.status || 500;
         const message = error.response?.data?.message || 'Lỗi khi lấy thống kê sản phẩm';
         res.status(statusCode).json({ message });
+    }
+});
+
+// API Proxy: Duyệt sản phẩm (approve)
+router.put('/api/v1/admin/products/:id/approve', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const headers = { Authorization: `Bearer ${req.accessToken}` };
+        
+        console.log('Approving product:', id);
+        
+        const response = await axios.put(`${ADMIN_SERVICE_URL}/api/v1/admin/products/${id}/approve`, null, {
+            headers,
+            timeout: 5000
+        });
+        
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error('Lỗi duyệt product:', error.response?.data || error.message);
+        const statusCode = error.response?.status || 500;
+        const message = error.response?.data?.message || 'Lỗi khi duyệt sản phẩm';
+        res.status(statusCode).json({ message });
+    }
+});
+
+// API Proxy: Từ chối sản phẩm (reject)
+router.put('/api/v1/admin/products/:id/reject', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const headers = { 
+            Authorization: `Bearer ${req.accessToken}`,
+            'Content-Type': 'application/json'
+        };
+        
+        console.log('Rejecting product:', id, req.body);
+        
+        const response = await axios.put(`${ADMIN_SERVICE_URL}/api/v1/admin/products/${id}/reject`, req.body, {
+            headers,
+            timeout: 5000
+        });
+        
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error('Lỗi từ chối product:', error.response?.data || error.message);
+        const statusCode = error.response?.status || 500;
+        const message = error.response?.data?.message || 'Lỗi khi từ chối sản phẩm';
+        res.status(statusCode).json({ message });
+    }
+});
+
+// =========================================================
+// 2.5 ROUTE: XÉT DUYỆT SẢN PHẨM (Approvals - Pending Products)
+// =========================================================
+
+// Trang xét duyệt sản phẩm PENDING
+router.get('/admin/approvals', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { keyword = '', page = 0, size = 10 } = req.query;
+        const headers = { Authorization: `Bearer ${req.accessToken}` };
+
+        console.log('Calling Admin Service for PENDING products');
+
+        const params = {
+            page,
+            size,
+            status: 'PENDING' // Chỉ lấy sản phẩm PENDING
+        };
+        if (keyword) params.keyword = keyword;
+
+        const response = await axios.get(`${ADMIN_SERVICE_URL}/api/v1/admin/products`, {
+            params,
+            headers,
+            timeout: 5000
+        });
+
+        const payload = response.data || {};
+        const products = payload.content || [];
+        const pagination = {
+            page: payload.number ?? Number(page) ?? 0,
+            size: payload.size ?? Number(size) ?? 10,
+            totalPages: payload.totalPages ?? 1,
+            totalElements: payload.totalElements ?? products.length
+        };
+        console.log('Pending products received:', products.length, 'items');
+
+        res.render('admin-approvals', {
+            products: products,
+            pagination,
+            keyword,
+            user: req.user
+        });
+    } catch (e) {
+        console.error('Lỗi gọi Pending Products API:', e.message);
+        res.render('admin-approvals', {
+            products: [],
+            pagination: { page: 0, size: 10, totalPages: 1, totalElements: 0 },
+            keyword: '',
+            user: req.user
+        });
     }
 });
 

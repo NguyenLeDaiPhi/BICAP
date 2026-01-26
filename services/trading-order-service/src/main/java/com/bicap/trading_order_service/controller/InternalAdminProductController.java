@@ -2,12 +2,19 @@ package com.bicap.trading_order_service.controller;
 
 import com.bicap.trading_order_service.dto.ProductResponseDTO;
 import com.bicap.trading_order_service.dto.BanProductRequestDTO;
+import com.bicap.trading_order_service.dto.ProductStatisticsDTO;
+import com.bicap.trading_order_service.entity.MarketplaceProduct;
+import com.bicap.trading_order_service.entity.FarmManager;
+import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.service.IProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,17 +29,20 @@ import java.util.Map;
 @Tag(name = "Internal Admin Product API", description = "APIs nội bộ cho Admin Service gọi")
 public class InternalAdminProductController {
 
+    private final MarketplaceProductRepository repository;
     private final IProductService adminProductService;
 
-    public InternalAdminProductController(IProductService adminProductService) {
+    @Autowired
+    public InternalAdminProductController(MarketplaceProductRepository repository, IProductService adminProductService) {
+        this.repository = repository;
         this.adminProductService = adminProductService;
     }
 
     /**
-     * GET /api//products - Lấy danh sách sản phẩm với bộ lọc
+     * GET /api/admin/products - Filtered list for Admin
      */
     @GetMapping
-    @Operation(summary = "Lấy danh sách sản phẩm", description = "Internal API cho  Service")
+    @Operation(summary = "Lấy danh sách sản phẩm", description = "Internal API cho Admin Service")
     public ResponseEntity<Page<ProductResponseDTO>> getProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
@@ -57,7 +67,7 @@ public class InternalAdminProductController {
      * PUT /api/admin/products/{id}/ban - Khóa sản phẩm
      */
     @PutMapping("/{id}/ban")
-    @Operation(summary = "Khóa sản phẩm", description = "Internal API cho  Service")
+    @Operation(summary = "Khóa sản phẩm", description = "Internal API cho Admin Service")
     public ResponseEntity<ProductResponseDTO> banProduct(
             @PathVariable Long id,
             @Valid @RequestBody BanProductRequestDTO request
@@ -67,13 +77,47 @@ public class InternalAdminProductController {
     }
 
     /**
-     * PUT /api//products/{id}/unban - Mở khóa sản phẩm
+     * PUT /api/admin/products/{id}/unban - Mở khóa sản phẩm
      */
     @PutMapping("/{id}/unban")
-    @Operation(summary = "Mở khóa sản phẩm", description = "Internal API cho  Service")
+    @Operation(summary = "Mở khóa sản phẩm", description = "Internal API cho Admin Service")
     public ResponseEntity<ProductResponseDTO> unbanProduct(@PathVariable Long id) {
         ProductResponseDTO unbannedProduct = adminProductService.unbanProduct(id);
         return ResponseEntity.ok(unbannedProduct);
+    }
+
+    /**
+     * PUT /api/admin/products/{id}/approve - Duyệt sản phẩm PENDING thành APPROVED
+     */
+    @PutMapping("/{id}/approve")
+    @Operation(summary = "Duyệt sản phẩm", description = "Internal API cho Admin Service duyệt sản phẩm PENDING thành APPROVED")
+    public ResponseEntity<ProductResponseDTO> approveProduct(@PathVariable Long id) {
+        MarketplaceProduct product = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        
+        product.setStatus("APPROVED");
+        repository.save(product);
+        
+        return ResponseEntity.ok(adminProductService.getProductById(id));
+    }
+
+    /**
+     * PUT /api/admin/products/{id}/reject - Từ chối sản phẩm PENDING
+     */
+    @PutMapping("/{id}/reject")
+    @Operation(summary = "Từ chối sản phẩm", description = "Internal API cho Admin Service từ chối sản phẩm PENDING")
+    public ResponseEntity<ProductResponseDTO> rejectProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody BanProductRequestDTO request
+    ) {
+        MarketplaceProduct product = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        
+        product.setStatus("REJECTED");
+        product.setBanReason(request.getReason());
+        repository.save(product);
+        
+        return ResponseEntity.ok(adminProductService.getProductById(id));
     }
 
     /**
@@ -90,12 +134,13 @@ public class InternalAdminProductController {
      */
     @GetMapping("/statistics")
     @Operation(summary = "Thống kê sản phẩm", description = "Internal API cho Admin Service")
-    public ResponseEntity<Map<String, Object>> getProductStatistics() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("totalActive", adminProductService.countByStatus("ACTIVE"));
-        stats.put("totalBanned", adminProductService.countByStatus("BANNED"));
-        stats.put("totalOutOfStock", adminProductService.countByStatus("OUT_OF_STOCK"));
-        stats.put("totalPending", adminProductService.countByStatus("PENDING"));
+    public ResponseEntity<ProductStatisticsDTO> getProductStatistics() {
+        ProductStatisticsDTO stats = ProductStatisticsDTO.builder()
+                .totalActive(adminProductService.countByStatus("APPROVED"))
+                .totalBanned(adminProductService.countByStatus("BANNED"))
+                .totalOutOfStock(adminProductService.countByStatus("OUT_OF_STOCK"))
+                .totalPending(adminProductService.countByStatus("PENDING"))
+                .build();
         return ResponseEntity.ok(stats);
     }
 

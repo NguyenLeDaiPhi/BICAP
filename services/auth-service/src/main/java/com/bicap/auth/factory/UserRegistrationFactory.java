@@ -59,7 +59,12 @@ public class UserRegistrationFactory {
             user.setStatus(UserStatus.ACTIVE);
         }
         user.setEmail(authRequest.getEmail());
-        user.setUsername(authRequest.getUsername());
+        // Auto-generate username from email if not provided
+        String username = authRequest.getUsername();
+        if (username == null || username.trim().isEmpty()) {
+            username = authRequest.getEmail().split("@")[0]; // Use part before @ as username
+        }
+        user.setUsername(username);
         user.setPassword(passwordEncoder.encode(authRequest.getPassword()));
         user.setRole(roles);
         return userRepository.save(user);

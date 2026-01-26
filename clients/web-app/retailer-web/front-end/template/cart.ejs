@@ -29,11 +29,9 @@
         <!-- LIST ITEM (SCROLL) -->
         <div class="cart-list">
           <% cart.forEach(item => { %>
-            <div 
-              class="cart-item"
-              data-id="<%= item.id %>"
-              data-price="<%= item.price %>"
-            >
+            <div class="cart-item"
+                 data-id="<%= item.id %>"
+                 data-price="<%= item.price %>">
 
               <!-- IMAGE -->
               <div class="cart-image">
@@ -56,7 +54,7 @@
               <!-- ITEM TOTAL -->
               <div class="cart-total">
                 <span class="item-total">
-                  <%= item.price * item.quantity %> VND/KG
+                  <%= item.price * item.quantity %> VND
                 </span>
               </div>
 
@@ -64,7 +62,6 @@
               <div class="cart-remove">
                 <button class="remove-btn" data-id="<%= item.id %>">✕</button>
               </div>
-
             </div>
           <% }) %>
         </div>
@@ -74,14 +71,13 @@
           <div class="cart-summary">
             Tổng tiền: <strong id="grandTotal">0</strong> VND
           </div>
-          <button class="btn-checkout">
-            Thanh toán
-          </button>
+          <button type="button" class="btn-checkout">Thanh toán</button>
         </div>
 
         <% } %>
       </div>
-<!-- PAYMENT POPUP -->
+
+      <!-- ================= PAYMENT POPUP ================= -->
 <div class="payment-overlay" id="paymentOverlay" onclick="closePayment()">
   <div class="payment-modal" onclick="event.stopPropagation()">
 
@@ -97,13 +93,13 @@
     <!-- METHODS -->
     <div class="payment-methods">
       <label class="payment-method">
-        <input type="radio" name="paymentMethod" value="bank">
-        <span>🏦 Ngân hàng</span>
+        <input type="radio" name="paymentMethod" value="momo" checked>
+        <span>📱 MoMo</span>
       </label>
 
       <label class="payment-method">
-        <input type="radio" name="paymentMethod" value="momo">
-        <span>📱 MoMo</span>
+        <input type="radio" name="paymentMethod" value="bank">
+        <span>🏦 Ngân hàng</span>
       </label>
 
       <label class="payment-method">
@@ -112,9 +108,49 @@
       </label>
     </div>
 
+    <!-- SHIPPING ADDRESS -->
+    <div class="payment-address">
+      <label for="shippingAddress">📍 Địa chỉ giao hàng</label>
+      <textarea
+        id="shippingAddress"
+        placeholder="Nhập địa chỉ giao hàng..."
+        rows="3"
+        style="width:100%;margin-top:8px"
+      ></textarea>
+    </div>
+
     <!-- ACTION -->
-    <button class="btn-checkout btn-next">
+    <button
+      type="button"
+      class="btn-checkout btn-next"
+      onclick="handlePaymentNext()"
+    >
       Tiếp theo
+    </button>
+
+  </div>
+</div>
+
+<!-- ================= MOMO QR MODAL ================= -->
+<div class="payment-overlay hidden" id="qrOverlay">
+  <div class="payment-modal qr-modal" onclick="event.stopPropagation()">
+
+    <h3>Quét mã QR MoMo</h3>
+
+    <img
+      id="momoQr"
+      src=""
+      alt="MoMo QR"
+      style="width:240px;margin:20px auto;display:block"
+    />
+
+    <p style="text-align:center">
+      Tổng tiền:
+      <strong><span id="qrTotal">0</span> VND</strong>
+    </p>
+
+    <button type="button" class="btn-checkout" onclick="confirmMomoPayment()">
+      Tôi đã thanh toán
     </button>
 
   </div>
@@ -126,8 +162,7 @@
   </div>
 </div>
 
-<!-- JS -->
 <script src="/js/cart.js"></script>
-
+<script src="/js/layout.js"></script>
 </body>
 </html>

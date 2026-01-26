@@ -4,14 +4,11 @@ import com.bicap.farm_management.dto.FarmCreateDto;
 import com.bicap.farm_management.dto.FarmUpdateDto;
 import com.bicap.farm_management.entity.*;
 import com.bicap.farm_management.repository.*;
-import com.zaxxer.hikari.util.ClockSource;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 public class FarmFeatureService {

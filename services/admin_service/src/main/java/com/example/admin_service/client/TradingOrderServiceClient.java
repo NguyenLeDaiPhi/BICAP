@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "trading-order-service", url = "${trading-order.service.url:http://localhost:8083}")
+@FeignClient(name = "trading-order-service", contextId = "tradingOrderServiceClient", url = "${trading-order.service.url:http://localhost:8082}")
 public interface TradingOrderServiceClient {
 
     /**

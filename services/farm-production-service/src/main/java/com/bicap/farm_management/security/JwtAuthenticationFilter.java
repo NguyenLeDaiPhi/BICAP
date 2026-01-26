@@ -50,12 +50,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (rolesObj instanceof String) {
                         rolesStr = ((String) rolesObj).trim();
                     } else if (rolesObj instanceof List) {
-                        // Convert List elements to strings, handling any type
-                        // Handle both List<String> and List<Object> cases
                         rolesStr = ((List<?>) rolesObj).stream()
                                 .map(obj -> {
                                     if (obj == null) return "";
-                                    // If it's already a string, use it directly; otherwise convert
                                     return (obj instanceof String) ? ((String) obj).trim() : obj.toString().trim();
                                 })
                                 .filter(s -> !s.isEmpty())
@@ -83,7 +80,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         authorities = Arrays.stream(rolesStr.split(","))
                                 .map(role -> {
                                     String trimmedRole = role.trim();
-                                    // If role doesn't start with ROLE_, add it
                                     if (!trimmedRole.startsWith("ROLE_")) {
                                         trimmedRole = "ROLE_" + trimmedRole;
                                     }
@@ -99,7 +95,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         authorities.forEach(auth -> System.out.println("  ✓ " + auth.getAuthority()));
                     }
 
-                    // 4. Create Authentication object (even with empty authorities, so we know user is authenticated)
+                    // 4. Create Authentication object
                     UsernamePasswordAuthenticationToken authentication = 
                             new UsernamePasswordAuthenticationToken(username, null, authorities);
                     

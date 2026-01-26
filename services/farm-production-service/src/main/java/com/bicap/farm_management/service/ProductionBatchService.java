@@ -82,6 +82,7 @@ public class ProductionBatchService {
             System.err.println("⚠️ Không tìm thấy Batch ID: " + batchId + " để cập nhật.");
         }
     }
+
     @Autowired
     private com.bicap.farm_management.repository.FarmingProcessRepository processRepository;
     
@@ -98,7 +99,6 @@ public class ProductionBatchService {
         List<com.bicap.farm_management.entity.FarmingProcess> processes = processRepository.findByProductionBatchId(batchId);
 
         // 3. Lấy danh sách đợt xuất hàng (đã có QR)
-        // Lưu ý: Bạn cần chắc chắn ExportBatchRepository đã có hàm findByProductionBatchId
         List<com.bicap.farm_management.entity.ExportBatch> exports = exportBatchRepository.findByProductionBatchId(batchId);
 
         return new com.bicap.farm_management.dto.SeasonDetailResponse(batch, processes, exports);

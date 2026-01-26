@@ -6,6 +6,7 @@ services:
   auth-db:
     image: mysql:8.0
     container_name: auth-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=0862264719Phi
       - MYSQL_DATABASE=bicap_auth_db
@@ -20,10 +21,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    mem_reservation: 256m
 
   bicap-message-queue:
     image: rabbitmq:3-management
     container_name: bicap-message-queue
+    restart: unless-stopped
     environment:
       - RABBITMQ_DEFAULT_USER=root
       - RABBITMQ_DEFAULT_PASS=root
@@ -37,6 +42,7 @@ services:
     build:
       context: ./services/auth-service
     container_name: auth-service
+    restart: unless-stopped
     depends_on:
       auth-db:
         condition: service_healthy
@@ -61,6 +67,7 @@ services:
   farm-production-db:
     image: mysql:8.0
     container_name: farm-production-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=0862264719Phi
       - MYSQL_DATABASE=farm_production_db
@@ -75,11 +82,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    mem_reservation: 256m
 
   farm-production-service:
     build:
       context: ./services/farm-production-service
     container_name: farm-production-service
+    restart: unless-stopped
     depends_on:
       farm-production-db:
         condition: service_healthy
@@ -103,6 +114,7 @@ services:
   trading-order-db:
     image: mysql:8.0
     container_name: trading-order-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=0862264719Phi
       - MYSQL_DATABASE=bicap_order_db
@@ -117,11 +129,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    mem_reservation: 256m
 
   trading-order-service:
     build:
       context: ./services/trading-order-service
     container_name: trading-order-service
+    restart: unless-stopped
     depends_on:
       trading-order-db:
         condition: service_healthy
@@ -147,6 +163,7 @@ services:
   shipping-db:
     image: mysql:8.0
     container_name: shipping-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=0862264719Phi
       - MYSQL_DATABASE=shipping_db
@@ -161,10 +178,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    mem_reservation: 256m
 
   blockchain-db:
     image: mysql:8.0
     container_name: blockchain-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=0862264719Phi
       - MYSQL_DATABASE=bicap_blockchain_db
@@ -180,11 +201,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    mem_reservation: 256m
 
   blockchain-adapter-service:
     build:
       context: ./services/blockchain-adapter-service
     container_name: blockchain-adapter-service
+    restart: unless-stopped
     depends_on:
       blockchain-db:
         condition: service_healthy
@@ -210,6 +235,7 @@ services:
     build:
       context: ./services/shipping-manager-service
     container_name: shipping-manager-service
+    restart: unless-stopped
     depends_on:
       shipping-db:
         condition: service_healthy
@@ -232,6 +258,7 @@ services:
       - BICAP_APP_JWTEXPIRATIONMS=86400000
       - application.config.farm-service-url=http://farm-production-service:8081
       - application.config.blockchain-service-url=http://blockchain-adapter-service:8084
+      - application.config.trading-order-service-url=http://trading-order-service:8082
     ports:
       - "8083:8083"
     networks:
@@ -241,6 +268,7 @@ services:
     build:
       context: ./services/admin_service
     container_name: admin-service
+    restart: unless-stopped
     depends_on:
       auth-db:
         condition: service_healthy
@@ -259,8 +287,10 @@ services:
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
       - FARM_SERVICE_URL=http://farm-production-service:8081
       - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
+      - BLOCKCHAIN_SERVICE_URL=http://blockchain-adapter-service:8084
     ports:
       - "8085:8085"
     networks:
@@ -312,6 +342,7 @@ services:
     build:
       context: ./clients/web-app/retailer-web
     container_name: retailer-web
+    restart: unless-stopped
     depends_on:
       - kong-gateway
     environment:
@@ -322,7 +353,7 @@ services:
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/fetch-marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
       - "3004:3004"
     networks:
@@ -332,6 +363,7 @@ services:
     build:
       context: ./clients/web-app/admin-web
     container_name: admin-web
+    restart: unless-stopped
     depends_on:
       - kong-gateway
       - admin-service
@@ -343,7 +375,7 @@ services:
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
       - ADMIN_SERVICE_URL=http://admin-service:8085
       - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
     ports:
@@ -355,6 +387,7 @@ services:
     build:
       context: ./clients/web-app/farm-management-web
     container_name: farm-management-web
+    restart: unless-stopped
     depends_on:
       - kong-gateway
       - bicap-message-queue
@@ -365,7 +398,6 @@ services:
       - DOCKER_ENV=true
       - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
       - RABBITMQ_ENABLED=true
-      # Hướng tất cả các lệnh gọi API của frontend qua Kong Gateway một cách nhất quán
       - FARM_API_URL=http://kong-gateway:8000/api/farm-features
       - PRODUCTION_BATCH_API_URL=http://kong-gateway:8000/api/production-batches
       - FARMING_PROCESS_API_URL=http://kong-gateway:8000/api/farming-processes
@@ -382,6 +414,7 @@ services:
     build: 
       context: ./clients/web-app/shipping-manager-web
     container_name: shipping-manager-web
+    restart: unless-stopped
     depends_on:
       - kong-gateway
     environment:
@@ -392,9 +425,9 @@ services:
       - FARM_API_URL=http://kong-gateway:8000/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
       - SHIPPING_SERVICE_URL=http://kong-gateway:8000/api
-      - REACT_APP_SHIPPING_API_URL=http://localhost:8000/api
+      - REACT_APP_SHIPPING_API_URL=http://kong-gateway:8000/api
     ports:
       - "3003:3003"
     networks:
@@ -442,6 +475,7 @@ services:
   kong-gateway:
     image: kong:latest
     container_name: kong-gateway
+    restart: unless-stopped
     environment:
       - KONG_DATABASE=off
       - KONG_DECLARATIVE_CONFIG=/usr/local/kong/declarative/kong.yml
@@ -458,7 +492,3 @@ services:
       - bicap-global-net
     volumes:
       - ./api-gateway/kong.yml:/usr/local/kong/declarative/kong.yml
-      - kong-logs:/var/log/kong
-
-volumes:
-  kong-logs:

@@ -7,6 +7,8 @@ public class ProductResponse {
     private Long id;
     private Long batchId;
     private Long farmId;
+    private String farmName;
+    private String ownerName;
     private String name;
     private String description;
     private BigDecimal price;
@@ -39,6 +41,22 @@ public class ProductResponse {
 
     public void setFarmId(Long farmId) {
         this.farmId = farmId;
+    }
+
+    public String getFarmName() {
+        return farmName;
+    }
+
+    public void setFarmName(String farmName) {
+        this.farmName = farmName;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
     }
 
     public String getName() {

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtUtils {
@@ -71,7 +72,7 @@ public class JwtUtils {
 
     /**
      * ✅ Chuẩn hoá role
-     * JWT hiện tại: roles = "ROLE_RETAILER"
+     * JWT hiện tại: roles = "ROLE_RETAILER" hoặc List<String>
      */
     public List<String> getRoles(String token) {
         Claims claims = parseClaims(token);
@@ -81,6 +82,12 @@ public class JwtUtils {
 
         if (rolesObj instanceof String roleStr) {
             return List.of(roleStr);
+        }
+
+        if (rolesObj instanceof List<?> roleList) {
+            return roleList.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toList());
         }
 
         return List.of();

@@ -2,15 +2,13 @@ const amqp = require('amqplib');
 const fs = require('fs');
 
 // RabbitMQ Configuration
-// Auto-detect environment: nếu RABBITMQ_URL có chứa 'bicap-message-queue' nhưng không resolve được, fallback về localhost
+// Auto-detect environment: fallback to localhost when Docker service name not resolvable
 let RABBITMQ_URL = process.env.RABBITMQ_URL;
 if (!RABBITMQ_URL) {
-    // Default: localhost cho development
+    // Default: localhost for development
     RABBITMQ_URL = 'amqp://root:root@localhost:5672';
 } else if (RABBITMQ_URL.includes('bicap-message-queue')) {
-    // Kiểm tra xem có phải đang chạy trong Docker không
-    // Nếu không phải Docker và không có DOCKER_ENV, fallback về localhost
-    // Tránh gọi Docker API để không gây lỗi khi Docker Desktop chưa chạy
+    // Check if running inside Docker
     const isDocker = process.env.DOCKER_ENV === 'true' || 
                      process.env.HOSTNAME?.includes('container') ||
                      (process.platform !== 'win32' && fs.existsSync('/.dockerenv'));
@@ -36,26 +34,26 @@ let channel = null;
 let connection = null;
 let isConnecting = false;
 let retryCount = 0;
-const MAX_RETRY_COUNT = 10; // Giới hạn số lần retry
-const INITIAL_RETRY_DELAY = 5000; // 5 giây
-const MAX_RETRY_DELAY = 60000; // 60 giây tối đa
+const MAX_RETRY_COUNT = 10;
+const INITIAL_RETRY_DELAY = 5000;
+const MAX_RETRY_DELAY = 60000;
 
 /**
  * Initialize RabbitMQ connection and consume messages
  */
 async function initializeRabbitMQ() {
-    // Kiểm tra nếu RabbitMQ bị disable
+    // Check if RabbitMQ is disabled
     if (!RABBITMQ_ENABLED) {
         console.log('⚠️  RabbitMQ is disabled (RABBITMQ_ENABLED=false). Notifications will work in-memory only.');
         return;
     }
 
-    // Tránh nhiều connection attempts đồng thời
+    // Prevent simultaneous connection attempts
     if (isConnecting) {
         return;
     }
 
-    // Kiểm tra số lần retry
+    // Check retry count
     if (retryCount >= MAX_RETRY_COUNT) {
         console.error(`❌ RabbitMQ: Max retry count (${MAX_RETRY_COUNT}) reached. Stopping retry attempts.`);
         console.log('   Notifications will work in-memory only. To re-enable, restart the server.');
@@ -65,13 +63,12 @@ async function initializeRabbitMQ() {
     isConnecting = true;
     
     try {
-        // Log URL nhưng ẩn password để bảo mật
+        // Log URL with hidden password for security
         const logUrl = RABBITMQ_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@');
         console.log(`[${retryCount + 1}/${MAX_RETRY_COUNT}] Connecting to RabbitMQ at: ${logUrl}`);
         
-        // Thêm timeout cho connection (10 giây)
+        // Add timeout for connection (10 seconds)
         const connectPromise = amqp.connect(RABBITMQ_URL, {
-            // Thêm heartbeat để detect connection issues sớm hơn
             heartbeat: 60
         });
         const timeoutPromise = new Promise((_, reject) => 
@@ -163,7 +160,6 @@ async function initializeRabbitMQ() {
             if (errorHint) console.log(errorHint);
             const logUrl = RABBITMQ_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@');
             console.log(`   Current RABBITMQ_URL: ${logUrl}`);
-            console.log(`   Current RABBITMQ_URL: ${RABBITMQ_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@')}`);
         }
     }
 }

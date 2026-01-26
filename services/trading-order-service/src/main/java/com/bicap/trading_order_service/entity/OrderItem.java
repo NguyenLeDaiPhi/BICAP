@@ -14,21 +14,21 @@ public class OrderItem {
 
     @ManyToOne
     @JoinColumn(name = "order_id")
-    @JsonIgnore // ⭐ FIX LỖI VÒNG LẶP JSON
+    @JsonIgnore
     private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
     private MarketplaceProduct product;
-
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
 
     @Column(nullable = false)
     private Integer quantity;
 
     @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal unitPrice;
+
+    @Column(name = "product_id", insertable = false, updatable = false)
+    private Long productId;
 
     /* ================= GETTER & SETTER ================= */
 
@@ -42,6 +42,14 @@ public class OrderItem {
 
     public void setOrder(Order order) {
         this.order = order;
+    }
+
+    public MarketplaceProduct getProduct() {
+        return product;
+    }
+
+    public void setProduct(MarketplaceProduct product) {
+        this.product = product;
     }
 
     public Long getProductId() {

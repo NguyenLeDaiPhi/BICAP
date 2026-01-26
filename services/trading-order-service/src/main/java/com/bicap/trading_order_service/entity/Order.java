@@ -16,8 +16,11 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "buyer_id", nullable = false)
-    private Long buyerId;
+    @Column(name = "shipping_address", nullable = false)
+    private String shippingAddress;
+
+    @Column(name = "buyer_email", nullable = false, length = 255)
+    private String buyerEmail;
 
     @Column(name = "total_amount", nullable = false, precision = 14, scale = 2)
     private BigDecimal totalAmount;
@@ -28,7 +31,13 @@ public class Order {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-   @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Column(name = "delivery_images", columnDefinition = "TEXT")
+    private String deliveryImages; // JSON array of image URLs: ["url1", "url2"]
+
+    @Column(name = "delivery_confirmed_at")
+    private LocalDateTime deliveryConfirmedAt;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<OrderItem> items = new ArrayList<>();
 
@@ -45,12 +54,13 @@ public class Order {
         return id;
     }
 
-    public Long getBuyerId() {
-        return buyerId;
+    // GET/SET buyerEmail
+    public String getBuyerEmail() {
+        return buyerEmail;
     }
 
-    public void setBuyerId(Long buyerId) {
-        this.buyerId = buyerId;
+    public void setBuyerEmail(String buyerEmail) {
+        this.buyerEmail = buyerEmail;
     }
 
     public BigDecimal getTotalAmount() {
@@ -73,16 +83,41 @@ public class Order {
         return createdAt;
     }
 
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
+    }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
     public List<OrderItem> getItems() {
         return items;
     }
+
     public void addItem(OrderItem item) {
-    items.add(item);
-    item.setOrder(this);
+        items.add(item);
+        item.setOrder(this);
     }
 
     public void removeItem(OrderItem item) {
-    items.remove(item);
-    item.setOrder(null);
+        items.remove(item);
+        item.setOrder(null);
+    }
+
+    public String getDeliveryImages() {
+        return deliveryImages;
+    }
+
+    public void setDeliveryImages(String deliveryImages) {
+        this.deliveryImages = deliveryImages;
+    }
+
+    public LocalDateTime getDeliveryConfirmedAt() {
+        return deliveryConfirmedAt;
+    }
+
+    public void setDeliveryConfirmedAt(LocalDateTime deliveryConfirmedAt) {
+        this.deliveryConfirmedAt = deliveryConfirmedAt;
     }
 }

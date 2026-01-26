@@ -30,6 +30,7 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ProductResponseDTO> getProductsWithFilter(String keyword, String status, Long farmId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         
@@ -75,6 +76,7 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductResponseDTO getProductById(Long productId) {
         MarketplaceProduct product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));

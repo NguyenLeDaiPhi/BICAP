@@ -10,26 +10,43 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface MarketplaceProductRepository extends JpaRepository<MarketplaceProduct, Long>, JpaSpecificationExecutor<MarketplaceProduct> {
+public interface MarketplaceProductRepository
+        extends JpaRepository<MarketplaceProduct, Long>,
+                JpaSpecificationExecutor<MarketplaceProduct> {
 
+    // Lấy product theo ID với FarmManager (tránh LazyInitializationException)
+    @Query("SELECT p FROM MarketplaceProduct p LEFT JOIN FETCH p.farmManager WHERE p.id = :id")
+    Optional<MarketplaceProduct> findByIdWithFarmManager(@Param("id") Long id);
+
+    // ===============================
+    // FARM MANAGER
+    // ===============================
     @Query("SELECT p FROM MarketplaceProduct p WHERE p.farmManager.farmId = :farmId")
     List<MarketplaceProduct> findByFarmId(@Param("farmId") Long farmId);
 
-    // Tìm sản phẩm theo status
+    // ===============================
+    // COMMON
+    // ===============================
     List<MarketplaceProduct> findByStatus(String status);
 
-    // Tìm sản phẩm theo tên (LIKE)
-    @Query("SELECT p FROM MarketplaceProduct p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    List<MarketplaceProduct> findByNameContainingIgnoreCase(@Param("keyword") String keyword);
+    @Query("SELECT p FROM MarketplaceProduct p " +
+           "WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<MarketplaceProduct> findByNameContainingIgnoreCase(
+            @Param("keyword") String keyword);
 
-    // Đếm số sản phẩm theo status
     long countByStatus(String status);
 
-    // Admin: Tìm kiếm với bộ lọc (keyword, status, farmId) với phân trang
-    // Sử dụng LEFT JOIN để lấy cả sản phẩm không có farmManager
-    @Query("SELECT p FROM MarketplaceProduct p LEFT JOIN p.farmManager fm " +
+    // ===============================
+    // ADMIN – FILTER + PAGING
+    // ===============================
+    @Query(value = "SELECT p FROM MarketplaceProduct p LEFT JOIN FETCH p.farmManager fm " +
+           "WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:status IS NULL OR :status = '' OR p.status = :status) " +
+           "AND (:farmId IS NULL OR fm.farmId = :farmId)",
+           countQuery = "SELECT COUNT(p) FROM MarketplaceProduct p LEFT JOIN p.farmManager fm " +
            "WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "AND (:status IS NULL OR :status = '' OR p.status = :status) " +
            "AND (:farmId IS NULL OR fm.farmId = :farmId)")
@@ -37,5 +54,6 @@ public interface MarketplaceProductRepository extends JpaRepository<MarketplaceP
             @Param("keyword") String keyword,
             @Param("status") String status,
             @Param("farmId") Long farmId,
-            Pageable pageable);
+            Pageable pageable
+    );
 }

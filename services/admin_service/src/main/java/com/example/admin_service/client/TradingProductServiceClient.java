@@ -4,12 +4,13 @@ import com.example.admin_service.dto.AdminProductResponseDTO;
 import com.example.admin_service.dto.BanProductRequestDTO;
 import com.example.admin_service.dto.ProductStatisticsDTO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "trading-product-service", url = "${trading-order.service.url:http://localhost:8083}")
+@FeignClient(name = "trading-order-service", contextId = "tradingProductServiceClient", url = "${trading-order.service.url:http://localhost:8082}")
 public interface TradingProductServiceClient {
 
     /**
@@ -41,6 +42,18 @@ public interface TradingProductServiceClient {
      */
     @PutMapping("/api/admin/products/{id}/unban")
     AdminProductResponseDTO unbanProduct(@PathVariable("id") Long id);
+
+    /**
+     * Duyệt sản phẩm PENDING thành APPROVED
+     */
+    @PutMapping("/api/admin/products/{id}/approve")
+    AdminProductResponseDTO approveProduct(@PathVariable("id") Long id);
+
+    /**
+     * Từ chối sản phẩm PENDING
+     */
+    @PutMapping("/api/admin/products/{id}/reject")
+    AdminProductResponseDTO rejectProduct(@PathVariable("id") Long id, @RequestBody BanProductRequestDTO request);
 
     /**
      * Đếm số sản phẩm theo status

@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "AdminServiceApplication",
+            "request": "launch",
+            "mainClass": "com.example.admin_service.AdminServiceApplication",
+            "projectName": "admin_service"
+        },
+        {
+            "type": "java",
             "name": "FarmManagementApplication",
             "request": "launch",
             "mainClass": "com.bicap.farm_management.FarmManagementApplication",
@@ -91,6 +98,16 @@
             "cwd": "${workspaceFolder}",
             "mainClass": "com.bicap.blockchain_adapter_service.BlockchainAdapterServiceApplication",
             "projectName": "com.bicap-blockchain-adapter-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-TradingOrderServiceApplication<trading_order_service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.trading_order_service.TradingOrderServiceApplication",
+            "projectName": "trading_order_service",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         }

@@ -100,6 +100,17 @@ services:
         config:
           path: /var/log/kong/shipping-manager-service.log
 
+  - name: admin-service
+    url: http://admin-service:8085
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:
+          path: /var/log/kong/admin-service.log
+
 routes:
   # Blockchain API
   - name: blockchain-api
@@ -125,6 +136,30 @@ routes:
       - name: file-log
         config:
           path: /var/log/kong/blockchain-api.log
+
+  # Trading Orders - Confirm Delivery API (for Retailer)
+  - name: trading-orders-confirm-delivery-api
+    service: trading-order-service
+    paths:
+      - /api/orders
+    methods:
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/trading-orders-confirm-delivery-api.log
 
   # Auth API (login/register called by retailer-web via Kong)
   - name: auth-api
@@ -201,9 +236,9 @@ routes:
         config:
           path: /var/log/kong/auth-service.log
 
-  # New: Marketplace Products API
+  # New: Marketplace Products API (Endpoint nằm trong trading-order-service)
   - name: marketplace-products-api
-    service: farm-production-service
+    service: trading-order-service
     paths:
       - /api/marketplace-products
     methods:
@@ -233,7 +268,7 @@ routes:
         config:
           path: /var/log/kong/marketplace-products-api.log
 
-  # New: Retailer Marketplace API (for trading-order-service)
+  # New: Retailer Marketplace API (Alias for marketplace-products)
   - name: retailer-marketplace-api
     service: trading-order-service
     paths:
@@ -242,8 +277,12 @@ routes:
       - GET
       - POST
       - OPTIONS
-    strip_path: true
+    strip_path: false
     plugins:
+      - name: request-transformer
+        config:
+          replace:
+            uri: /api/marketplace-products
       - name: rate-limiting
         config:
           minute: 100
@@ -257,6 +296,35 @@ routes:
       - name: file-log
         config:
           path: /var/log/kong/retailer-marketplace-api.log
+
+  # New: Farming Seasons API (Alias for production-batches)
+  - name: farming-seasons-api
+    service: farm-production-service
+    paths:
+      - /api/farming-seasons
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          replace:
+            uri: /api/production-batches
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/farming-seasons-api.log
 
   # --- START: FARM PRODUCTION SERVICE ROUTES (FOR SEASON MONITOR) ---
 
@@ -537,6 +605,346 @@ routes:
         config:
           path: /var/log/kong/shipping-notifications-api.log
 
+  # Trading Order Service APIs
+  - name: trading-orders-api
+    service: trading-order-service
+    paths:
+      - /api/orders
+    methods:
+      - GET
+      - POST
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/trading-orders-api.log
+
+  - name: trading-admin-orders-api
+    service: trading-order-service
+    paths:
+      - /api/admin/orders
+    methods:
+      - GET
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/trading-admin-orders-api.log
+
+  - name: trading-payments-api
+    service: trading-order-service
+    paths:
+      - /api/payments
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/trading-payments-api.log
+
+  - name: trading-categories-api
+    service: trading-order-service
+    paths:
+      - /api/categories
+      - /api/admin/categories
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/trading-categories-api.log
+
+  - name: trading-feedbacks-api
+    service: trading-order-service
+    paths:
+      - /api/order-feedbacks
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/trading-feedbacks-api.log
+
+  - name: trading-admin-products-api
+    service: trading-order-service
+    paths:
+      - /api/admin/products
+    methods:
+      - GET
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/trading-admin-products-api.log
+
+  # Admin Service APIs
+  - name: admin-users-api
+    service: admin-service
+    paths:
+      - /api/v1/admin/users
+    methods:
+      - GET
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/admin-users-api.log
+
+  - name: admin-farms-api
+    service: admin-service
+    paths:
+      - /api/v1/admin/farms
+    methods:
+      - GET
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/admin-farms-api.log
+
+  - name: admin-products-api
+    service: admin-service
+    paths:
+      - /api/v1/admin/products
+    methods:
+      - GET
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/admin-products-api.log
+
+  - name: admin-orders-api
+    service: admin-service
+    paths:
+      - /api/v1/admin/orders
+    methods:
+      - GET
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/admin-orders-api.log
+
+  - name: admin-dashboard-api
+    service: admin-service
+    paths:
+      - /api/v1/admin/dashboard
+    methods:
+      - GET
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/admin-dashboard-api.log
+
+  - name: admin-role-requests-api
+    service: admin-service
+    paths:
+      - /api/v1/role-requests
+    methods:
+      - GET
+      - POST
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/admin-role-requests-api.log
+
+  - name: admin-categories-api
+    service: admin-service
+    paths:
+      - /api/v1/admin/categories
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/admin-categories-api.log
+
+  - name: admin-blockchain-api
+    service: admin-service
+    paths:
+      - /api/v1/admin/blockchain
+    methods:
+      - GET
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/admin-blockchain-api.log
+
   # Public UI Routes (no JWT required)
   - name: retailer-public
     service: retailer-web
@@ -602,6 +1010,8 @@ routes:
       - /js
       - /index.html
       - /assets  # Added for farm-management-web static assets
+      - /src     # Added for farm-management-web scripts
+      - /public  # Added for farm-management-web uploads/public
       - /uploads  # Added for uploaded files
     strip_path: false
     plugins:
@@ -747,7 +1157,7 @@ consumers:
     jwt_secrets:
       - key: retailer-app  # Issuer in JWT has to match with key named retailer-app
         algorithm: HS256
-        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==  
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
 
   - username: admin-app-user
     keyauth_credentials:
@@ -757,7 +1167,7 @@ consumers:
     jwt_secrets:
       - key: admin-app
         algorithm: HS256
-        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
         
   - username: shipping-manager-app-user
     keyauth_credentials:
@@ -767,7 +1177,7 @@ consumers:
     jwt_secrets:
       - key: shipping-manager-app
         algorithm: HS256
-        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
 
   - username: farm-management-app-user
     keyauth_credentials:
@@ -777,7 +1187,7 @@ consumers:
     jwt_secrets:
       - key: farm-management-app
         algorithm: HS256
-        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==
+        secret: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
 
 # Global logging (optional)
 plugins:

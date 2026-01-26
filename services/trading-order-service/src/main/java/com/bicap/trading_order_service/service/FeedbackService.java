@@ -6,16 +6,12 @@ import com.bicap.trading_order_service.entity.OrderFeedback;
 import com.bicap.trading_order_service.repository.OrderFeedbackRepository;
 import com.bicap.trading_order_service.repository.OrderRepository;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class FeedbackService implements IFeedbackService {
 
-    @Autowired
     private final OrderRepository orderRepository;
-
-    @Autowired
     private final OrderFeedbackRepository feedbackRepository;
 
     public FeedbackService(OrderRepository orderRepository,

@@ -6,30 +6,34 @@ import com.bicap.trading_order_service.entity.FarmManager;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
 import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.repository.FarmManagerRepository;
+import com.bicap.trading_order_service.repository.OrderItemRepository;
 import com.bicap.trading_order_service.service.IMarketplaceProductService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class MarketplaceProductServiceImpl implements IMarketplaceProductService {
 
-    @Autowired
     private final MarketplaceProductRepository repository;
-    
-    @Autowired
     private final FarmManagerRepository farmManagerRepository;
+    private final OrderItemRepository orderItemRepository;
 
-    public MarketplaceProductServiceImpl(MarketplaceProductRepository repository, FarmManagerRepository farmManagerRepository) {
+    public MarketplaceProductServiceImpl(MarketplaceProductRepository repository, 
+                                       FarmManagerRepository farmManagerRepository,
+                                       OrderItemRepository orderItemRepository) {
         this.repository = repository;
         this.farmManagerRepository = farmManagerRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     @Override
+    @Transactional
     public MarketplaceProduct createProduct(CreateMarketplaceProductRequest request) {
         MarketplaceProduct product = new MarketplaceProduct();
         product.setName(request.getName());
@@ -49,6 +53,7 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductResponse> getApprovedProducts() {
         return repository.findAll().stream()
                 .filter(p -> "APPROVED".equals(p.getStatus()))
@@ -57,6 +62,7 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductResponse> getProductsByFarm(Long farmId) {
         return repository.findByFarmId(farmId).stream()
                 .map(this::mapToProductResponse)
@@ -64,6 +70,7 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductResponse getProductDetail(Long id) {
         return repository.findById(id)
                 .map(this::mapToProductResponse)
@@ -87,5 +94,40 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
         // Map isApproved boolean if needed by frontend logic, usually derived from status
         response.setIsApproved("APPROVED".equals(product.getStatus()));
         return response;
+    }
+
+    //search
+    @Override
+    public List<MarketplaceProduct> searchByName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            System.out.println(">>> SEARCH BY NAME = " + name);
+            return repository.findAll();
+        }
+        System.out.println(">>> SEARCH BY NAME = " + name);
+        return repository.findByNameContainingIgnoreCase(name.trim());
+    }
+
+    @Override
+    @Transactional
+    public void deleteProduct(Long id) {
+        MarketplaceProduct product = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+        
+        // Kiểm tra xem có order items nào đang sử dụng product này không
+        long orderItemCount = orderItemRepository.countByProductId(id);
+        if (orderItemCount > 0) {
+            throw new RuntimeException("Cannot delete product with id: " + id + 
+                ". Product is being used in " + orderItemCount + " order item(s). " +
+                "Please cancel or complete related orders first.");
+        }
+        
+        // Nếu không có order items, có thể xóa an toàn
+        // Đặc biệt với sản phẩm PENDING, thường không có order items nên có thể xóa
+        try {
+            repository.delete(product);
+            repository.flush(); // Đảm bảo delete được commit ngay
+        } catch (Exception e) {
+            throw new RuntimeException("Error deleting product: " + e.getMessage(), e);
+        }
     }
 }

@@ -3,6 +3,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const session = require("express-session");
+const fetch = global.fetch; // Node 18+
 
 const auth = require("./src/auth/authentication");
 const retailerController = require("./src/retailer/retailer.controller");
@@ -121,6 +122,42 @@ app.get("/", (req, res) => {
     res.redirect("/marketplace");
   } else {
     res.redirect("/login");
+  }
+});
+
+/* =================================================
+   🔥 API PROXY → KONG (ĐÃ FIX)
+   ================================================= */
+app.use("/api", auth.requireAuth, async (req, res) => {
+  try {
+    const kongUrl = `http://localhost:8000${req.originalUrl}`;
+    const authToken = req.cookies.auth_token;
+
+    const response = await fetch(kongUrl, {
+      method: req.method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body:
+        req.method === "GET" || req.method === "HEAD"
+          ? undefined
+          : JSON.stringify(req.body),
+    });
+
+    const contentType = response.headers.get("content-type");
+
+    if (contentType && contentType.includes("application/json")) {
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } else {
+      const text = await response.text();
+      res.status(response.status).send(text);
+    }
+
+  } catch (err) {
+    console.error("API proxy error:", err);
+    res.status(502).json({ message: "Gateway error" });
   }
 });
 

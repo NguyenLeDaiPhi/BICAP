@@ -41,7 +41,6 @@ public class DriverController {
     @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<?> createDriver(@RequestBody Driver driver) {
         try {
-            // Debug logging
             System.out.println("📝 [DEBUG] Creating driver - Name: " + driver.getName() + 
                              ", Phone: " + driver.getPhone() + 
                              ", License: " + driver.getLicense() + 
@@ -49,7 +48,6 @@ public class DriverController {
             return ResponseEntity.ok(driverService.createDriver(driver));
         } catch (IllegalArgumentException e) {
             System.out.println("❌ [ERROR] Validation error: " + e.getMessage());
-            // Trả về ErrorResponse object để Spring Boot tự động serialize thành JSON
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             return ResponseEntity.status(400).body(errorResponse);

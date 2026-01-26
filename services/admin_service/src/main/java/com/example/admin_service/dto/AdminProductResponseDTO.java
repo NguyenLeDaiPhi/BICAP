@@ -16,6 +16,7 @@ public class AdminProductResponseDTO {
     private Long id;
     private String name;
     private String category;
+    private String categoryName;
     private String description;
     private Integer quantity;
     private String unit;
@@ -28,6 +29,7 @@ public class AdminProductResponseDTO {
     // Thông tin Farm
     private Long farmId;
     private String farmName;
+    private String ownerName;
     
     // Thông tin User (Farm Manager)
     private Long farmManagerId;
@@ -39,7 +41,6 @@ public class AdminProductResponseDTO {
     
     // Thông tin category
     private Long categoryId;
-    private String categoryName;
     
     // Stock
     private Integer stockQuantity;

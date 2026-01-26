@@ -1,6 +1,6 @@
 package com.bicap.trading_order_service.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "marketplace_products")
-@Data  // or keep manual getters/setters if you prefer
+@Data
 public class MarketplaceProduct {
 
     @Id
@@ -38,7 +38,7 @@ public class MarketplaceProduct {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_manager_id")
-    @JsonBackReference
+    @JsonIgnoreProperties("products")
     private FarmManager farmManager;
 
     // Derived method if you need farmId often

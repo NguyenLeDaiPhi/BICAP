@@ -35,14 +35,12 @@ public class VehicleController {
     @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<?> createVehicle(@RequestBody Vehicle vehicle) {
         try {
-            // Debug logging
             System.out.println("📝 [DEBUG] Creating vehicle - Plate: " + vehicle.getPlate() + 
                              ", Type: " + vehicle.getType() + 
                              ", Status: " + vehicle.getStatus());
             return ResponseEntity.ok(vehicleService.createVehicle(vehicle));
         } catch (IllegalArgumentException e) {
             System.out.println("❌ [ERROR] Validation error: " + e.getMessage());
-            // Trả về ErrorResponse object để Spring Boot tự động serialize thành JSON
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             return ResponseEntity.status(400).body(errorResponse);

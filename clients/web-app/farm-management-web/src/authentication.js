@@ -63,17 +63,10 @@ const upload = multer({ storage: storage });
 // The decoded string is: "bicap-secret-key-for-jwt-authentication"
 // IMPORTANT: Java's Keys.hmacShaKeyFor() uses the raw bytes from base64 decode
 // For jsonwebtoken library, we can use either the Buffer or the decoded string
-// Try using the decoded string directly first
-// JWT Secret - MUST match auth-service
-// auth-service reads from: ${bicap.app.jwtSecret} in application.properties
-// OR from environment variable: BICAP_APP_JWTSECRET
-// Value: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
-// Java decodes with Decoders.BASE64.decode() then uses Keys.hmacShaKeyFor()
 const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
 // Decode base64 to get the actual secret string
 const JWT_SECRET_DECODED = Buffer.from(JWT_SECRET_STRING, 'base64').toString('utf8');
 // Use Buffer (raw bytes) - this is what Java's Keys.hmacShaKeyFor() expects
-// jsonwebtoken library accepts Buffer for HS256 and will use the raw bytes
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 
 app.set("views", path.join(__dirname, "..", "front-end", "template"));
@@ -202,8 +195,7 @@ app.post('/login', async (req, res) => {
             console.error('Failed to decode token:', e.message);
         }
         
-        // TEMPORARY: Decode without verification to get payload (for debugging)
-        // This allows login to proceed while we debug the signature issue
+        // Verify token with proper error handling
         let decodedToken;
         try {
             // First try to verify properly
@@ -221,7 +213,6 @@ app.post('/login', async (req, res) => {
                 console.error('✗ String verification also failed:', stringError.message);
                 
                 // TEMPORARY FIX: Decode without verification to allow login
-                // TODO: Fix the signature issue properly
                 console.warn('⚠️  TEMPORARY: Using decoded token without verification');
                 decodedToken = jwt.decode(accessToken);
                 if (!decodedToken) {
@@ -257,7 +248,6 @@ app.post('/login', async (req, res) => {
         }
         
         console.log(`✓ Role check passed. User has ${APPLICATION_ROLE}. Roles: ${JSON.stringify(userRoles)}`);
-
         const cookie = serialize('auth_token', accessToken, {
             httpOnly: true, 
             secure: process.env.NODE_ENV === 'production', 

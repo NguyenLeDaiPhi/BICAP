@@ -59,13 +59,14 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
         product.setQuantity(request.getQuantity());
         product.setCategory(request.getCategory());
         product.setImageUrl(request.getImageUrl());
-        product.setStatus("ACTIVE");
+        product.setStatus("PENDING");
         product.setCreatedAt(LocalDateTime.now());
 
         // Send message to the trading order service
         Map<String, Object> dataProduct = new HashMap<>();
         dataProduct.put("batchId", product.getBatchId());
         dataProduct.put("farmId", product.getFarm().getId());
+        dataProduct.put("farmName", product.getFarm().getFarmName());
         dataProduct.put("name", product.getName());
         dataProduct.put("description", product.getDescription());
         dataProduct.put("unit", product.getUnit());

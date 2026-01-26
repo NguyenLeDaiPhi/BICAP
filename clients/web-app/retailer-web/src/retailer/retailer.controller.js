@@ -19,13 +19,18 @@ const showMarketplace = async (req, res) => {
 
 const showMyOrders = async (req, res) => {
   const token = req.cookies.auth_token;
-  const orders = await orderService.getMyOrders(req.user.id, token);
+
+  // ✅ KHÔNG TRUYỀN userId
+  const orders = await orderService.getMyOrders(token);
 
   res.render("my-orders", {
     user: req.user,
     orders,
     pageTitle: "Đơn hàng của tôi",
   });
+  console.log("ORDERS:", orders);
+  console.log("TYPE:", typeof orders);
+  console.log("IS ARRAY:", Array.isArray(orders));
 };
 
 const showOrderDetail = async (req, res) => {
@@ -40,11 +45,25 @@ const showOrderDetail = async (req, res) => {
 };
 
 const showProfile = (req, res) => {
+  const user = req.user;
+
+  // ✅ Chuẩn hoá roles về Array<String>
+  let roles = user.roles;
+
+  if (!Array.isArray(roles)) {
+    roles = [roles];
+  }
+
   res.render("profile", {
-    user: req.user,
+    user: {
+      username: user.username || user.sub,
+      email: user.email,
+      roles: roles,
+    },
     pageTitle: "Hồ sơ cá nhân",
   });
 };
+
 const showCart = (req, res) => {
   res.render("cart", {
     user: req.user,

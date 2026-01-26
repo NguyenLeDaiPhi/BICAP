@@ -59,7 +59,7 @@ async function loadProducts(farmId) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            credentials: 'include' // Quan trọng: gửi cookie
+            credentials: 'include' // Important: send cookies
         });
 
         if (!response.ok) {
@@ -197,13 +197,13 @@ async function handleFormSubmit(event) {
     const method = isEdit ? 'PUT' : 'POST';
 
     try {
-        // Backend sử dụng cookie (requireAuth middleware), không cần Authorization header
+        // Backend uses cookie (requireAuth middleware), no Authorization header needed
         const response = await fetch(url, {
             method: method,
             headers: {
                 'Content-Type': 'application/json'
             },
-            credentials: 'include', // Quan trọng: gửi cookie
+            credentials: 'include', // Important: send cookies
             body: JSON.stringify(productData)
         });
 
@@ -231,13 +231,13 @@ async function handleFormSubmit(event) {
                     const currentUser = errorData.currentUser || 'unknown';
                     const currentRoles = errorData.currentRoles || 'none';
                     const requiredRoles = errorData.message?.includes('ROLE_FARMMANAGER') 
-                        ? 'ROLE_FARMMANAGER hoặc ROLE_ADMIN' 
-                        : 'ROLE_FARMMANAGER hoặc ROLE_ADMIN';
+                        ? 'ROLE_FARMMANAGER or ROLE_ADMIN' 
+                        : 'ROLE_FARMMANAGER or ROLE_ADMIN';
                     
-                    errorMessage = `Access Denied (403): Bạn không có quyền tạo sản phẩm.\n` +
+                    errorMessage = `Access Denied (403): You don't have permission to create products.\n` +
                                  `User: ${currentUser}\n` +
-                                 `Roles hiện tại: ${currentRoles}\n` +
-                                 `Roles yêu cầu: ${requiredRoles}`;
+                                 `Current roles: ${currentRoles}\n` +
+                                 `Required roles: ${requiredRoles}`;
                     
                     console.error('🚫 Access Denied Details:', {
                         user: currentUser,
@@ -280,7 +280,7 @@ async function deleteProduct(productId) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            credentials: 'include' // Quan trọng: gửi cookie
+            credentials: 'include' // Important: send cookies
         });
 
         if (!response.ok) {

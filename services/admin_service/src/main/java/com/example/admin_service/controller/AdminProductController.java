@@ -83,6 +83,37 @@ public class AdminProductController {
     }
 
     /**
+     * GET /api/v1/admin/products/count/{status} - Đếm sản phẩm theo status
+     */
+    @GetMapping("/count/{status}")
+    public ResponseEntity<Long> countByStatus(@PathVariable String status) {
+        return ResponseEntity.ok(tradingProductServiceClient.countByStatus(status));
+    }
+
+    /**
+     * PUT /api/v1/admin/products/{id}/approve - Duyệt sản phẩm PENDING
+     */
+    @PutMapping("/{id}/approve")
+    @Operation(summary = "Duyệt sản phẩm", description = "Admin duyệt sản phẩm PENDING lên sàn")
+    public ResponseEntity<AdminProductResponseDTO> approveProduct(@PathVariable Long id) {
+        AdminProductResponseDTO approvedProduct = tradingProductServiceClient.approveProduct(id);
+        return ResponseEntity.ok(approvedProduct);
+    }
+
+    /**
+     * PUT /api/v1/admin/products/{id}/reject - Từ chối sản phẩm PENDING
+     */
+    @PutMapping("/{id}/reject")
+    @Operation(summary = "Từ chối sản phẩm", description = "Admin từ chối sản phẩm PENDING với lý do")
+    public ResponseEntity<AdminProductResponseDTO> rejectProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody BanProductRequestDTO request
+    ) {
+        AdminProductResponseDTO rejectedProduct = tradingProductServiceClient.rejectProduct(id, request);
+        return ResponseEntity.ok(rejectedProduct);
+    }
+
+    /**
      * GET /api/v1/admin/products/statistics - Thống kê sản phẩm
      */
     @GetMapping("/statistics")
@@ -90,7 +121,7 @@ public class AdminProductController {
     public ResponseEntity<Map<String, Object>> getProductStatistics() {
         Map<String, Object> stats = new HashMap<>();
         try {
-            stats.put("totalActive", tradingProductServiceClient.countByStatus("ACTIVE"));
+            stats.put("totalActive", tradingProductServiceClient.countByStatus("APPROVED"));
             stats.put("totalBanned", tradingProductServiceClient.countByStatus("BANNED"));
             stats.put("totalOutOfStock", tradingProductServiceClient.countByStatus("OUT_OF_STOCK"));
             stats.put("totalPending", tradingProductServiceClient.countByStatus("PENDING"));

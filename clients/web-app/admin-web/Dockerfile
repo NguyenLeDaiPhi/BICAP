@@ -11,10 +11,13 @@ COPY package*.json ./
 
 # Install application dependencies
 RUN rm -f package-lock.json
-RUN npm install
+RUN npm install --include=dev
 
 # Copy all application source code
 COPY . .
+
+# Fix permissions for node_modules binaries (after COPY to ensure they persist)
+RUN chmod -R +x node_modules/.bin || true
 
 # Expose the port the app runs on (as requested)
 EXPOSE 3001

@@ -13,6 +13,7 @@ const getMarketplaceProducts = async (keyword = "", token) => {
         Authorization: `Bearer ${token}`,
       },
     });
+
     return res.data;
   } catch (err) {
     console.error("Marketplace API error:", err.message);

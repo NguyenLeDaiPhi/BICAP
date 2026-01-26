@@ -83,7 +83,7 @@ public class DriverService {
             String newLicense = driver.getLicense().trim().toUpperCase();
             if (existing.getLicense() == null || !newLicense.equalsIgnoreCase(existing.getLicense())) {
                 driverRepository.findByLicenseIgnoreCase(newLicense).ifPresent(conflictDriver -> {
-                    if (!conflictDriver.getId().equals(id)) { // Cho phép giữ nguyên license của chính nó
+                    if (!conflictDriver.getId().equals(id)) {
                         throw new IllegalArgumentException("Giấy phép lái xe " + newLicense + " đã được sử dụng bởi tài xế khác");
                     }
                 });
@@ -94,19 +94,17 @@ public class DriverService {
         }
         
         // Validate: Số căn cước công dân không được trùng (nếu thay đổi)
-        // Cho phép update mà không cần citizenId nếu driver cũ chưa có (backward compatibility)
         if (driver.getCitizenId() != null && !driver.getCitizenId().trim().isEmpty()) {
             String newCitizenId = driver.getCitizenId().trim();
             if (existing.getCitizenId() == null || !newCitizenId.equalsIgnoreCase(existing.getCitizenId())) {
                 driverRepository.findByCitizenIdIgnoreCase(newCitizenId).ifPresent(conflictDriver -> {
-                    if (!conflictDriver.getId().equals(id)) { // Cho phép giữ nguyên citizenId của chính nó
+                    if (!conflictDriver.getId().equals(id)) {
                         throw new IllegalArgumentException("Số căn cước công dân " + newCitizenId + " đã được sử dụng bởi tài xế khác");
                     }
                 });
             }
             existing.setCitizenId(newCitizenId);
         }
-        // Nếu citizenId là null hoặc empty trong request, giữ nguyên giá trị cũ (không bắt buộc update)
         
         if (driver.getUserId() != null) {
             existing.setUserId(driver.getUserId());
