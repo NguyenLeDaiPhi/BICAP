@@ -104,15 +104,4 @@ public class AdminOrderController {
         Long count = tradingOrderServiceClient.countTotalOrders();
         return ResponseEntity.ok(count);
     }
-    
-    /**
-     * PUT /api/v1/admin/orders/{id}/confirm - Admin chấp nhận đơn hàng
-     */
-    @PutMapping("/{id}/confirm")
-    @Operation(summary = "Chấp nhận đơn hàng", 
-               description = "Admin chấp nhận đơn hàng CREATED và chuyển sang CONFIRMED để giao cho shipping manager")
-    public ResponseEntity<OrderResponseDTO> confirmOrder(@PathVariable Long id) {
-        OrderResponseDTO order = tradingOrderServiceClient.confirmOrder(id);
-        return ResponseEntity.ok(order);
-    }
 }

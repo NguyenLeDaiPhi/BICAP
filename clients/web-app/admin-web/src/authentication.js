@@ -151,11 +151,6 @@ app.post('/logout', (req, res) => {
     res.redirect('/');
 });
 
-app.get('/logout', (req, res) => {
-    clearAuthCookie(res);
-    res.redirect('/');
-});
-
 // Mount Admin routes (Dashboard + APIs)
 const adminRouter = require('./admin');
 app.use('/', adminRouter);

@@ -23,10 +23,7 @@ public class OrderController {
     public ResponseEntity<List<Map<String, Object>>> getConfirmedOrders(HttpServletRequest request) {
         // Forward JWT token to service so it can call Farm Service
         String token = extractToken(request);
-        System.out.println("DEBUG: OrderController.getConfirmedOrders called, token present: " + (token != null && !token.isEmpty()));
-        List<Map<String, Object>> orders = orderService.getConfirmedOrders(token);
-        System.out.println("DEBUG: OrderController returning " + orders.size() + " orders");
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(orderService.getConfirmedOrders(token));
     }
     
     private String extractToken(HttpServletRequest request) {

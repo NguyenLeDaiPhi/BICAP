@@ -8,7 +8,7 @@ services:
     container_name: auth-db
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=0862264719Phi
+      - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=bicap_auth_db
     ports:
       - "3307:3306"
@@ -21,9 +21,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
-    mem_limit: 512m
-    mem_reservation: 256m
 
   bicap-message-queue:
     image: rabbitmq:3-management
@@ -51,7 +48,7 @@ services:
     environment:
       - spring.datasource.url=jdbc:mysql://auth-db:3306/bicap_auth_db
       - spring.datasource.username=root
-      - spring.datasource.password=0862264719Phi
+      - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
@@ -69,7 +66,7 @@ services:
     container_name: farm-production-db
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=0862264719Phi
+      - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=farm_production_db
     ports:
       - "3308:3306"
@@ -82,9 +79,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
-    mem_limit: 512m
-    mem_reservation: 256m
 
   farm-production-service:
     build:
@@ -99,7 +93,7 @@ services:
     environment:
       - spring.datasource.url=jdbc:mysql://farm-production-db:3306/farm_production_db
       - spring.datasource.username=root
-      - spring.datasource.password=0862264719Phi
+      - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
@@ -116,7 +110,7 @@ services:
     container_name: trading-order-db
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=0862264719Phi
+      - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=bicap_order_db
     ports:
       - "3309:3306"
@@ -129,9 +123,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
-    mem_limit: 512m
-    mem_reservation: 256m
 
   trading-order-service:
     build:
@@ -146,7 +137,7 @@ services:
     environment:
       - spring.datasource.url=jdbc:mysql://trading-order-db:3306/bicap_order_db
       - spring.datasource.username=root
-      - spring.datasource.password=0862264719Phi
+      - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
       - spring.jpa.hibernate.ddl-auto=update
       - SPRING_RABBITMQ_HOST=bicap-message-queue
@@ -165,7 +156,7 @@ services:
     container_name: shipping-db
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=0862264719Phi
+      - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=shipping_db
     ports:
       - "3310:3306"
@@ -178,16 +169,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
-    mem_limit: 512m
-    mem_reservation: 256m
 
   blockchain-db:
     image: mysql:8.0
     container_name: blockchain-db
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=0862264719Phi
+      - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=bicap_blockchain_db
     ports:
       - "3311:3306"
@@ -201,9 +189,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
-    mem_limit: 512m
-    mem_reservation: 256m
 
   blockchain-adapter-service:
     build:
@@ -218,7 +203,7 @@ services:
     environment:
       - spring.datasource.url=jdbc:mysql://blockchain-db:3306/bicap_blockchain_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
-      - spring.datasource.password=0862264719Phi
+      - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_PORT=5672
@@ -248,7 +233,7 @@ services:
     environment:
       - spring.datasource.url=jdbc:mysql://shipping-db:3306/shipping_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
-      - spring.datasource.password=0862264719Phi
+      - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
       - spring.jpa.hibernate.ddl-auto=update
       - SPRING_RABBITMQ_HOST=bicap-message-queue
@@ -258,7 +243,6 @@ services:
       - BICAP_APP_JWTEXPIRATIONMS=86400000
       - application.config.farm-service-url=http://farm-production-service:8081
       - application.config.blockchain-service-url=http://blockchain-adapter-service:8084
-      - application.config.trading-order-service-url=http://trading-order-service:8082
     ports:
       - "8083:8083"
     networks:
@@ -281,60 +265,16 @@ services:
     environment:
       - spring.datasource.url=jdbc:mysql://auth-db:3306/bicap_auth_db
       - spring.datasource.username=root
-      - spring.datasource.password=0862264719Phi
+      - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
-      - BICAP_APP_JWTEXPIRATIONMS=86400000
       - FARM_SERVICE_URL=http://farm-production-service:8081
       - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
-      - BLOCKCHAIN_SERVICE_URL=http://blockchain-adapter-service:8084
     ports:
       - "8085:8085"
-    networks:
-      - bicap-global-net
-
-  delivery-db:
-    image: mysql:8.0
-    container_name: delivery-db
-    environment:
-      - MYSQL_ROOT_PASSWORD=0862264719Phi
-      - MYSQL_DATABASE=bicap_delivery_db
-    ports:
-      - "3312:3306"
-    networks:
-      - bicap-global-net
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  delivery-service:
-    build:
-      context: ./services/delivery-service
-    container_name: delivery-service
-    depends_on:
-      delivery-db:
-        condition: service_healthy
-      bicap-message-queue:
-        condition: service_started
-    environment:
-      - spring.datasource.url=jdbc:mysql://delivery-db:3306/bicap_delivery_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
-      - spring.datasource.username=root
-      - spring.datasource.password=0862264719Phi
-      - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
-      - spring.jpa.hibernate.ddl-auto=update
-      - SPRING_RABBITMQ_HOST=bicap-message-queue
-      - SPRING_RABBITMQ_USERNAME=root
-      - SPRING_RABBITMQ_PASSWORD=root
-      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
-      - BICAP_APP_JWTEXPIRATIONMS=86400000
-      - SERVER_PORT=8086
-    ports:
-      - "8086:8086"
     networks:
       - bicap-global-net
 
@@ -355,7 +295,7 @@ services:
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
-      - "3004:3004"
+      - "3000:3000"
     networks:
       - bicap-global-net
 
@@ -425,52 +365,13 @@ services:
       - FARM_API_URL=http://kong-gateway:8000/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+      - API_GATEWAY_BASE_URL=http://localhost:8000
       - SHIPPING_SERVICE_URL=http://kong-gateway:8000/api
-      - REACT_APP_SHIPPING_API_URL=http://kong-gateway:8000/api
+      - REACT_APP_SHIPPING_API_URL=http://localhost:8000/api
     ports:
       - "3003:3003"
     networks:
       - bicap-global-net 
-
-  # ==============================================
-  # MOBILE APP - BiCap Driver (Expo Dev Server)
-  # ==============================================
-  # Chạy Expo development server trong Docker
-  # Kết nối từ thiết bị thật: Quét QR code từ Expo DevTools
-  # URL DevTools: http://localhost:19002
-  mobile-driver-app:
-    build:
-      context: ./clients/mobile-app/mobile-ship-driver/bicap-mobile
-    container_name: mobile-driver-app
-    depends_on:
-      - kong-gateway
-      - shipping-manager-service
-    environment:
-      # Expo configuration
-      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
-      - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
-      - NODE_ENV=development
-      # API Gateway URL (sẽ được mobile app sử dụng)
-      # Lưu ý: Mobile app cần dùng IP LAN của host machine, không phải container name
-      - API_GATEWAY_URL=http://kong-gateway:8000
-      - EXPO_PUBLIC_API_URL=http://kong-gateway:8000
-    ports:
-      # Metro Bundler - React Native packager
-      - "8097:8081"
-      # Expo Dev Server
-      - "19000:19000"
-      # Expo Packager  
-      - "19001:19001"
-      # Expo DevTools (Web UI) - Truy cập http://localhost:19002 để quét QR
-      - "19002:19002"
-    networks:
-      - bicap-global-net
-    # Tự động restart nếu crash
-    restart: unless-stopped
-    # Stdin/tty cho interactive mode
-    stdin_open: true
-    tty: true
 
   kong-gateway:
     image: kong:latest

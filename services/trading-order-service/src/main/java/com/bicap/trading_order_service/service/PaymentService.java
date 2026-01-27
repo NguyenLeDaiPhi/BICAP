@@ -2,7 +2,8 @@ package com.bicap.trading_order_service.service;
 
 import com.bicap.trading_order_service.dto.OrderItemRequest;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
-import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
+import com.bicap.trading_order_service.exception.repository.MarketplaceProductRepository;
+
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;

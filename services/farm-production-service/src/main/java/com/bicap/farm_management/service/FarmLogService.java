@@ -46,7 +46,7 @@ public class FarmLogService {
         }
 
         // 2. Lấy dữ liệu XUẤT KHẨU và chuyển đổi
-        List<ExportBatch> exports = exportRepository.findByProductionBatch_Farm_Id(farmId);
+        List<ExportBatch> exports = exportRepository.findByFarmIdOrderByExportDateDesc(farmId);
         System.out.println("DEBUG: Tìm thấy " + exports.size() + " đơn xuất khẩu."); // LOG QUAN TRỌNG
         for (ExportBatch eb : exports) {
             FarmLogDTO log = new FarmLogDTO();

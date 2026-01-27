@@ -201,12 +201,7 @@ CREATE TABLE `user_roles` (
 
 LOCK TABLES `user_roles` WRITE;
 /*!40000 ALTER TABLE `user_roles` DISABLE KEYS */;
-INSERT INTO `user_roles` VALUES 
-(1,1),
-(2,2),
-(3,3),
-(4,4),
-(5,5);
+INSERT INTO `user_roles` VALUES (1,1);
 /*!40000 ALTER TABLE `user_roles` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -261,12 +256,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES 
-(1,'admin@bicap.com','$2a$10$l4IYfnpqhPPQKSwZrtj50uDTL1tEzeNWjrnB5pawdVyw/gLBCZJ1a','ACTIVE','admin'),
-(2,'farmmanager@bicap.com','$2a$10$l4IYfnpqhPPQKSwZrtj50uDTL1tEzeNWjrnB5pawdVyw/gLBCZJ1a','ACTIVE','farmmanager'),
-(3,'retailer@bicap.com','$2a$10$l4IYfnpqhPPQKSwZrtj50uDTL1tEzeNWjrnB5pawdVyw/gLBCZJ1a','ACTIVE','retailer'),
-(4,'shippingmanager@bicap.com','$2a$10$l4IYfnpqhPPQKSwZrtj50uDTL1tEzeNWjrnB5pawdVyw/gLBCZJ1a','ACTIVE','shippingmanager'),
-(5,'driver@bicap.com','$2a$10$l4IYfnpqhPPQKSwZrtj50uDTL1tEzeNWjrnB5pawdVyw/gLBCZJ1a','ACTIVE','driver');
+INSERT INTO `users` VALUES (1,'admin@gmail.com','$2a$10$gJLTpxAlKirbI4RkK/LfFeUvRnJce/BAqQVbrLS6Jev4jgp1XCHIS','ACTIVE','admin');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

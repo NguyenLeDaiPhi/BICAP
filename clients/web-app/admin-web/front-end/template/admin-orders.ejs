@@ -240,46 +240,17 @@
             const res = await fetch(`/api/v1/admin/orders/${orderId}`);
             if (res.ok) {
                 const order = await res.json();
-                let itemsHtml = '';
-                if (order.items && order.items.length > 0) {
-                    itemsHtml = '<table class="table table-sm mt-3"><thead><tr><th>Sản phẩm</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>';
-                    order.items.forEach(item => {
-                        const itemTotal = (item.quantity || 0) * (Number(item.unitPrice) || 0);
-                        itemsHtml += `<tr>
-                            <td>${item.productName || 'N/A'}</td>
-                            <td>${item.quantity || 0}</td>
-                            <td>${Number(item.unitPrice || 0).toLocaleString('vi-VN')} đ</td>
-                            <td>${Number(itemTotal).toLocaleString('vi-VN')} đ</td>
-                        </tr>`;
-                    });
-                    itemsHtml += '</tbody></table>';
-                }
-                
-                let confirmButton = '';
-                if (order.status === 'CREATED') {
-                    confirmButton = `<button class="btn btn-success mt-3" onclick="confirmOrder(${order.orderId})">
-                        <i class="material-symbols-rounded me-2">check_circle</i>Chấp nhận đơn hàng
-                       </button>`;
-                } else if (order.status === 'CONFIRMED') {
-                    confirmButton = `<div class="alert alert-info mt-3 mb-0">
-                        <i class="material-symbols-rounded me-2">info</i>Đơn hàng đã được chấp nhận và đang chờ shipping manager xử lý.
-                    </div>`;
-                }
-                
                 document.getElementById('orderDetailContent').innerHTML = `
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>ID Đơn hàng:</strong> #${order.orderId}</p>
                             <p><strong>Trạng thái:</strong> ${getStatusBadge(order.status)}</p>
-                            <p><strong>Ngày tạo:</strong> ${order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : 'N/A'}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Tổng tiền:</strong> <span class="text-success fw-bold">${Number(order.totalAmount || 0).toLocaleString('vi-VN')} đ</span></p>
-                            ${order.shippingAddress ? `<p><strong>Địa chỉ giao hàng:</strong> ${order.shippingAddress}</p>` : ''}
+                            <p><strong>Tổng tiền:</strong> ${Number(order.totalAmount || 0).toLocaleString('vi-VN')} đ</p>
+                            <p><strong>Ngày tạo:</strong> ${order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : 'N/A'}</p>
                         </div>
                     </div>
-                    ${itemsHtml}
-                    ${confirmButton}
                 `;
             } else {
                 document.getElementById('orderDetailContent').innerHTML = `
@@ -302,41 +273,6 @@
             'REJECTED': '<span class="badge bg-danger">Từ chối</span>'
         };
         return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
-    }
-    
-    // Chấp nhận đơn hàng
-    async function confirmOrder(orderId) {
-        if (!confirm('Bạn có chắc chắn muốn chấp nhận đơn hàng này và giao cho shipping manager?')) {
-            return;
-        }
-        
-        try {
-            const res = await fetch(`/api/v1/admin/orders/${orderId}/confirm`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (res.ok) {
-                const result = await res.json();
-                alert('Đơn hàng đã được chấp nhận và giao cho shipping manager!');
-                orderDetailModal.hide();
-                location.reload(); // Reload để cập nhật danh sách
-            } else {
-                let errorMessage = 'Không thể chấp nhận đơn hàng';
-                try {
-                    const error = await res.json();
-                    errorMessage = error.message || error.error || errorMessage;
-                } catch (e) {
-                    errorMessage = `Lỗi ${res.status}: ${res.statusText}`;
-                }
-                alert('Lỗi: ' + errorMessage);
-            }
-        } catch (e) {
-            console.error(e);
-            alert('Lỗi kết nối!');
-        }
     }
   </script>
 </body>

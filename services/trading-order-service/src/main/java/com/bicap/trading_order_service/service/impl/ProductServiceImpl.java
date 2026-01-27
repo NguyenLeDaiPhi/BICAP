@@ -6,8 +6,8 @@ import com.bicap.trading_order_service.dto.CategoryResponseDTO;
 import com.bicap.trading_order_service.entity.Category;
 import com.bicap.trading_order_service.entity.FarmManager;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
-import com.bicap.trading_order_service.repository.CategoryRepository;
-import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
+import com.bicap.trading_order_service.exception.repository.CategoryRepository;
+import com.bicap.trading_order_service.exception.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.service.IProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 public class ProductServiceImpl implements IProductService {
 
     private final MarketplaceProductRepository productRepository;
@@ -86,44 +86,6 @@ public class ProductServiceImpl implements IProductService {
     @Override
     public long countByStatus(String status) {
         return productRepository.countByStatus(status);
-    }
-
-    @Override
-    public Page<ProductResponseDTO> getPendingProducts(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<MarketplaceProduct> productPage = productRepository.findWithFilters(keyword, "PENDING", null, pageable);
-        return productPage.map(this::mapToDTO);
-    }
-
-    @Override
-    @Transactional
-    public ProductResponseDTO approveProduct(Long productId) {
-        MarketplaceProduct product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
-
-        if (!"PENDING".equals(product.getStatus())) {
-            throw new RuntimeException("Chỉ có thể duyệt sản phẩm đang ở trạng thái PENDING");
-        }
-
-        product.setStatus("ACTIVE");
-        MarketplaceProduct savedProduct = productRepository.save(product);
-        return mapToDTO(savedProduct);
-    }
-
-    @Override
-    @Transactional
-    public ProductResponseDTO rejectProduct(Long productId, String reason) {
-        MarketplaceProduct product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
-
-        if (!"PENDING".equals(product.getStatus())) {
-            throw new RuntimeException("Chỉ có thể từ chối sản phẩm đang ở trạng thái PENDING");
-        }
-
-        product.setStatus("REJECTED");
-        product.setBanReason(reason);
-        MarketplaceProduct savedProduct = productRepository.save(product);
-        return mapToDTO(savedProduct);
     }
 
     /**

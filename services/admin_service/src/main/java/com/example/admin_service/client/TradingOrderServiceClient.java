@@ -53,10 +53,4 @@ public interface TradingOrderServiceClient {
      */
     @GetMapping("/api/admin/orders/statistics")
     OrderStatisticsDTO getOrderStatistics();
-    
-    /**
-     * Admin chấp nhận đơn hàng (chuyển từ CREATED sang CONFIRMED)
-     */
-    @org.springframework.web.bind.annotation.PutMapping("/api/admin/orders/{orderId}/confirm")
-    OrderResponseDTO confirmOrder(@org.springframework.web.bind.annotation.PathVariable("orderId") Long orderId);
 }

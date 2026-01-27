@@ -41,5 +41,5 @@ public class Farm {
 
     @OneToMany(mappedBy = "farm", cascade = CascadeType.ALL)
     @JsonIgnore
-    private List<MarketplaceProduct> products;
+    private List<ExportBatch> exportBatches;
 }

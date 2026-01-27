@@ -8,8 +8,10 @@ import org.springframework.stereotype.Service;
 import com.bicap.farm_management.dto.CreateMarketplaceProductRequest;
 import com.bicap.farm_management.dto.ProductResponse;
 import com.bicap.farm_management.dto.UpdateMarketplaceProductRequest;
+import com.bicap.farm_management.entity.ExportBatch;
 import com.bicap.farm_management.entity.Farm;
 import com.bicap.farm_management.entity.MarketplaceProduct;
+import com.bicap.farm_management.repository.ExportBatchRepository;
 import com.bicap.farm_management.repository.FarmRepository;
 import com.bicap.farm_management.repository.MarketplaceProductRepository;
 import com.bicap.farm_management.service.IMarketplaceProductService;
@@ -36,21 +38,29 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
     @Autowired
     private final ProductProducerMQ productProducerMQ;
 
+    @Autowired
+    private final ExportBatchRepository exportBatchRepository;
+
     
-    public MarketplaceProductServiceImpl(MarketplaceProductRepository repository, FarmRepository farmRepository, ProductProducerMQ productProducerMQ) {
+    public MarketplaceProductServiceImpl(MarketplaceProductRepository repository, FarmRepository farmRepository, ProductProducerMQ productProducerMQ, ExportBatchRepository exportBatchRepository) {
         this.repository = repository;
         this.farmRepository = farmRepository;
         this.productProducerMQ = productProducerMQ;
+        this.exportBatchRepository = exportBatchRepository;
     }
 
     @Override
     public MarketplaceProduct createProduct(CreateMarketplaceProductRequest request) {
         LOGGER.info("Creating product for Farm ID: {}", request.getFarmId());
-        // Create new product saved to it owns database
-        MarketplaceProduct product = new MarketplaceProduct();
-        product.setBatchId(request.getBatchId());
         Farm farm = farmRepository.findById(request.getFarmId())
             .orElseThrow(() -> new RuntimeException("Farm not found with ID: " + request.getFarmId()));
+
+        ExportBatch exportBatch = exportBatchRepository.findById(request.getExportBatchId())
+            .orElseThrow(() -> new RuntimeException("Export Batch not found."));
+        
+        // Create new product saved to it owns database
+        MarketplaceProduct product = new MarketplaceProduct();
+        product.setExportBatch(exportBatch);
         product.setFarm(farm);
         product.setName(request.getName());
         product.setDescription(request.getDescription());
@@ -64,7 +74,6 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
 
         // Send message to the trading order service
         Map<String, Object> dataProduct = new HashMap<>();
-        dataProduct.put("batchId", product.getBatchId());
         dataProduct.put("farmId", product.getFarm().getId());
         dataProduct.put("farmName", product.getFarm().getFarmName());
         dataProduct.put("name", product.getName());
@@ -146,7 +155,6 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
     private ProductResponse mapToResponse(MarketplaceProduct product) {
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
-        response.setBatchId(product.getBatchId());
         response.setFarmId(product.getFarm().getId());
         response.setName(product.getName());
         response.setDescription(product.getDescription());

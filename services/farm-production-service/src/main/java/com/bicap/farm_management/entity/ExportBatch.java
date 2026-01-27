@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "export_batches")
 @Data
@@ -36,4 +38,12 @@ public class ExportBatch {
     private String txHash; // Mã giao dịch chứng thực xuất hàng
     @Column(columnDefinition = "TEXT") // Dùng TEXT để chứa chuỗi Base64 dài
     private String qrCodeImage; // Ảnh QR Code dạng Base64 để hiển thị nhanh
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "exportBatch")
+    private MarketplaceProduct marketplaceProduct;
+
+    @ManyToOne
+    @JoinColumn(name = "farm_id")
+    private Farm farm;
 }

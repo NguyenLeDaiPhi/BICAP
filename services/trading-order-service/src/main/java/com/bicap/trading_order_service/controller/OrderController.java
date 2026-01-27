@@ -1,6 +1,5 @@
 package com.bicap.trading_order_service.controller;
 
-import com.bicap.trading_order_service.dto.ConfirmDeliveryRequest;
 import com.bicap.trading_order_service.dto.CreateOrderRequest;
 import com.bicap.trading_order_service.dto.OrderResponse;
 import com.bicap.trading_order_service.service.IOrderService;
@@ -153,32 +152,5 @@ public class OrderController {
         return ResponseEntity.ok(
                 orderService.getOrderDetailByIdAndBuyerEmail(orderId, buyerEmail)
         );
-    }
-
-    /**
-     * =======================
-     * RETAILER – CONFIRM DELIVERY WITH IMAGES
-     * =======================
-     */
-    @PreAuthorize("hasAuthority('ROLE_RETAILER')")
-    @PutMapping("/{orderId}/confirm-delivery")
-    public ResponseEntity<OrderResponse> confirmDelivery(
-            @PathVariable Long orderId,
-            @RequestBody ConfirmDeliveryRequest request,
-            Authentication authentication
-    ) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).build();
-        }
-
-        String buyerEmail = authentication.getName();
-
-        OrderResponse response = orderService.confirmDelivery(
-                orderId,
-                buyerEmail,
-                request.getImageUrls()
-        );
-
-        return ResponseEntity.ok(response);
     }
 }

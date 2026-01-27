@@ -1,6 +1,14 @@
 const axios = require('axios');
 
-const FARM_API_URL = process.env.FARM_API_URL;
+const getApiGatewayBaseUrl = () => {
+    const MARKETPLACE_API_PATH = process.env.MARKETPLACE_API_PATH || 'http://localhost:8000/api/marketplace';
+    return MARKETPLACE_API_PATH.split('/api')[0] || 'http://localhost:8000';
+};
+
+const API_GATEWAY_BASE_URL = getApiGatewayBaseUrl();
+
+const FARM_API_URL = process.env.FARM_API_URL || `${API_GATEWAY_BASE_URL}/api/farm-features`;
+const EXPORT_BATCH_API_URL = process.env.EXPORT_BATCH_API_URL || `${API_GATEWAY_BASE_URL}/api/export-batches`;
 
 // Helper function to get farmId from ownerId
 const getFarmId = async (ownerId, token) => {
@@ -23,7 +31,7 @@ exports.getProductsPage = async (req, res) => {
 
         // Construct the correct marketplace URL for the frontend
         // Frontend runs in browser, so must use localhost or public IP, not Docker service name
-        let marketplaceApiHost = process.env.API_GATEWAY_BASE_URL || 'http://localhost:8000';
+        let marketplaceApiHost = API_GATEWAY_BASE_URL;
         
         // Replace Docker service names with localhost for browser access
         if (marketplaceApiHost.includes('kong-gateway')) {
@@ -50,12 +58,18 @@ exports.getProductsPage = async (req, res) => {
 
         const marketplaceApiUrl = `${marketplaceApiHost}${marketplaceApiPath}`;
         console.log(`Product API URL for frontend: ${marketplaceApiUrl}`);
+        
+        let exportBatchApiUrl = EXPORT_BATCH_API_URL;
+        if (exportBatchApiUrl.includes('kong-gateway')) {
+            exportBatchApiUrl = exportBatchApiUrl.replace('kong-gateway', 'localhost');
+        }
 
         res.render('products', {
             farmId: farmId,
             user: req.user,
             error: farmId ? null : 'Could not find your farm. Please create a farm first.',
-            marketplaceApiUrl: marketplaceApiUrl
+            marketplaceApiUrl: marketplaceApiUrl,
+            exportBatchApiUrl: exportBatchApiUrl
         });
 
     } catch (error) {
@@ -64,7 +78,8 @@ exports.getProductsPage = async (req, res) => {
             farmId: null,
             user: req.user,
             error: 'Could not load product management page.',
-            marketplaceApiUrl: 'http://localhost:8000/api/marketplace-products'
+            marketplaceApiUrl: 'http://localhost:8000/api/marketplace-products',
+            exportBatchApiUrl: 'http://localhost:8000/api/export-batches'
         });
     }
 };

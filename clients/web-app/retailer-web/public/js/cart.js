@@ -108,21 +108,37 @@ document.addEventListener("click", (e) => {
 });
 
 /************************************
- * ORDER POPUP
+ * PAYMENT POPUP
  ************************************/
 document.querySelector(".btn-checkout")?.addEventListener("click", () => {
-  document.getElementById("orderTotal").innerText = updateGrandTotal();
-  document.getElementById("orderOverlay")?.classList.add("show");
+  document.getElementById("paymentTotal").innerText = updateGrandTotal();
+  document.getElementById("paymentOverlay")?.classList.add("show");
 });
 
-function closeOrder() {
-  document.getElementById("orderOverlay")?.classList.remove("show");
+function closePayment() {
+  document.getElementById("paymentOverlay")?.classList.remove("show");
 }
 
+/************************************
+ * MOMO DEMO FLOW
+ ************************************/
+let currentPaymentToken = null;
+
 /**
- * Tạo order khi nhập địa chỉ và click đặt hàng
+ * NEXT
  */
-async function handleCreateOrder() {
+async function handlePaymentNext() {
+  console.log("🔥 CLICK NEXT OK");
+
+  const method = document.querySelector(
+    "input[name='paymentMethod']:checked"
+  )?.value;
+
+  if (method !== "momo") {
+    alert("Vui lòng chọn MoMo");
+    return;
+  }
+
   const addressInput = document.getElementById("shippingAddress");
   const shippingAddress = addressInput?.value.trim();
 
@@ -132,15 +148,21 @@ async function handleCreateOrder() {
     return;
   }
 
-  // Kiểm tra giỏ hàng
-  if (!window.cartItems.length) {
-    alert("Giỏ hàng trống");
-    return;
-  }
+  window.shippingAddress = shippingAddress;
+  await startMomoPayment();
+}
 
+/**
+ * CREATE PAYMENT (DEMO MODE)
+ */
+async function startMomoPayment() {
   try {
-    // Tạo order trực tiếp
-    const res = await fetch("http://localhost:8000/api/orders", {
+    if (!window.cartItems.length) {
+      alert("Giỏ hàng trống");
+      return;
+    }
+
+    const res = await fetch("http://localhost:8000/api/payments/momo", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -149,29 +171,67 @@ async function handleCreateOrder() {
           productId: i.id,
           quantity: i.quantity
         })),
-        shippingAddress: shippingAddress
+        shippingAddress: window.shippingAddress
       })
     });
 
     if (!res.ok) {
       const text = await res.text();
-      console.error("Error:", text);
-      throw new Error("Tạo đơn hàng thất bại");
+      console.error(text);
+      throw new Error("Create payment failed");
     }
 
-    const order = await res.json();
+    const data = await res.json();
+    currentPaymentToken = data.paymentToken;
+
+    // Ẩn popup thanh toán
+    document.getElementById("paymentOverlay").classList.remove("show");
+
+    // HIỆN POPUP DEMO (KHÔNG redirect)
+    const qrOverlay = document.getElementById("qrOverlay");
+
+    qrOverlay.classList.remove("hidden");
+    qrOverlay.classList.add("show");
     
-    // Đóng popup
-    document.getElementById("orderOverlay").classList.remove("show");
-    
-    // Hiển thị thông báo thành công
-    alert("✅ Đặt hàng thành công!");
-    
-    // Redirect đến trang chi tiết đơn hàng
-    window.location.href = `/orders/${order.id || order.orderId}`;
+    document.getElementById("qrTotal").innerText = data.amount;
 
   } catch (err) {
     console.error(err);
-    alert("Lỗi: " + (err.message || "Không thể tạo đơn hàng. Vui lòng thử lại."));
+    alert("Không tạo được thanh toán MoMo");
+  }
+}
+
+/**
+ * CONFIRM PAYMENT (DEMO)
+ */
+async function confirmMomoPayment() {
+  try {
+    if (!currentPaymentToken) {
+      alert("Thiếu payment token");
+      return;
+    }
+
+    const res = await fetch(
+      `http://localhost:8000/api/payments/momo/success/${currentPaymentToken}`,
+      {
+        method: "GET",
+        credentials: "include"
+      }
+    );
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(text);
+      throw new Error("Confirm failed");
+    }
+
+    const order = await res.json();
+
+    // Redirect order detail
+    window.location.href = `/orders/${order.orderId}`;
+
+  } catch (err) {
+    console.error(err);
+    alert("Thanh toán thất bại");
   }
 }

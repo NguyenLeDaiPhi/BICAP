@@ -5,7 +5,6 @@ import com.bicap.trading_order_service.dto.ProductResponse;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
 import com.bicap.trading_order_service.service.IMarketplaceProductService;
 
-import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/marketplace-products")
+@RequestMapping("/api/fetch-marketplace-products")
 public class MarketplaceProductController {
 
     private final IMarketplaceProductService service;
@@ -93,28 +92,6 @@ public class MarketplaceProductController {
             @PathVariable Long id
     ) {
         return service.getProductDetail(id);
-    }
-
-    /**
-     * FARM/ADMIN – Xóa sản phẩm
-     */
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Xóa sản phẩm", description = "API để xóa sản phẩm khỏi marketplace")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
-        try {
-            service.deleteProduct(id);
-            return ResponseEntity.ok().body("Product deleted successfully");
-        } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Product not found with id: " + id);
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error deleting product: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error deleting product: " + e.getMessage());
-        }
     }
 
     /**

@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "FarmManagementApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.farm_management.FarmManagementApplication",
+            "projectName": "farm-production-service"
+        },
+        {
+            "type": "java",
             "name": "AdminServiceApplication",
             "request": "launch",
             "mainClass": "com.example.admin_service.AdminServiceApplication",

@@ -24,8 +24,7 @@ DROP TABLE IF EXISTS `marketplace_products`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `marketplace_products` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `batch_id` bigint DEFAULT NULL,
-  `category` varchar(100) DEFAULT NULL,
+  `category` varchar(255) DEFAULT NULL,
   `created_at` datetime(6) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
   `image_url` varchar(255) DEFAULT NULL,
@@ -33,10 +32,13 @@ CREATE TABLE `marketplace_products` (
   `price` decimal(38,2) DEFAULT NULL,
   `quantity` int DEFAULT NULL,
   `status` varchar(255) DEFAULT NULL,
-  `unit` varchar(50) DEFAULT NULL,
+  `unit` varchar(255) DEFAULT NULL,
+  `export_batch_id` bigint DEFAULT NULL,
   `farm_id` bigint NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `UK_o5k5foewf93rqtvgfxmdb1bml` (`export_batch_id`),
   KEY `FKbxnw4ln20bq2ru1kjcpi46k9v` (`farm_id`),
+  CONSTRAINT `FK1boo6bko9fwkvjwewi9hf1sul` FOREIGN KEY (`export_batch_id`) REFERENCES `export_batches` (`id`),
   CONSTRAINT `FKbxnw4ln20bq2ru1kjcpi46k9v` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -59,4 +61,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-01-19 13:44:03
+-- Dump completed on 2026-01-27 16:49:12

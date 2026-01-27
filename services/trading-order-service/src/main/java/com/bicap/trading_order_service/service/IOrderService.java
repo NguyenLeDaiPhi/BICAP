@@ -20,6 +20,4 @@ public interface IOrderService {
     List<OrderResponse> getOrdersByBuyerEmail(String buyerEmail);
 
     OrderResponse getOrderDetailByIdAndBuyerEmail(Long orderId, String buyerEmail);
-
-    OrderResponse confirmDelivery(Long orderId, String buyerEmail, List<String> imageUrls);
 }

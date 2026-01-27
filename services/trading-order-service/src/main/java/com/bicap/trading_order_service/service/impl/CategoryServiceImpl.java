@@ -3,7 +3,7 @@ package com.bicap.trading_order_service.service.impl;
 import com.bicap.trading_order_service.dto.CategoryRequestDTO;
 import com.bicap.trading_order_service.dto.CategoryResponseDTO;
 import com.bicap.trading_order_service.entity.Category;
-import com.bicap.trading_order_service.repository.CategoryRepository;
+import com.bicap.trading_order_service.exception.repository.CategoryRepository;
 import com.bicap.trading_order_service.service.ICategoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -265,14 +265,20 @@ exports.exportSeason = async (req, res) => {
     try {
         const { batchId } = req.params;
         const token = req.cookies.auth_token;
+        const ownerId = req.user.userId || req.user.id || req.user.sub;
 
         if (!token) {
             return res.status(401).json({ error: 'Token không tồn tại' });
         }
 
-        console.log(`Exporting season for batch ID: ${batchId}, Token: ${token.substring(0, 20)}...`);
+        const farmId = await getFarmId(ownerId, token);
+        if (!farmId) {
+            return res.status(400).json({ error: 'Không tìm thấy trang trại' });
+        }
 
-        const response = await axios.post(`${EXPORT_BATCH_API_URL}/batch/${batchId}`, req.body, {
+        console.log(`Exporting season for batch ID: ${batchId}, Farm ID: ${farmId}, Token: ${token.substring(0, 20)}...`);
+
+        const response = await axios.post(`${EXPORT_BATCH_API_URL}/farm/${farmId}/batch/${batchId}`, req.body, {
             headers: { 
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -288,6 +294,34 @@ exports.exportSeason = async (req, res) => {
         }
         res.status(error.response?.status || 500).json({
             error: 'Không thể xuất tiến trình: ' + (error.response?.data?.message || error.message)
+        });
+    }
+};
+
+// 6. Lấy danh sách các lô đã xuất hàng của trang trại (cho trang sản phẩm)
+exports.getExportBatchesForFarm = async (req, res) => {
+    try {
+        const ownerId = req.user.userId || req.user.id || req.user.sub;
+        const token = req.cookies.auth_token;
+        const farmId = await getFarmId(ownerId, token);
+
+        if (!farmId) {
+            return res.status(404).json({ error: 'Không tìm thấy trang trại' });
+        }
+
+        const response = await axios.get(`${EXPORT_BATCH_API_URL}/farm/${farmId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        res.json(response.data || []);
+    } catch (error) {
+        console.error('Error getting export batches for farm:', error.message);
+        if (error.response) {
+            console.error('Response status:', error.response.status);
+            console.error('Response data:', error.response.data);
+        }
+        res.status(error.response?.status || 500).json({
+            error: 'Không thể tải lịch sử xuất hàng: ' + (error.response?.data?.message || error.message)
         });
     }
 };

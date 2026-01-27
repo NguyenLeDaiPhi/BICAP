@@ -25,15 +25,9 @@ router.use(cookieParser());
 // Lấy JWT từ cookie và gán req.user
 const requireAuth = (req, res, next) => {
     const token = req.cookies?.auth_token;
-    console.log('[requireAuth] Path:', req.path);
-    console.log('[requireAuth] Token exists:', !!token);
-    if (!token) {
-        console.log('[requireAuth] No token, redirecting to login');
-        return res.redirect('/login');
-    }
+    if (!token) return res.redirect('/login');
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        console.log('[requireAuth] Token verified for user:', decoded.sub);
         req.user = {
             sub: decoded.sub,
             username: decoded.sub,
@@ -43,7 +37,6 @@ const requireAuth = (req, res, next) => {
         req.accessToken = token;
         return next();
     } catch (err) {
-        console.log('[requireAuth] Token verify error:', err.message);
         return res.redirect('/login');
     }
 };

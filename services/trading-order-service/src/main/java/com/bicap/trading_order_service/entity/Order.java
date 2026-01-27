@@ -19,9 +19,6 @@ public class Order {
     @Column(name = "shipping_address", nullable = false)
     private String shippingAddress;
 
-    @Column(name = "buyer_id", nullable = false)
-    private Long buyerId;
-
     @Column(name = "buyer_email", nullable = false, length = 255)
     private String buyerEmail;
 
@@ -33,12 +30,6 @@ public class Order {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Column(name = "delivery_images", columnDefinition = "TEXT")
-    private String deliveryImages; // JSON array of image URLs: ["url1", "url2"]
-
-    @Column(name = "delivery_confirmed_at")
-    private LocalDateTime deliveryConfirmedAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
@@ -55,15 +46,6 @@ public class Order {
 
     public Long getId() {
         return id;
-    }
-
-    // GET/SET buyerId
-    public Long getBuyerId() {
-        return buyerId;
-    }
-
-    public void setBuyerId(Long buyerId) {
-        this.buyerId = buyerId;
     }
 
     // GET/SET buyerEmail
@@ -115,21 +97,5 @@ public class Order {
     public void removeItem(OrderItem item) {
         items.remove(item);
         item.setOrder(null);
-    }
-
-    public String getDeliveryImages() {
-        return deliveryImages;
-    }
-
-    public void setDeliveryImages(String deliveryImages) {
-        this.deliveryImages = deliveryImages;
-    }
-
-    public LocalDateTime getDeliveryConfirmedAt() {
-        return deliveryConfirmedAt;
-    }
-
-    public void setDeliveryConfirmedAt(LocalDateTime deliveryConfirmedAt) {
-        this.deliveryConfirmedAt = deliveryConfirmedAt;
     }
 }

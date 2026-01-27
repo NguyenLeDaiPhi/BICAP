@@ -45,28 +45,4 @@ public interface IProductService {
      * @return Số lượng
      */
     long countByStatus(String status);
-
-    /**
-     * Lấy danh sách sản phẩm PENDING chờ duyệt
-     * @param keyword Từ khóa tìm kiếm
-     * @param page Số trang
-     * @param size Số lượng mỗi trang
-     * @return Page<ProductResponseDTO>
-     */
-    Page<ProductResponseDTO> getPendingProducts(String keyword, int page, int size);
-
-    /**
-     * Duyệt sản phẩm lên sàn (PENDING -> ACTIVE)
-     * @param productId ID sản phẩm
-     * @return ProductResponseDTO
-     */
-    ProductResponseDTO approveProduct(Long productId);
-
-    /**
-     * Từ chối sản phẩm (PENDING -> REJECTED)
-     * @param productId ID sản phẩm
-     * @param reason Lý do từ chối
-     * @return ProductResponseDTO
-     */
-    ProductResponseDTO rejectProduct(Long productId, String reason);
 }

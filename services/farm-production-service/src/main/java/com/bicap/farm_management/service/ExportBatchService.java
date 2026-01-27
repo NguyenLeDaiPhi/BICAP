@@ -1,8 +1,10 @@
 package com.bicap.farm_management.service;
 
 import com.bicap.farm_management.entity.ExportBatch;
+import com.bicap.farm_management.entity.Farm;
 import com.bicap.farm_management.entity.ProductionBatch;
 import com.bicap.farm_management.repository.ExportBatchRepository;
+import com.bicap.farm_management.repository.FarmRepository;
 import com.bicap.farm_management.repository.ProductionBatchRepository;
 import com.bicap.farm_management.util.QRCodeGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -22,7 +25,14 @@ public class ExportBatchService {
     @Autowired
     private BlockchainProducer blockchainProducer;
 
-    public ExportBatch createExportBatch(Long productionBatchId, ExportBatch exportBatch) {
+    @Autowired
+    private FarmRepository farmRepository;
+
+    public ExportBatch createExportBatch(Long farmId, Long productionBatchId, ExportBatch exportBatch) {
+
+        Farm farm = farmRepository.findById(farmId)
+            .orElseThrow(() -> new RuntimeException("Id farmer không tồn tại."));
+        
         ProductionBatch productionBatch = batchRepository.findById(productionBatchId)
             .orElseThrow(() -> new RuntimeException("Lô sản xuất không tồn tại!"));
         
@@ -32,6 +42,7 @@ public class ExportBatchService {
 
         // 2. Thiết lập thông tin xuất kho
         exportBatch.setProductionBatch(productionBatch);
+        exportBatch.setFarm(farm);
         exportBatch.setExportDate(LocalDateTime.now());
 
         // 3. Tạo QR Code (Chứa link truy xuất nguồn gốc)
@@ -79,5 +90,9 @@ public class ExportBatchService {
             exportRepository.save(exportBatch);
             System.out.println("✅ Export Batch ID " + exportId + " đã được xác thực trên Blockchain!");
         }
+    }
+
+    public List<ExportBatch> getExportBatchesByFarm(Long farmId) {
+        return exportRepository.findByFarmIdOrderByExportDateDesc(farmId);
     }
 }

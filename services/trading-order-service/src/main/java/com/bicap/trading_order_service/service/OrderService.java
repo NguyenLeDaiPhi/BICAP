@@ -8,16 +8,14 @@ import com.bicap.trading_order_service.entity.MarketplaceProduct;
 import com.bicap.trading_order_service.entity.Order;
 import com.bicap.trading_order_service.entity.OrderItem;
 import com.bicap.trading_order_service.event.OrderCompletedEvent;
-import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
-import com.bicap.trading_order_service.repository.OrderRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.bicap.trading_order_service.exception.repository.MarketplaceProductRepository;
+import com.bicap.trading_order_service.exception.repository.OrderRepository;
+
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,18 +24,15 @@ public class OrderService implements IOrderService {
     private final OrderRepository orderRepository;
     private final MarketplaceProductRepository productRepository;
     private final RabbitTemplate rabbitTemplate;
-    private final ObjectMapper objectMapper;
 
     public OrderService(
             OrderRepository orderRepository,
             MarketplaceProductRepository productRepository,
-            RabbitTemplate rabbitTemplate,
-            ObjectMapper objectMapper
+            RabbitTemplate rabbitTemplate
     ) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.rabbitTemplate = rabbitTemplate;
-        this.objectMapper = objectMapper;
     }
 
     /**
@@ -52,9 +47,6 @@ public class OrderService implements IOrderService {
 
         Order order = new Order();
         order.setBuyerEmail(buyerEmail);
-        // TODO: Lấy buyer_id từ auth service dựa trên email
-        // Tạm thời set buyer_id = 0 (sẽ được cập nhật sau)
-        order.setBuyerId(0L);
         order.setShippingAddress(request.getShippingAddress());
         order.setStatus("CREATED");
 
@@ -215,41 +207,6 @@ public class OrderService implements IOrderService {
                                 "Order not found or access denied"
                         )
                 );
-
-        return OrderResponse.fromEntity(order);
-    }
-
-    /**
-     * 7️⃣ Retailer xác nhận đã nhận hàng và upload ảnh
-     */
-    @Override
-    @Transactional
-    public OrderResponse confirmDelivery(Long orderId, String buyerEmail, List<String> imageUrls) {
-        Order order = orderRepository
-                .findByIdAndBuyerEmail(orderId, buyerEmail)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Order not found or access denied"
-                        )
-                );
-
-        // Chỉ cho phép xác nhận khi đơn hàng đã COMPLETED (đã được shipping manager hoàn tất)
-        if (!"COMPLETED".equals(order.getStatus())) {
-            throw new RuntimeException(
-                    "Only COMPLETED orders can be confirmed for delivery"
-            );
-        }
-
-        // Lưu danh sách ảnh dưới dạng JSON
-        try {
-            String imagesJson = objectMapper.writeValueAsString(imageUrls);
-            order.setDeliveryImages(imagesJson);
-            order.setDeliveryConfirmedAt(LocalDateTime.now());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to save delivery images", e);
-        }
-
-        order = orderRepository.save(order);
 
         return OrderResponse.fromEntity(order);
     }

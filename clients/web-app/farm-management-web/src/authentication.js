@@ -422,6 +422,7 @@ app.post('/farm-info/update', requireAuth, farmController.updateFarmInfo);
 app.get('/products', requireAuth, productController.getProductsPage);
 
 // Product API proxy routes (frontend calls these instead of direct API)
+app.get('/api/export-batches', requireAuth, seasonMonitorController.getExportBatchesForFarm);
 app.get('/api/marketplace-products/farm/:farmId', requireAuth, productProxyController.getProductsByFarm);
 app.post('/api/marketplace-products', requireAuth, productProxyController.createProduct);
 app.put('/api/marketplace-products/:productId', requireAuth, productProxyController.updateProduct);

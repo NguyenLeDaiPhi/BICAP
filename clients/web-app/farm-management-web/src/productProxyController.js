@@ -9,6 +9,7 @@ const getApiGatewayBaseUrl = () => {
 const API_GATEWAY_BASE_URL = getApiGatewayBaseUrl();
 const MARKETPLACE_PRODUCTS_API_URL = process.env.MARKETPLACE_API_PATH || `${API_GATEWAY_BASE_URL}/api/marketplace-products`;
 const FARM_API_URL = process.env.FARM_API_URL || `${API_GATEWAY_BASE_URL}/api/farm-features`;
+const EXPORT_BATCH_API_URL = process.env.EXPORT_BATCH_API_URL || `${API_GATEWAY_BASE_URL}/api/export-batches`;
 
 // Helper function để lấy Farm ID từ Owner ID
 const getFarmId = async (ownerId, token) => {
@@ -20,6 +21,43 @@ const getFarmId = async (ownerId, token) => {
     } catch (error) {
         console.error('Error getting farm ID:', error.message);
         return null;
+    }
+};
+
+// Proxy: Get export batches by farm
+exports.getExportBatches = async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        if (!token) {
+            return res.status(401).json({ error: 'Token không tồn tại' });
+        }
+
+        const ownerId = req.user?.userId || req.user?.id || req.user?.sub;
+        const farmId = await getFarmId(ownerId, token);
+
+        if (!farmId) {
+            return res.status(404).json({ error: 'Không tìm thấy trang trại cho người dùng này.' });
+        }
+
+        console.log(`Getting export batches for farm ID: ${farmId}`);
+
+        const response = await axios.get(`${EXPORT_BATCH_API_URL}/farm/${farmId}`, {
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error getting export batches:', error.message);
+        if (error.response) {
+            console.error('Response status:', error.response.status);
+            console.error('Response data:', error.response.data);
+        }
+        res.status(error.response?.status || 500).json({
+            error: 'Không thể lấy lịch sử xuất hàng: ' + (error.response?.data?.message || error.message)
+        });
     }
 };
 
@@ -255,3 +293,49 @@ exports.deleteProduct = async (req, res) => {
         });
     }
 };
+
+exports.getExportBatches = async(req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        if (!token) return res.status(401).json({ error: 'Token không tồn tại.'})
+
+        const ownerId = req.user?.userId || req.user?.id || req.user?.sub;
+        const farmId = await getFarmId(ownerId, token);
+
+        if (!farmId) return res.status(404).json({ error: 'Không tìm thấy chủ trang trại.'});
+
+        // Logic Check: 
+        // Java Controller: /api/export-batches/farm/{farmId}
+        // Kong: forwards /api/export-batches
+        // Axios call below: matches perfectly
+
+        const response = await axios.get(`${EXPORT_BATCH_API_URL}/farm/${farmId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error getting export batches:', error.message);
+        res.status(error.response?.status || 500).json({
+            error: 'Không thể lấy lịch sử xuất hàng.'
+        });
+    }
+};
+
+exports.createProduct = async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        const response = await axios.post(`${MARKETPLACE_PRODUCTS_API_URL}`, req.body, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        res.json(response.data);
+    } catch (error) {
+        res.status(error.response?.status || 500).json({ error: error.message });
+    }
+}

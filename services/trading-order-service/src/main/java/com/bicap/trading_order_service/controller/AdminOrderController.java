@@ -81,14 +81,4 @@ public class AdminOrderController {
     public ResponseEntity<OrderStatisticsDTO> getOrderStatistics() {
         return ResponseEntity.ok(adminOrderService.getOrderStatistics());
     }
-    
-    /**
-     * PUT /api/admin/orders/{orderId}/confirm - Admin chấp nhận đơn hàng và giao cho shipping manager
-     */
-    @PutMapping("/{orderId}/confirm")
-    @Operation(summary = "Admin chấp nhận đơn hàng", 
-               description = "API cho Admin Service chấp nhận đơn hàng CREATED và chuyển sang CONFIRMED để giao cho shipping manager")
-    public ResponseEntity<OrderResponse> confirmOrder(@PathVariable Long orderId) {
-        return ResponseEntity.ok(adminOrderService.confirmOrder(orderId));
-    }
 }

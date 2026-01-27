@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "trading-category-service", url = "${trading-order.service.url:http://localhost:8082}")
+@FeignClient(name = "trading-category-service", url = "${trading-order.service.url:http://localhost:8083}")
 public interface TradingCategoryServiceClient {
 
     /**
