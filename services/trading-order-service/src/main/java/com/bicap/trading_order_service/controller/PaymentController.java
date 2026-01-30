@@ -2,6 +2,7 @@ package com.bicap.trading_order_service.controller;
 
 import com.bicap.trading_order_service.dto.CreateOrderRequest;
 import com.bicap.trading_order_service.dto.OrderResponse;
+import com.bicap.trading_order_service.security.JwtUser;
 import com.bicap.trading_order_service.service.OrderService;
 import com.bicap.trading_order_service.service.PaymentService;
 import com.bicap.trading_order_service.service.PaymentStorage;
@@ -86,16 +87,24 @@ public class PaymentController {
                     .body("Payment expired or invalid");
         }
 
+        JwtUser jwtUser = (JwtUser) authentication.getPrincipal();
+        Long buyerId = jwtUser.getUserId();
+        if (buyerId == null) {
+            return ResponseEntity.badRequest()
+                    .body("User ID missing in token. Re-login and try again.");
+        }
+        String buyerEmail = jwtUser.getEmail() != null ? jwtUser.getEmail() : jwtUser.getUsername();
+
         // ✅ TẠO ORDER SAU KHI THANH TOÁN THÀNH CÔNG
-        OrderResponse order =
-                orderService.createOrder(
-                        request,
-                        authentication.getName()
-                );
+        OrderResponse created = orderService.createOrder(
+                request,
+                buyerEmail,
+                buyerId
+        );
 
         // ✅ XOÁ PAYMENT TẠM
         paymentStorage.remove(paymentToken);
 
-        return ResponseEntity.ok(order);
+        return ResponseEntity.ok(created);
     }
 }

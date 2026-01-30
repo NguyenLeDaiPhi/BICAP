@@ -62,10 +62,16 @@ public class OrderController {
             return ResponseEntity.status(401).build();
         }
 
-        String buyerEmail = authentication.getName(); // ← LẤY TỪ JWT
+        com.bicap.trading_order_service.security.JwtUser jwtUser =
+                (com.bicap.trading_order_service.security.JwtUser) authentication.getPrincipal();
+        String buyerEmail = jwtUser.getEmail() != null ? jwtUser.getEmail() : jwtUser.getUsername();
+        Long buyerId = jwtUser.getUserId();
+        if (buyerId == null) {
+            return ResponseEntity.badRequest().build();
+        }
 
         return ResponseEntity.ok(
-                orderService.createOrder(request, buyerEmail)
+                orderService.createOrder(request, buyerEmail, buyerId)
         );
     }
 

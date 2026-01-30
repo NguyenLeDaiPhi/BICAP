@@ -13,11 +13,13 @@ public class JwtUser implements UserDetails {
     private final String username;
     private final String email;
     private final List<String> roles;
+    private final Long userId;
 
-    public JwtUser(String username, String email, List<String> roles) {
+    public JwtUser(String username, String email, List<String> roles, Long userId) {
         this.username = username;
         this.email = email;
         this.roles = roles;
+        this.userId = userId;
     }
 
     // 🔑 Spring Security dùng username này
@@ -28,6 +30,10 @@ public class JwtUser implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    public Long getUserId() {
+        return userId;
     }
 
     public List<String> getRoles() {

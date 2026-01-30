@@ -66,14 +66,18 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                         .collect(Collectors.toList())
                     : Collections.emptyList();
 
+                logger.info("JWT Auth - Authorities: " + authorities + " | Request URI: " + request.getRequestURI());
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         username, null, authorities);
                 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                logger.warn("JWT token missing or invalid for request: " + request.getRequestURI());
             }
         } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}", e);
+            logger.error("Cannot set user authentication for URI: " + request.getRequestURI() + " | Error: " + e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);

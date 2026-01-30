@@ -32,6 +32,35 @@ public class ShipmentService {
         return shipmentRepository.save(shipment);
     }
 
+    /**
+     * Create shipment for a confirmed order (called by OrderConfirmedListener)
+     * @param orderId The order ID from trading-order-service
+     * @param shippingAddress The shipping address (to location)
+     * @param buyerEmail The buyer's email
+     * @return Created shipment
+     */
+    @Transactional
+    public Shipment createShipmentForOrder(Long orderId, String shippingAddress, String buyerEmail) {
+        // Check if shipment already exists for this order
+        shipmentRepository.findByOrderId(orderId).ifPresent(existing -> {
+            throw new RuntimeException("Shipment already exists for orderId: " + orderId);
+        });
+
+        Shipment shipment = new Shipment();
+        shipment.setOrderId(orderId);
+        // Set from location as warehouse/farm (you can customize this)
+        shipment.setFromLocation("Warehouse");
+        shipment.setToLocation(shippingAddress);
+        shipment.setStatus(ShipmentStatus.PENDING);
+        
+        Shipment savedShipment = shipmentRepository.save(shipment);
+        
+        // Publish shipment status update via RabbitMQ
+        shipmentProducer.sendShipmentStatusUpdate(orderId, "PENDING");
+        
+        return savedShipment;
+    }
+
     @Transactional
     public Shipment assignDriverAndVehicle(Long shipmentId, Long driverId, Long vehicleId) {
         Shipment shipment = shipmentRepository.findById(shipmentId)

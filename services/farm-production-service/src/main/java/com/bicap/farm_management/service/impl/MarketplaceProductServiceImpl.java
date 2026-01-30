@@ -146,6 +146,12 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
     }
 
     @Override
+    public MarketplaceProduct getProductById(Long productId) {
+        return repository.findById(productId)
+            .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + productId));
+    }
+
+    @Override
     public void deleteProduct(Long productId) {
         MarketplaceProduct product = repository.findById(productId)
             .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + productId));
