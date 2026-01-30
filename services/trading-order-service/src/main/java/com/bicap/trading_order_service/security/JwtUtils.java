@@ -71,6 +71,18 @@ public class JwtUtils {
     }
 
     /**
+     * Auth JWT includes "userId" claim (user id from auth users table).
+     * Used as buyer_id when creating orders.
+     */
+    public Long getUserId(String token) {
+        Claims claims = parseClaims(token);
+        if (claims == null) return null;
+        Object v = claims.get("userId");
+        if (v instanceof Number n) return n.longValue();
+        return null;
+    }
+
+    /**
      * ✅ Chuẩn hoá role
      * JWT hiện tại: roles = "ROLE_RETAILER" hoặc List<String>
      */

@@ -55,6 +55,12 @@ public class RabbitMQConfig {
         return new TopicExchange(exchangeName, true, false);
     }
 
+    // Order Exchange (from trading-order-service)
+    @Bean
+    public TopicExchange orderExchange() {
+        return new TopicExchange("bicap.order.exchange", true, false);
+    }
+
     // Queues
     @Bean
     public Queue shipmentStatusQueue() {
@@ -74,6 +80,17 @@ public class RabbitMQConfig {
     @Bean
     public Queue notificationQueue() {
         return new Queue(notificationQueue, true);
+    }
+
+    // Order event queues (from trading-order-service)
+    @Bean
+    public Queue orderCreatedQueue() {
+        return new Queue("bicap.order.created.queue", true);
+    }
+
+    @Bean
+    public Queue orderConfirmedQueue() {
+        return new Queue("bicap.order.confirmed.queue", true);
     }
 
     // Bindings
@@ -103,6 +120,21 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(notificationQueue())
                 .to(internalExchange())
                 .with(notificationRoutingKey);
+    }
+
+    // Order event bindings (from trading-order-service)
+    @Bean
+    public Binding orderCreatedBinding() {
+        return BindingBuilder.bind(orderCreatedQueue())
+                .to(orderExchange())
+                .with("bicap.order.created.key");
+    }
+
+    @Bean
+    public Binding orderConfirmedBinding() {
+        return BindingBuilder.bind(orderConfirmedQueue())
+                .to(orderExchange())
+                .with("bicap.order.confirmed.key");
     }
 
     // Message Converter

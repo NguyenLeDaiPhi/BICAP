@@ -74,7 +74,8 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3003", "http://localhost:3001", "http://localhost:3002"));
+        // Only mobile app (Expo/React Native) needs CORS
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:19000"));  // mobile-ship-driver
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

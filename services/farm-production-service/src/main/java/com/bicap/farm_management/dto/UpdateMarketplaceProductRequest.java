@@ -3,10 +3,14 @@ package com.bicap.farm_management.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
+@AllArgsConstructor
+@NoArgsConstructor
 public class UpdateMarketplaceProductRequest {
-
+    
     @NotBlank
     private String name;
 

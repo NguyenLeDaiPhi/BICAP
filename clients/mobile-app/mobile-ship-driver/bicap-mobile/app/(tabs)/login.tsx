@@ -31,30 +31,31 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       // 1. Gọi API Login qua Service
+      // authService.login() already handles token storage and returns AuthResponse
       const data = await authService.login(email, password);
       
-      // 2. Kiểm tra token trả về (Tùy backend của bạn trả về field nào)
-      const token = data.accessToken || data.token; 
+      // 2. Kiểm tra token trả về
+      const token = data.token; 
 
       if (token) {
-        // 3. Lưu token vào máy
-        await AsyncStorage.setItem('userToken', token);
-        
-        // 4. Lưu thông tin User (nếu có) để hiển thị Profile
+        // Token đã được lưu bởi authService.login()
+        // 3. Lưu thông tin User (nếu có) để hiển thị Profile
         if (data.user) {
           await AsyncStorage.setItem('userInfo', JSON.stringify(data.user));
         }
 
-        // 5. Chuyển hướng vào màn hình chính (Tab Bar của Tài xế)
+        // 4. Chuyển hướng vào màn hình chính (Tab Bar của Tài xế)
         router.replace('/(tabs)'); 
       } else {
         setError('Không nhận được mã xác thực từ server.');
+        Alert.alert('Lỗi Đăng nhập', 'Không nhận được mã xác thực từ server.');
       }
 
     } catch (err: any) {
-      console.error(err);
+      console.error('[LoginScreen] Login error:', err);
       // Xử lý thông báo lỗi từ Backend
-      const msg = err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.';
+      // err.message is already set by authService.login()
+      const msg = err.message || err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.';
       setError(msg);
       Alert.alert('Lỗi Đăng nhập', msg);
     } finally {

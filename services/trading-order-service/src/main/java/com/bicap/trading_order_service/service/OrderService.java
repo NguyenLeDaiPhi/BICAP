@@ -8,6 +8,8 @@ import com.bicap.trading_order_service.entity.MarketplaceProduct;
 import com.bicap.trading_order_service.entity.Order;
 import com.bicap.trading_order_service.entity.OrderItem;
 import com.bicap.trading_order_service.event.OrderCompletedEvent;
+import com.bicap.trading_order_service.event.OrderCreatedEvent;
+import com.bicap.trading_order_service.event.OrderConfirmedEvent;
 import com.bicap.trading_order_service.exception.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.exception.repository.OrderRepository;
 
@@ -37,15 +39,21 @@ public class OrderService implements IOrderService {
 
     /**
      * 1️⃣ Retailer tạo đơn hàng
+     * @param buyerId User id from auth (JWT userId claim); required for orders.buyer_id.
      */
     @Override
     @Transactional
     public OrderResponse createOrder(
             CreateOrderRequest request,
-            String buyerEmail
+            String buyerEmail,
+            Long buyerId
     ) {
+        if (buyerId == null) {
+            throw new IllegalArgumentException("User ID (buyer_id) is required to create an order. Ensure JWT includes 'userId' claim.");
+        }
 
         Order order = new Order();
+        order.setBuyerId(buyerId);
         order.setBuyerEmail(buyerEmail);
         order.setShippingAddress(request.getShippingAddress());
         order.setStatus("CREATED");
@@ -81,6 +89,27 @@ public class OrderService implements IOrderService {
         order.setTotalAmount(totalAmount);
 
         Order savedOrder = orderRepository.save(order);
+
+        // Publish OrderCreatedEvent to notify other services
+        try {
+            OrderCreatedEvent event = new OrderCreatedEvent(
+                    savedOrder.getId(),
+                    savedOrder.getBuyerEmail(),
+                    savedOrder.getShippingAddress(),
+                    savedOrder.getTotalAmount(),
+                    savedOrder.getStatus()
+            );
+
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.ORDER_EXCHANGE,
+                    RabbitMQConfig.ORDER_CREATED_KEY,
+                    event
+            );
+            System.out.println("✅ [RabbitMQ] Published OrderCreatedEvent for orderId=" + savedOrder.getId());
+        } catch (Exception e) {
+            System.err.println("⚠️ RabbitMQ publish OrderCreatedEvent failed: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         return OrderResponse.fromEntity(savedOrder);
     }
@@ -151,9 +180,30 @@ public class OrderService implements IOrderService {
         }
 
         order.setStatus("CONFIRMED");
-        return OrderResponse.fromEntity(
-                orderRepository.save(order)
-        );
+        Order savedOrder = orderRepository.save(order);
+
+        // Publish OrderConfirmedEvent to notify shipping-manager-service
+        try {
+            OrderConfirmedEvent event = new OrderConfirmedEvent(
+                    savedOrder.getId(),
+                    savedOrder.getBuyerEmail(),
+                    savedOrder.getShippingAddress(),
+                    savedOrder.getTotalAmount(),
+                    savedOrder.getStatus()
+            );
+
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.ORDER_EXCHANGE,
+                    RabbitMQConfig.ORDER_CONFIRMED_KEY,
+                    event
+            );
+            System.out.println("✅ [RabbitMQ] Published OrderConfirmedEvent for orderId=" + savedOrder.getId());
+        } catch (Exception e) {
+            System.err.println("⚠️ RabbitMQ publish OrderConfirmedEvent failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return OrderResponse.fromEntity(savedOrder);
     }
 
     /**

@@ -47,36 +47,60 @@ export const authService = {
     /**
      * Đăng nhập - Gọi qua Kong API Gateway
      * Kong route: /api/auth -> auth-service:8080
+     * 
+     * NOTE: auth-service returns a plain string token, not a JSON object
      */
     login: async (email: string, password: string): Promise<AuthResponse> => {
         try {
             // Endpoint: POST /api/auth/login (Kong route tới auth-service)
-            const response = await axiosInstance.post<AuthResponse>('/api/auth/login', { 
+            // auth-service returns ResponseEntity.ok(token) where token is a plain string
+            const response = await axiosInstance.post<string>('/api/auth/login', { 
                 email, 
                 password 
             });
             
-            const data = response.data;
+            // Response.data is a string token, not an object
+            // auth-service returns ResponseEntity.ok(token) where token is a plain string
+            const token = typeof response.data === 'string' ? response.data : response.data?.token || response.data;
             
-            // Lưu token vào AsyncStorage
-            if (data.token) {
-                await AsyncStorage.setItem('userToken', data.token);
-                
-                // Lưu refresh token nếu có
-                if (data.refreshToken) {
-                    await AsyncStorage.setItem('refreshToken', data.refreshToken);
-                }
-                
-                // Lưu thông tin user nếu có
-                if (data.user) {
-                    await AsyncStorage.setItem('userData', JSON.stringify(data.user));
-                }
+            if (!token || typeof token !== 'string') {
+                console.error('[AuthService] Invalid token received:', typeof response.data, response.data);
+                throw new Error('Không nhận được token từ server');
             }
             
-            return data;
+            // Debug log in development
+            if (__DEV__) {
+                console.log('[AuthService] Login successful, token length:', token.length);
+            }
+            
+            // Lưu token vào AsyncStorage
+            await AsyncStorage.setItem('userToken', token);
+            
+            // Return AuthResponse format for consistency
+            const authResponse: AuthResponse = {
+                token: token,
+                message: 'Đăng nhập thành công'
+            };
+            
+            return authResponse;
         } catch (error) {
-            const axiosError = error as AxiosError<{ message?: string }>;
-            const errorMessage = axiosError.response?.data?.message || 'Đăng nhập thất bại';
+            const axiosError = error as AxiosError<{ message?: string } | string>;
+            
+            // Handle string error response (auth-service returns "Invalid credentials" as string)
+            let errorMessage = 'Đăng nhập thất bại';
+            if (axiosError.response) {
+                if (typeof axiosError.response.data === 'string') {
+                    errorMessage = axiosError.response.data;
+                } else if (axiosError.response.data?.message) {
+                    errorMessage = axiosError.response.data.message;
+                } else {
+                    errorMessage = `Lỗi ${axiosError.response.status}: ${axiosError.response.statusText}`;
+                }
+            } else if (axiosError.message) {
+                errorMessage = axiosError.message;
+            }
+            
+            console.error('[AuthService] Login error:', errorMessage, error);
             throw new Error(errorMessage);
         }
     },

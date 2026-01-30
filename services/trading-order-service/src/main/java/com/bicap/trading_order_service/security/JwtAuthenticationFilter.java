@@ -72,6 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String username = claims.getSubject();
         String email = claims.get("email", String.class);
+        Long userId = jwtUtils.getUserId(token);
 
         /* =====================================================
            3️⃣ XỬ LÝ ROLES (STRING hoặc LIST)
@@ -107,7 +108,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         JwtUser jwtUser = new JwtUser(
                 username,
                 email,
-                roles
+                roles,
+                userId
         );
 
         UsernamePasswordAuthenticationToken authentication =

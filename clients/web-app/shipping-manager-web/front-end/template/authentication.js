@@ -26,8 +26,8 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const port = 3003;
 
-// Base64 String from Java properties (FIX: Remove extra 'Cg==' to eliminate trailing newline in decoded key)
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
+// Base64 string from auth-service application.properties (must match exactly – no trailing Cg==)
+const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
 // Convert the Base64 string to a Buffer, exactly like Java's Decoders.BASE64.decode()
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 
@@ -152,10 +152,15 @@ app.post('/login', async (req, res) => {
             email, 
             password 
         });
-        const accessToken = response.data;
+        const accessToken = typeof response.data === 'string'
+            ? response.data
+            : (response.data?.accessToken || response.data?.access_token || response.data?.token);
+        if (!accessToken) {
+            return res.status(502).render('login', { error: 'Auth service did not return token.' });
+        }
         
         // 2. Verify Token & Check Role
-        // Using the Buffer secret to verify signature
+        // Using the Buffer secret to verify signature (must match auth-service)
         const decodedToken = jwt.verify(accessToken, JWT_SECRET); 
         
         // Java sends "roles" (plural) in the claim: .claim("roles", roles)

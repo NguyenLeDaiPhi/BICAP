@@ -19,6 +19,7 @@ public interface IMarketplaceProductService {
 
     MarketplaceProduct updateProduct(Long productId, UpdateMarketplaceProductRequest request);
     MarketplaceProduct approveProduct(Long productId);
+    MarketplaceProduct getProductById(Long productId);
 
     void deleteProduct(Long productId);
 }

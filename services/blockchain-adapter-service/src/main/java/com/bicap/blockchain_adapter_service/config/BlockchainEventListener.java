@@ -50,7 +50,9 @@ public class BlockchainEventListener {
                 return; // Stop processing this message, do not send error response to avoid loops if ID is bad
             }
 
-            blockchainService.write(id, "BATCH", message.getDataHash());
+            // Use the resourceType from the message (BATCH, PROCESS, or EXPORT)
+            String resourceType = message.getResourceType() != null ? message.getResourceType() : "BATCH";
+            blockchainService.write(id, resourceType, message.getDataHash());
             
             // 2. Tạo kết quả THÀNH CÔNG
             // Giả lập Transaction Hash (Trong thực tế sẽ lấy từ blockchainService.write trả về)

@@ -15,6 +15,10 @@ public class RabbitMQConfig {
     public static final String ORDER_EXCHANGE = "bicap.order.exchange";
     public static final String ORDER_COMPLETED_QUEUE = "bicap.order.completed.queue";
     public static final String ORDER_COMPLETED_KEY = "bicap.order.completed.key";
+    public static final String ORDER_CREATED_QUEUE = "bicap.order.created.queue";
+    public static final String ORDER_CREATED_KEY = "bicap.order.created.key";
+    public static final String ORDER_CONFIRMED_QUEUE = "bicap.order.confirmed.queue";
+    public static final String ORDER_CONFIRMED_KEY = "bicap.order.confirmed.key";
 
     @Value("${bicap.farm.auth.queue:bicap.farm.auth.queue}")
     private String authQueue;
@@ -59,8 +63,28 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue orderCreatedQueue() {
+        return new Queue(ORDER_CREATED_QUEUE, true);
+    }
+
+    @Bean
+    public Queue orderConfirmedQueue() {
+        return new Queue(ORDER_CONFIRMED_QUEUE, true);
+    }
+
+    @Bean
     public Binding orderCompletedBinding() {
         return BindingBuilder.bind(orderCompletedQueue()).to(orderExchange()).with(ORDER_COMPLETED_KEY);
+    }
+
+    @Bean
+    public Binding orderCreatedBinding() {
+        return BindingBuilder.bind(orderCreatedQueue()).to(orderExchange()).with(ORDER_CREATED_KEY);
+    }
+
+    @Bean
+    public Binding orderConfirmedBinding() {
+        return BindingBuilder.bind(orderConfirmedQueue()).to(orderExchange()).with(ORDER_CONFIRMED_KEY);
     }
 
     // --- Converter ---
