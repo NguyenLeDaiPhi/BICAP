@@ -1,6 +1,6 @@
 // app/(tabs)/profile.tsx
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { 
     Appbar, 
     Avatar, 
@@ -10,19 +10,29 @@ import {
     Button, 
     Card,
     ActivityIndicator,
-    Switch 
+    Switch,
+    Portal,
+    Dialog,
+    TextInput
 } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authService, UserProfile } from '../services/authService';
-import { API_CONFIG, setCustomBaseUrl, getCurrentBaseUrl } from '../services/axiosInstance';
+import { authService, UserProfile } from '../../services/authService';
+import { API_CONFIG, setCustomBaseUrl, getCurrentBaseUrl } from '../../services/axiosInstance';
+import { AuthContext } from '../_layout';
 
 export default function ProfileScreen() {
     const router = useRouter();
+    const { signOut } = useContext(AuthContext);
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    
+    // Dialog states for web compatibility
+    const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
+    const [apiDialogVisible, setApiDialogVisible] = useState(false);
+    const [newApiIp, setNewApiIp] = useState(API_CONFIG.LAN_IP);
 
     useEffect(() => {
         loadUserData();
@@ -60,43 +70,63 @@ export default function ProfileScreen() {
     };
 
     const handleLogout = () => {
-        Alert.alert(
-            'Đăng xuất',
-            'Bạn có chắc muốn đăng xuất?',
-            [
-                { text: 'Hủy', style: 'cancel' },
-                {
-                    text: 'Đăng xuất',
-                    style: 'destructive',
-                    onPress: async () => {
-                        await authService.logout();
-                        router.replace('/');
+        if (Platform.OS === 'web') {
+            setLogoutDialogVisible(true);
+        } else {
+            Alert.alert(
+                'Đăng xuất',
+                'Bạn có chắc muốn đăng xuất?',
+                [
+                    { text: 'Hủy', style: 'cancel' },
+                    {
+                        text: 'Đăng xuất',
+                        style: 'destructive',
+                        onPress: performLogout,
                     },
-                },
-            ]
-        );
+                ]
+            );
+        }
+    };
+
+    const performLogout = async () => {
+        setLogoutDialogVisible(false);
+        await signOut();
     };
 
     const handleChangeApiUrl = () => {
-        Alert.prompt(
-            'Cấu hình API',
-            `URL hiện tại: ${getCurrentBaseUrl()}\n\nNhập IP LAN của máy tính (VD: 192.168.1.4):`,
-            [
-                { text: 'Hủy', style: 'cancel' },
-                {
-                    text: 'Lưu',
-                    onPress: (ip: string | undefined) => {
-                        if (ip) {
-                            const newUrl = `http://${ip}:8000`;
-                            setCustomBaseUrl(newUrl);
-                            Alert.alert('Thành công', `Đã đổi URL thành: ${newUrl}`);
-                        }
+        if (Platform.OS === 'web') {
+            setNewApiIp(API_CONFIG.LAN_IP);
+            setApiDialogVisible(true);
+        } else {
+            Alert.prompt(
+                'Cấu hình API',
+                `URL hiện tại: ${getCurrentBaseUrl()}\n\nNhập IP LAN của máy tính (VD: 192.168.1.4):`,
+                [
+                    { text: 'Hủy', style: 'cancel' },
+                    {
+                        text: 'Lưu',
+                        onPress: (ip: string | undefined) => {
+                            if (ip) {
+                                saveApiUrl(ip);
+                            }
+                        },
                     },
-                },
-            ],
-            'plain-text',
-            API_CONFIG.LAN_IP
-        );
+                ],
+                'plain-text',
+                API_CONFIG.LAN_IP
+            );
+        }
+    };
+
+    const saveApiUrl = (ip: string) => {
+        const newUrl = `http://${ip}:8000`;
+        setCustomBaseUrl(newUrl);
+        setApiDialogVisible(false);
+        if (Platform.OS === 'web') {
+            window.alert(`Đã đổi URL thành: ${newUrl}`);
+        } else {
+            Alert.alert('Thành công', `Đã đổi URL thành: ${newUrl}`);
+        }
     };
 
     if (isLoading) {
@@ -179,7 +209,10 @@ export default function ProfileScreen() {
                             description="Cập nhật thông tin tài khoản"
                             left={props => <List.Icon {...props} icon="account-edit" />}
                             right={props => <List.Icon {...props} icon="chevron-right" />}
-                            onPress={() => Alert.alert('Thông báo', 'Tính năng đang phát triển')}
+                            onPress={() => {
+                                const msg = 'Tính năng đang phát triển';
+                                Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Thông báo', msg);
+                            }}
                         />
                         <Divider />
                         
@@ -187,7 +220,10 @@ export default function ProfileScreen() {
                             title="Đổi mật khẩu"
                             left={props => <List.Icon {...props} icon="lock" />}
                             right={props => <List.Icon {...props} icon="chevron-right" />}
-                            onPress={() => Alert.alert('Thông báo', 'Tính năng đang phát triển')}
+                            onPress={() => {
+                                const msg = 'Tính năng đang phát triển';
+                                Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Thông báo', msg);
+                            }}
                         />
                         <Divider />
                         
@@ -210,7 +246,10 @@ export default function ProfileScreen() {
                             title="Trung tâm hỗ trợ"
                             left={props => <List.Icon {...props} icon="help-circle" />}
                             right={props => <List.Icon {...props} icon="chevron-right" />}
-                            onPress={() => Alert.alert('Hỗ trợ', 'Hotline: 1900-BICAP')}
+                            onPress={() => {
+                                const msg = 'Hotline: 1900-BICAP';
+                                Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Hỗ trợ', msg);
+                            }}
                         />
                         <Divider />
                         
@@ -240,6 +279,40 @@ export default function ProfileScreen() {
                     Đăng xuất
                 </Button>
             </ScrollView>
+
+            {/* Logout Dialog for Web */}
+            <Portal>
+                <Dialog visible={logoutDialogVisible} onDismiss={() => setLogoutDialogVisible(false)}>
+                    <Dialog.Title>Đăng xuất</Dialog.Title>
+                    <Dialog.Content>
+                        <Text>Bạn có chắc muốn đăng xuất?</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => setLogoutDialogVisible(false)}>Hủy</Button>
+                        <Button textColor="#D32F2F" onPress={performLogout}>Đăng xuất</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
+
+            {/* API Config Dialog for Web */}
+            <Portal>
+                <Dialog visible={apiDialogVisible} onDismiss={() => setApiDialogVisible(false)}>
+                    <Dialog.Title>Cấu hình API Server</Dialog.Title>
+                    <Dialog.Content>
+                        <Text style={{ marginBottom: 10 }}>URL hiện tại: {getCurrentBaseUrl()}</Text>
+                        <TextInput
+                            label="IP LAN (VD: 192.168.1.4)"
+                            value={newApiIp}
+                            onChangeText={setNewApiIp}
+                            mode="outlined"
+                        />
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => setApiDialogVisible(false)}>Hủy</Button>
+                        <Button onPress={() => saveApiUrl(newApiIp)}>Lưu</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
         </View>
     );
 }

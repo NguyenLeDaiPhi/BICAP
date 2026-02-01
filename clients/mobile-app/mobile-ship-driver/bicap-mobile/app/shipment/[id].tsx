@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Alert, RefreshControl } from 'react-native';
-import { Button, Text, Card, Divider, List, Appbar, ActivityIndicator, Chip } from 'react-native-paper';
+import { View, ScrollView, StyleSheet, Alert, RefreshControl, Platform } from 'react-native';
+import { Button, Text, Card, Divider, List, Appbar, ActivityIndicator, Chip, Portal, Dialog } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { shipmentService, Shipment, ShipmentStatus } from '../services/shipmentService';
+import { shipmentService, Shipment, ShipmentStatus } from '../../services/shipmentService';
+
+// Web-safe alert helper
+const showAlert = (title: string, message: string) => {
+    if (Platform.OS === 'web') {
+        window.alert(`${title}\n${message}`);
+    } else {
+        Alert.alert(title, message);
+    }
+};
 
 export default function ShipmentDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -13,6 +22,9 @@ export default function ShipmentDetailScreen() {
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    
+    // Dialog state for web
+    const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
 
     // Fetch shipment detail
     const fetchShipmentDetail = async (showLoading = true) => {
@@ -113,31 +125,35 @@ export default function ShipmentDetailScreen() {
 
     // Bắt đầu vận chuyển
     const handleStartTransit = async () => {
-        Alert.alert(
-            'Xác nhận',
-            'Bạn đã sẵn sàng bắt đầu vận chuyển?',
-            [
-                { text: 'Hủy', style: 'cancel' },
-                {
-                    text: 'Bắt đầu',
-                    onPress: async () => {
-                        try {
-                            setIsUpdating(true);
-                            if (id) {
-                                await shipmentService.startTransit(id);
-                                await fetchShipmentDetail(false);
-                                Alert.alert('Thành công', 'Đã bắt đầu vận chuyển!');
-                            }
-                        } catch (error) {
-                            const msg = error instanceof Error ? error.message : 'Đã xảy ra lỗi';
-                            Alert.alert('Lỗi', msg);
-                        } finally {
-                            setIsUpdating(false);
-                        }
-                    },
-                },
-            ]
-        );
+        if (Platform.OS === 'web') {
+            setConfirmDialogVisible(true);
+        } else {
+            Alert.alert(
+                'Xác nhận',
+                'Bạn đã sẵn sàng bắt đầu vận chuyển?',
+                [
+                    { text: 'Hủy', style: 'cancel' },
+                    { text: 'Bắt đầu', onPress: performStartTransit },
+                ]
+            );
+        }
+    };
+
+    const performStartTransit = async () => {
+        setConfirmDialogVisible(false);
+        try {
+            setIsUpdating(true);
+            if (id) {
+                await shipmentService.startTransit(id);
+                await fetchShipmentDetail(false);
+                showAlert('Thành công', 'Đã bắt đầu vận chuyển!');
+            }
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Đã xảy ra lỗi';
+            showAlert('Lỗi', msg);
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
     // Loading state
@@ -310,6 +326,20 @@ export default function ShipmentDetailScreen() {
                     </Button>
                 </View>
             )}
+
+            {/* Confirm Dialog for Web */}
+            <Portal>
+                <Dialog visible={confirmDialogVisible} onDismiss={() => setConfirmDialogVisible(false)}>
+                    <Dialog.Title>Xác nhận</Dialog.Title>
+                    <Dialog.Content>
+                        <Text>Bạn đã sẵn sàng bắt đầu vận chuyển?</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => setConfirmDialogVisible(false)}>Hủy</Button>
+                        <Button onPress={performStartTransit}>Bắt đầu</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
         </View>
     );
 }

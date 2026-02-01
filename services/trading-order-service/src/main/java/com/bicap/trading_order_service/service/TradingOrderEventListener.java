@@ -2,8 +2,8 @@ package com.bicap.trading_order_service.service;
 
 import com.bicap.trading_order_service.entity.FarmManager;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
-import com.bicap.trading_order_service.exception.repository.FarmManagerRepository;
-import com.bicap.trading_order_service.exception.repository.MarketplaceProductRepository;
+import com.bicap.trading_order_service.repository.FarmManagerRepository;
+import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;

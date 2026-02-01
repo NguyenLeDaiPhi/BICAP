@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Image, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { TextInput, Button, Appbar, Text, SegmentedButtons, ActivityIndicator } from 'react-native-paper';
+import { TextInput, Button, Appbar, Text, SegmentedButtons, ActivityIndicator, Portal, Dialog } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { shipmentService } from '../services/shipmentService';
+import { shipmentService } from '../../services/shipmentService';
 
 type ReportType = 'DAMAGE' | 'DELAY' | 'OTHER';
+
+// Web-safe alert helper
+const showAlert = (title: string, message: string, onOk?: () => void) => {
+    if (Platform.OS === 'web') {
+        window.alert(`${title}\n${message}`);
+        if (onOk) onOk();
+    } else {
+        Alert.alert(title, message, onOk ? [{ text: 'OK', onPress: onOk }] : undefined);
+    }
+};
 
 export default function ReportScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,6 +24,9 @@ export default function ReportScreen() {
     const [image, setImage] = useState<string | null>(null);
     const [reportType, setReportType] = useState<ReportType>('DAMAGE');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Success dialog for web
+    const [successDialogVisible, setSuccessDialogVisible] = useState(false);
 
     // Chụp ảnh từ camera
     const takePhoto = async () => {
@@ -21,7 +34,7 @@ export default function ReportScreen() {
             // Xin quyền camera
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
             if (status !== 'granted') {
-                Alert.alert('Thông báo', 'Cần cấp quyền camera để chụp ảnh');
+                showAlert('Thông báo', 'Cần cấp quyền camera để chụp ảnh');
                 return;
             }
 
@@ -37,7 +50,7 @@ export default function ReportScreen() {
             }
         } catch (error) {
             console.error('[Report] Camera error:', error);
-            Alert.alert('Lỗi', 'Không thể mở camera');
+            showAlert('Lỗi', 'Không thể mở camera');
         }
     };
 
@@ -46,7 +59,7 @@ export default function ReportScreen() {
         try {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') {
-                Alert.alert('Thông báo', 'Cần cấp quyền truy cập thư viện ảnh');
+                showAlert('Thông báo', 'Cần cấp quyền truy cập thư viện ảnh');
                 return;
             }
 
@@ -62,7 +75,7 @@ export default function ReportScreen() {
             }
         } catch (error) {
             console.error('[Report] Image picker error:', error);
-            Alert.alert('Lỗi', 'Không thể chọn ảnh');
+            showAlert('Lỗi', 'Không thể chọn ảnh');
         }
     };
 
@@ -75,12 +88,12 @@ export default function ReportScreen() {
     const submitReport = async () => {
         // Validate
         if (!description.trim()) {
-            Alert.alert('Thiếu thông tin', 'Vui lòng nhập mô tả sự cố');
+            showAlert('Thiếu thông tin', 'Vui lòng nhập mô tả sự cố');
             return;
         }
 
         if (description.trim().length < 10) {
-            Alert.alert('Thiếu thông tin', 'Mô tả sự cố cần ít nhất 10 ký tự');
+            showAlert('Thiếu thông tin', 'Mô tả sự cố cần ít nhất 10 ký tự');
             return;
         }
 
@@ -96,19 +109,18 @@ export default function ReportScreen() {
                 );
             }
 
-            Alert.alert(
-                "Gửi thành công!", 
-                "Báo cáo của bạn đã được ghi nhận. Chúng tôi sẽ xử lý trong thời gian sớm nhất.",
-                [
-                    {
-                        text: "OK",
-                        onPress: () => router.back()
-                    }
-                ]
-            );
+            if (Platform.OS === 'web') {
+                setSuccessDialogVisible(true);
+            } else {
+                Alert.alert(
+                    "Gửi thành công!", 
+                    "Báo cáo của bạn đã được ghi nhận. Chúng tôi sẽ xử lý trong thời gian sớm nhất.",
+                    [{ text: "OK", onPress: () => router.back() }]
+                );
+            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Đã xảy ra lỗi';
-            Alert.alert("Lỗi", `Không thể gửi báo cáo: ${errorMessage}`);
+            showAlert("Lỗi", `Không thể gửi báo cáo: ${errorMessage}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -236,6 +248,22 @@ export default function ReportScreen() {
                     </Button>
                 </View>
             </KeyboardAvoidingView>
+
+            {/* Success Dialog for Web */}
+            <Portal>
+                <Dialog visible={successDialogVisible} onDismiss={() => {}}>
+                    <Dialog.Title>Gửi thành công!</Dialog.Title>
+                    <Dialog.Content>
+                        <Text>Báo cáo của bạn đã được ghi nhận. Chúng tôi sẽ xử lý trong thời gian sớm nhất.</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => {
+                            setSuccessDialogVisible(false);
+                            router.back();
+                        }}>OK</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
         </View>
     );
 }

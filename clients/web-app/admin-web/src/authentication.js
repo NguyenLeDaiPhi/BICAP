@@ -146,7 +146,7 @@ app.post('/login', async(req, res) => {
     }
 });
 
-app.post('/logout', (req, res) => {
+app.get('/logout', (req, res) => {
     clearAuthCookie(res);
     res.redirect('/');
 });

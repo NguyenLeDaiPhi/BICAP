@@ -3,9 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { PaperProvider, MD3LightTheme } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SplashScreen from 'expo-splash-screen';
+import { authService, DRIVER_ROLE } from '../services/authService';
 
 // Giữ splash screen hiển thị cho đến khi app sẵn sàng
 SplashScreen.preventAutoHideAsync();
@@ -30,28 +31,51 @@ export const AuthContext = React.createContext<{
     signOut: () => void;
     isLoading: boolean;
     userToken: string | null;
+    isDriver: boolean;
 }>({
     signIn: () => {},
     signOut: () => {},
     isLoading: true,
     userToken: null,
+    isDriver: false,
 });
 
 export default function RootLayout() {
     const [isLoading, setIsLoading] = useState(true);
     const [userToken, setUserToken] = useState<string | null>(null);
+    const [isDriver, setIsDriver] = useState(false);
     const router = useRouter();
     const segments = useSegments();
 
-    // Kiểm tra auth state khi app khởi động
+    // Kiểm tra auth state và role khi app khởi động
     useEffect(() => {
         const bootstrapAsync = async () => {
             try {
                 // Lấy token từ storage
                 const token = await AsyncStorage.getItem('userToken');
-                setUserToken(token);
+                
+                if (token) {
+                    // Validate token and check driver role
+                    const hasAccess = await authService.validateDriverAccess();
+                    
+                    if (hasAccess) {
+                        setUserToken(token);
+                        setIsDriver(true);
+                    } else {
+                        // Token invalid or user is not a driver - clear auth data
+                        console.log('[Auth] Invalid token or non-driver user, clearing auth data');
+                        await authService.logout();
+                        setUserToken(null);
+                        setIsDriver(false);
+                    }
+                } else {
+                    setUserToken(null);
+                    setIsDriver(false);
+                }
             } catch (error) {
                 console.error('[Auth] Error loading token:', error);
+                setUserToken(null);
+                setIsDriver(false);
             } finally {
                 setIsLoading(false);
                 // Ẩn splash screen
@@ -62,7 +86,7 @@ export default function RootLayout() {
         bootstrapAsync();
     }, []);
 
-    // Xử lý navigation dựa trên auth state
+    // Xử lý navigation dựa trên auth state và role
     useEffect(() => {
         if (isLoading) return;
 
@@ -70,32 +94,50 @@ export default function RootLayout() {
         const inAuthGroup = currentSegment === '(auth)' || currentSegment === 'login';
         const inTabsGroup = currentSegment === '(tabs)';
 
-        if (!userToken && !inAuthGroup) {
-            // Chưa đăng nhập và không ở auth screens -> redirect to login
-            // Có thể uncomment nếu cần bắt buộc đăng nhập
-            // router.replace('/login');
-        } else if (userToken && inAuthGroup) {
-            // Đã đăng nhập nhưng đang ở auth screens -> redirect to main
-            router.replace('/(tabs)');
+        // Must have token AND be a driver to access main app
+        if (!userToken || !isDriver) {
+            if (!inAuthGroup && currentSegment !== 'login') {
+                // Not logged in or not a driver -> redirect to login
+                router.replace('/login');
+            }
+        } else if (userToken && isDriver && (inAuthGroup || currentSegment === 'login')) {
+            // Logged in as driver but still on login screen -> go to dashboard
+            router.replace('/(tabs)/dashboard');
         }
-    }, [userToken, segments, isLoading]);
+    }, [userToken, isDriver, segments, isLoading]);
 
     // Auth context functions
     const authContext = React.useMemo(
         () => ({
             signIn: async (token: string) => {
-                await AsyncStorage.setItem('userToken', token);
-                setUserToken(token);
+                // Validate driver role before setting token
+                const hasAccess = await authService.validateDriverAccess();
+                if (hasAccess) {
+                    await AsyncStorage.setItem('userToken', token);
+                    setUserToken(token);
+                    setIsDriver(true);
+                } else {
+                    Alert.alert(
+                        'Không có quyền truy cập',
+                        'Tài khoản không có quyền truy cập ứng dụng tài xế.',
+                        [{ text: 'OK' }]
+                    );
+                    await authService.logout();
+                    setUserToken(null);
+                    setIsDriver(false);
+                }
             },
             signOut: async () => {
-                await AsyncStorage.multiRemove(['userToken', 'refreshToken', 'userData']);
+                await authService.logout();
                 setUserToken(null);
-                router.replace('/');
+                setIsDriver(false);
+                router.replace('/login');
             },
             isLoading,
             userToken,
+            isDriver,
         }),
-        [isLoading, userToken]
+        [isLoading, userToken, isDriver]
     );
 
     // Loading screen

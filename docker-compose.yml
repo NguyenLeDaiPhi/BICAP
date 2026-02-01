@@ -537,6 +537,8 @@ services:
       - bicap-global-net
     volumes:
       - ./api-gateway/kong.yml:/usr/local/kong/declarative/kong.yml
+      - kong-logs:/var/log/kong
 
 volumes:
   minio-data:
+  kong-logs:

@@ -3,8 +3,8 @@ package com.bicap.trading_order_service.service;
 import com.bicap.trading_order_service.dto.CreateFeedbackRequest;
 import com.bicap.trading_order_service.entity.Order;
 import com.bicap.trading_order_service.entity.OrderFeedback;
-import com.bicap.trading_order_service.exception.repository.OrderFeedbackRepository;
-import com.bicap.trading_order_service.exception.repository.OrderRepository;
+import com.bicap.trading_order_service.repository.OrderFeedbackRepository;
+import com.bicap.trading_order_service.repository.OrderRepository;
 
 import org.springframework.stereotype.Service;
 

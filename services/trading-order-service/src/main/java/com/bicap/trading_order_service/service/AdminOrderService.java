@@ -3,7 +3,7 @@ package com.bicap.trading_order_service.service;
 import com.bicap.trading_order_service.dto.OrderResponse;
 import com.bicap.trading_order_service.dto.OrderStatisticsDTO;
 import com.bicap.trading_order_service.entity.Order;
-import com.bicap.trading_order_service.exception.repository.OrderRepository;
+import com.bicap.trading_order_service.repository.OrderRepository;
 
 import org.springframework.stereotype.Service;
 

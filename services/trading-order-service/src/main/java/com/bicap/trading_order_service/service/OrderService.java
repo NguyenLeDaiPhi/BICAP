@@ -10,8 +10,8 @@ import com.bicap.trading_order_service.entity.OrderItem;
 import com.bicap.trading_order_service.event.OrderCompletedEvent;
 import com.bicap.trading_order_service.event.OrderCreatedEvent;
 import com.bicap.trading_order_service.event.OrderConfirmedEvent;
-import com.bicap.trading_order_service.exception.repository.MarketplaceProductRepository;
-import com.bicap.trading_order_service.exception.repository.OrderRepository;
+import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
+import com.bicap.trading_order_service.repository.OrderRepository;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;

@@ -4,7 +4,7 @@ import com.bicap.trading_order_service.dto.ProductResponseDTO;
 import com.bicap.trading_order_service.dto.BanProductRequestDTO;
 import com.bicap.trading_order_service.dto.ProductStatisticsDTO;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
-import com.bicap.trading_order_service.exception.repository.MarketplaceProductRepository;
+import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.entity.FarmManager;
 import com.bicap.trading_order_service.service.IProductService;
 import io.swagger.v3.oas.annotations.Operation;

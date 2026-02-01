@@ -1,13 +1,22 @@
 // app/login.tsx
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image, Alert } from 'react-native';
 import { TextInput, Button, Text, HelperText, ActivityIndicator } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-import { authService } from './services/authService';
-import { setCustomBaseUrl, API_CONFIG } from './services/axiosInstance';
+import { authService, DRIVER_ROLE } from '../services/authService';
+import { setCustomBaseUrl, API_CONFIG } from '../services/axiosInstance';
+import { AuthContext } from './_layout';
+
+// Web alert helper
+const showWebAlert = (message: string) => {
+    if (typeof window !== 'undefined' && window.alert) {
+        window.alert(message);
+    }
+};
 
 export default function LoginScreen() {
     const router = useRouter();
+    const { signIn } = useContext(AuthContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -34,19 +43,44 @@ export default function LoginScreen() {
         return Object.keys(newErrors).length === 0;
     };
 
-    // Handle login
+    // Handle login with role checking
     const handleLogin = async () => {
         if (!validateForm()) return;
 
         setIsLoading(true);
         try {
-            await authService.login(email.trim(), password);
+            // authService.login() now validates ROLE_DELIVERYDRIVER
+            const data = await authService.login(email.trim(), password);
             
-            // Đăng nhập thành công -> navigate to dashboard
-            router.replace('/(tabs)');
+            console.log('[Login] Success! Updating auth state...');
+            
+            // Update auth context state - this will trigger navigation in _layout.tsx
+            await signIn(data.token);
+            
+            // Show success message on mobile only (navigation handled by AuthContext)
+            if (Platform.OS !== 'web') {
+                Alert.alert(
+                    'Đăng nhập thành công',
+                    `Chào mừng ${data.user?.fullName || 'Tài xế'}!`
+                );
+            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Đăng nhập thất bại';
-            Alert.alert('Lỗi đăng nhập', errorMessage);
+            console.error('[Login] Error:', errorMessage);
+            
+            // Show different alerts based on error type
+            if (Platform.OS === 'web') {
+                // Use window.alert on web
+                showWebAlert(errorMessage);
+            } else if (errorMessage.includes('quyền truy cập') || errorMessage.includes('tài xế')) {
+                Alert.alert(
+                    'Không có quyền truy cập',
+                    errorMessage,
+                    [{ text: 'Đã hiểu' }]
+                );
+            } else {
+                Alert.alert('Lỗi đăng nhập', errorMessage);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -73,11 +107,6 @@ export default function LoginScreen() {
             'plain-text',
             API_CONFIG.LAN_IP
         );
-    };
-
-    // Skip login for testing
-    const handleSkipLogin = () => {
-        router.replace('/(tabs)');
     };
 
     return (
@@ -159,7 +188,10 @@ export default function LoginScreen() {
 
                     <Button
                         mode="text"
-                        onPress={() => Alert.alert('Thông báo', 'Vui lòng liên hệ quản trị viên để được hỗ trợ.')}
+                        onPress={() => {
+                            const msg = 'Vui lòng liên hệ quản trị viên để được hỗ trợ.';
+                            Platform.OS === 'web' ? showWebAlert(msg) : Alert.alert('Thông báo', msg);
+                        }}
                         style={styles.forgotButton}
                     >
                         Quên mật khẩu?
@@ -170,14 +202,6 @@ export default function LoginScreen() {
                 <View style={styles.footer}>
                     {__DEV__ && (
                         <>
-                            <Button
-                                mode="outlined"
-                                onPress={handleSkipLogin}
-                                style={styles.devButton}
-                                icon="skip-next"
-                            >
-                                [DEV] Bỏ qua đăng nhập
-                            </Button>
                             <Button
                                 mode="text"
                                 onPress={handleConfigApi}
