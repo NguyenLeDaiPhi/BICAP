@@ -1,9 +1,9 @@
 package com.bicap.trading_order_service.service.impl;
 
 import com.bicap.trading_order_service.dto.DashboardStatsDTO;
-import com.bicap.trading_order_service.repository.CategoryRepository;
-import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
-import com.bicap.trading_order_service.repository.OrderRepository;
+import com.bicap.trading_order_service.exception.repository.CategoryRepository;
+import com.bicap.trading_order_service.exception.repository.MarketplaceProductRepository;
+import com.bicap.trading_order_service.exception.repository.OrderRepository;
 import com.bicap.trading_order_service.service.IDashboardService;
 import org.springframework.stereotype.Service;
 

@@ -4,8 +4,8 @@ import com.bicap.trading_order_service.dto.CreateMarketplaceProductRequest;
 import com.bicap.trading_order_service.dto.ProductResponse;
 import com.bicap.trading_order_service.entity.FarmManager;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
-import com.bicap.trading_order_service.repository.FarmManagerRepository;
-import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
+import com.bicap.trading_order_service.exception.repository.FarmManagerRepository;
+import com.bicap.trading_order_service.exception.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.service.IMarketplaceProductService;
 
 import org.springframework.stereotype.Service;

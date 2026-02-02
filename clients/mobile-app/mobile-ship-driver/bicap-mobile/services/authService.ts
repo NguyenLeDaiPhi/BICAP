@@ -120,14 +120,21 @@ export const authService = {
         try {
             // Endpoint: POST /api/auth/login (Kong route tới auth-service)
             // auth-service returns ResponseEntity.ok(token) where token is a plain string
-            const response = await axiosInstance.post<string>('/api/auth/login', { 
+            const response = await axiosInstance.post<string | AuthResponse>('/api/auth/login', { 
                 email, 
                 password 
             });
             
-            // Response.data is a string token, not an object
+            // Response.data can be a string token or an AuthResponse object
             // auth-service returns ResponseEntity.ok(token) where token is a plain string
-            const token = typeof response.data === 'string' ? response.data : response.data?.token || response.data;
+            let token: string;
+            if (typeof response.data === 'string') {
+                token = response.data;
+            } else if (response.data && typeof response.data === 'object' && 'token' in response.data) {
+                token = response.data.token;
+            } else {
+                throw new Error('Invalid response format from server');
+            }
             
             if (!token || typeof token !== 'string') {
                 console.error('[AuthService] Invalid token received:', typeof response.data, response.data);

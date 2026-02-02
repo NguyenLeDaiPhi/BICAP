@@ -2,12 +2,10 @@ package com.bicap.trading_order_service.service.impl;
 
 import com.bicap.trading_order_service.dto.ProductResponseDTO;
 import com.bicap.trading_order_service.dto.BanProductRequestDTO;
-import com.bicap.trading_order_service.dto.CategoryResponseDTO;
-import com.bicap.trading_order_service.entity.Category;
 import com.bicap.trading_order_service.entity.FarmManager;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
-import com.bicap.trading_order_service.repository.CategoryRepository;
-import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
+import com.bicap.trading_order_service.exception.repository.CategoryRepository;
+import com.bicap.trading_order_service.exception.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.service.IProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

@@ -6,7 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import service đã viết ở bước trước (nếu chưa có hãy xem lại phần authService)
-import { authService } from '../services/authService'; 
+import { authService } from '../../services/authService'; 
 
 export default function LoginScreen() {
   const router = useRouter();
