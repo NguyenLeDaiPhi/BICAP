@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
 import { CameraView, Camera } from "expo-camera";
-import { Button, Text, IconButton } from 'react-native-paper';
+import { Button, Text, IconButton, Portal, Dialog, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { shipmentService, ShipmentStatus } from '../services/shipmentService';
+import { shipmentService, ShipmentStatus } from '../../services/shipmentService';
 
 export default function QRScanScreen() {
     const { type, shipmentId } = useLocalSearchParams<{ type: string; shipmentId: string }>();
@@ -11,98 +11,102 @@ export default function QRScanScreen() {
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const [scanned, setScanned] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    
+    // Dialog states for web
+    const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
+    const [successDialogVisible, setSuccessDialogVisible] = useState(false);
+    const [scannedData, setScannedData] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+    
+    // Manual QR input for web (since camera may not work)
+    const [manualQrInput, setManualQrInput] = useState('');
+    const [showManualInput, setShowManualInput] = useState(false);
+
+    const isPickup = type === 'pickup';
+    const actionText = isPickup ? 'Nhận hàng' : 'Giao hàng';
 
     useEffect(() => {
         (async () => {
-            const { status } = await Camera.requestCameraPermissionsAsync();
-            setHasPermission(status === 'granted');
+            if (Platform.OS === 'web') {
+                // On web, show manual input option
+                setShowManualInput(true);
+                setHasPermission(false);
+            } else {
+                const { status } = await Camera.requestCameraPermissionsAsync();
+                setHasPermission(status === 'granted');
+            }
         })();
     }, []);
 
-    const handleBarCodeScanned = async ({ type: barcodeType, data }: { type: string; data: string }) => {
-        if (scanned || isProcessing) return;
-        
-        setScanned(true);
-        setIsProcessing(true);
-
-        try {
-            // Xác định action dựa trên type
-            const isPickup = type === 'pickup';
-            const status: ShipmentStatus = isPickup ? 'PICKED_UP' : 'DELIVERED';
-            const actionText = isPickup ? 'Nhận hàng' : 'Giao hàng';
-            
-            // Verify QR code với backend (optional)
-            // const isValid = await shipmentService.verifyQRCode(data, shipmentId);
-            // if (!isValid) {
-            //     Alert.alert('Lỗi', 'Mã QR không hợp lệ cho đơn hàng này');
-            //     setScanned(false);
-            //     setIsProcessing(false);
-            //     return;
-            // }
-
-            // Hiển thị dialog xác nhận
+    const processQrCode = async (data: string) => {
+        if (Platform.OS === 'web') {
+            setScannedData(data);
+            setConfirmDialogVisible(true);
+        } else {
+            // Mobile - use Alert
             Alert.alert(
                 "Xác nhận quét mã!",
                 `Mã kiện hàng: ${data}\nLoại: ${actionText}\nĐơn hàng: #${shipmentId}`,
                 [
-                    {
-                        text: "Xác nhận & Cập nhật",
-                        onPress: async () => {
-                            try {
-                                // Gọi API cập nhật trạng thái
-                                if (shipmentId) {
-                                    await shipmentService.updateStatus(shipmentId, status, data);
-                                }
-                                
-                                // Thông báo thành công và quay về
-                                Alert.alert(
-                                    "Thành công!", 
-                                    `Đã ${isPickup ? 'xác nhận nhận hàng' : 'xác nhận giao hàng thành công'}!`,
-                                    [
-                                        {
-                                            text: "OK",
-                                            onPress: () => {
-                                                // Quay về màn hình trước
-                                                router.back();
-                                            }
-                                        }
-                                    ]
-                                );
-                            } catch (error) {
-                                const errorMessage = error instanceof Error ? error.message : 'Đã xảy ra lỗi';
-                                Alert.alert(
-                                    "Lỗi", 
-                                    `Không thể cập nhật trạng thái: ${errorMessage}`,
-                                    [
-                                        {
-                                            text: "OK",
-                                            onPress: () => {
-                                                setScanned(false);
-                                                setIsProcessing(false);
-                                            }
-                                        }
-                                    ]
-                                );
-                            }
-                        }
-                    },
-                    { 
-                        text: "Quét lại", 
-                        onPress: () => {
-                            setScanned(false);
-                            setIsProcessing(false);
-                        }, 
-                        style: "cancel" 
-                    }
+                    { text: "Xác nhận & Cập nhật", onPress: () => confirmAndUpdate(data) },
+                    { text: "Quét lại", onPress: resetScan, style: "cancel" }
                 ]
             );
+        }
+    };
+
+    const confirmAndUpdate = async (data: string) => {
+        setConfirmDialogVisible(false);
+        try {
+            setIsProcessing(true);
+            const status: ShipmentStatus = isPickup ? 'PICKED_UP' : 'DELIVERED';
+            
+            if (shipmentId) {
+                await shipmentService.updateStatus(shipmentId, status, data);
+            }
+            
+            const msg = `Đã ${isPickup ? 'xác nhận nhận hàng' : 'xác nhận giao hàng thành công'}!`;
+            
+            if (Platform.OS === 'web') {
+                setSuccessMessage(msg);
+                setSuccessDialogVisible(true);
+            } else {
+                Alert.alert("Thành công!", msg, [{ text: "OK", onPress: () => router.back() }]);
+            }
         } catch (error) {
-            console.error('[QRScan] Error:', error);
-            Alert.alert("Lỗi", "Đã xảy ra lỗi khi xử lý mã QR");
-            setScanned(false);
+            const errorMessage = error instanceof Error ? error.message : 'Đã xảy ra lỗi';
+            if (Platform.OS === 'web') {
+                window.alert(`Lỗi: Không thể cập nhật trạng thái: ${errorMessage}`);
+            } else {
+                Alert.alert("Lỗi", `Không thể cập nhật trạng thái: ${errorMessage}`, [{ text: "OK", onPress: resetScan }]);
+            }
+            resetScan();
         } finally {
             setIsProcessing(false);
         }
+    };
+
+    const resetScan = () => {
+        setScanned(false);
+        setIsProcessing(false);
+        setManualQrInput('');
+    };
+
+    const handleBarCodeScanned = async ({ type: barcodeType, data }: { type: string; data: string }) => {
+        if (scanned || isProcessing) return;
+        setScanned(true);
+        setIsProcessing(true);
+        await processQrCode(data);
+    };
+
+    const handleManualSubmit = async () => {
+        if (!manualQrInput.trim()) {
+            window.alert('Vui lòng nhập mã QR');
+            return;
+        }
+        setScanned(true);
+        setIsProcessing(true);
+        await processQrCode(manualQrInput.trim());
     };
 
     // Loading permission
@@ -115,22 +119,80 @@ export default function QRScanScreen() {
         );
     }
 
-    // No permission
+    // No permission - show manual input for web
     if (hasPermission === false) {
         return (
             <View style={[styles.container, styles.centered]}>
                 <IconButton icon="camera-off" iconColor="white" size={50} />
-                <Text style={styles.permissionText}>Không có quyền truy cập camera</Text>
-                <Text style={styles.permissionSubtext}>
-                    Vui lòng cấp quyền camera trong Cài đặt để sử dụng tính năng quét QR
+                <Text style={styles.permissionText}>
+                    {Platform.OS === 'web' ? '📱 Camera không khả dụng trên Web' : 'Không có quyền truy cập camera'}
                 </Text>
+                <Text style={styles.permissionSubtext}>
+                    {Platform.OS === 'web' 
+                        ? 'Vui lòng nhập mã QR thủ công hoặc sử dụng ứng dụng mobile'
+                        : 'Vui lòng cấp quyền camera trong Cài đặt để sử dụng tính năng quét QR'}
+                </Text>
+                
+                {Platform.OS === 'web' && (
+                    <View style={{ width: '80%', maxWidth: 300, marginTop: 20 }}>
+                        <TextInput
+                            label="Nhập mã QR thủ công"
+                            value={manualQrInput}
+                            onChangeText={setManualQrInput}
+                            mode="outlined"
+                            style={{ backgroundColor: 'white', marginBottom: 15 }}
+                        />
+                        <Button 
+                            mode="contained" 
+                            onPress={handleManualSubmit}
+                            loading={isProcessing}
+                            disabled={isProcessing}
+                            style={{ marginBottom: 10 }}
+                        >
+                            Xác nhận
+                        </Button>
+                    </View>
+                )}
+                
                 <Button 
-                    mode="contained" 
+                    mode="outlined" 
                     onPress={() => router.back()}
-                    style={{ marginTop: 20 }}
+                    textColor="white"
+                    style={{ marginTop: 10, borderColor: 'white' }}
                 >
                     Quay lại
                 </Button>
+
+                {/* Dialogs for web */}
+                <Portal>
+                    <Dialog visible={confirmDialogVisible} onDismiss={() => setConfirmDialogVisible(false)}>
+                        <Dialog.Title>Xác nhận quét mã!</Dialog.Title>
+                        <Dialog.Content>
+                            <Text>Mã kiện hàng: {scannedData}</Text>
+                            <Text>Loại: {actionText}</Text>
+                            <Text>Đơn hàng: #{shipmentId}</Text>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <Button onPress={resetScan}>Nhập lại</Button>
+                            <Button onPress={() => confirmAndUpdate(scannedData)}>Xác nhận & Cập nhật</Button>
+                        </Dialog.Actions>
+                    </Dialog>
+                </Portal>
+
+                <Portal>
+                    <Dialog visible={successDialogVisible} onDismiss={() => {}}>
+                        <Dialog.Title>Thành công!</Dialog.Title>
+                        <Dialog.Content>
+                            <Text>{successMessage}</Text>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <Button onPress={() => {
+                                setSuccessDialogVisible(false);
+                                router.back();
+                            }}>OK</Button>
+                        </Dialog.Actions>
+                    </Dialog>
+                </Portal>
             </View>
         );
     }

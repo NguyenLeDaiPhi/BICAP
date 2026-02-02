@@ -3,8 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl, Dimensions } from 'react-native';
 import { Card, Text, Title, Chip, ActivityIndicator, Appbar } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { shipmentService, Shipment } from '../services/shipmentService';
-import { authService } from '../services/authService';
+import { shipmentService, Shipment } from '../../services/shipmentService';
+import { authService } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 

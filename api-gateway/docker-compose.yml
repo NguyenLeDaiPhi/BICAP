@@ -16,9 +16,13 @@ services:
       - "8001:8001"
     volumes:
       - ./kong.yml:/usr/local/kong/declarative/kong.yml
+      - kong-logs:/var/log/kong
     networks:
       - kong-net
 
 networks:
   kong-net:
     driver: bridge
+
+volumes:
+  kong-logs:

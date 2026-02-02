@@ -6,7 +6,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN rm -f package-lock.json
+# 'npm install' will use package-lock.json for a reproducible build
+# and install devDependencies (like nodemon) by default.
 RUN npm install
 
 # Copy all files

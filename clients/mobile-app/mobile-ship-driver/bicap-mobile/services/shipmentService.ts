@@ -144,42 +144,23 @@ export const shipmentService = {
     },
 
     /**
-     * Gửi báo cáo sự cố (Có hỗ trợ upload ảnh)
-     * Kong route: POST /api/reports/admin (hoặc endpoint tương ứng)
+     * Gửi báo cáo sự cố từ tài xế
+     * Kong route: POST /api/reports/driver/submit
      */
     reportIssue: async (
-        shipmentId: string | number, 
+        shipmentId: string | number | null, 
+        title: string,
         description: string, 
-        imageUri?: string
+        reportType: 'INCIDENT' | 'DELAY' | 'COMPLETION' | 'GENERAL' = 'GENERAL'
     ): Promise<ShipmentReport> => {
         try {
-            const formData = new FormData();
-            formData.append('shipmentId', String(shipmentId));
-            formData.append('description', description);
-            
-            // Xử lý upload ảnh nếu có
-            if (imageUri) {
-                const filename = imageUri.split('/').pop() || 'image.jpg';
-                const match = /\.(\w+)$/.exec(filename);
-                const type = match ? `image/${match[1]}` : 'image/jpeg';
-                
-                // React Native FormData format
-                formData.append('file', {
-                    uri: imageUri,
-                    name: filename,
-                    type: type,
-                } as unknown as Blob);
-            }
-
             const response = await axiosInstance.post<ShipmentReport>(
-                '/api/reports/admin',
-                formData,
+                '/api/reports/driver/submit',
                 {
-                    headers: { 
-                        'Content-Type': 'multipart/form-data' 
-                    },
-                    // Transform request để xử lý FormData đúng cách
-                    transformRequest: (data) => data,
+                    shipmentId: shipmentId ? String(shipmentId) : null,
+                    title,
+                    description,
+                    reportType
                 }
             );
             return response.data;
@@ -187,6 +168,21 @@ export const shipmentService = {
             const axiosError = error as AxiosError<{ message?: string }>;
             console.error('[ShipmentService] reportIssue error:', axiosError.message);
             throw new Error(axiosError.response?.data?.message || 'Không thể gửi báo cáo sự cố');
+        }
+    },
+
+    /**
+     * Lấy danh sách báo cáo của tài xế
+     * Kong route: GET /api/reports/driver/my-reports
+     */
+    getMyReports: async (): Promise<ShipmentReport[]> => {
+        try {
+            const response = await axiosInstance.get<ShipmentReport[]>('/api/reports/driver/my-reports');
+            return response.data;
+        } catch (error) {
+            const axiosError = error as AxiosError<{ message?: string }>;
+            console.error('[ShipmentService] getMyReports error:', axiosError.message);
+            throw new Error(axiosError.response?.data?.message || 'Không thể lấy danh sách báo cáo');
         }
     },
 
@@ -211,11 +207,11 @@ export const shipmentService = {
      */
     getDeliveryHistory: async (): Promise<Shipment[]> => {
         try {
-            // Lấy shipments với status COMPLETED hoặc DELIVERED
-            const response = await axiosInstance.get<Shipment[]>('/api/shipments/my-shipments', {
-                params: { status: 'COMPLETED' }
-            });
-            return response.data;
+            // Lấy tất cả shipments và filter theo status
+            const allShipments = await shipmentService.getMyShipments();
+            return allShipments.filter(s => 
+                s.status === 'COMPLETED' || s.status === 'DELIVERED'
+            );
         } catch (error) {
             const axiosError = error as AxiosError<{ message?: string }>;
             console.error('[ShipmentService] getDeliveryHistory error:', axiosError.message);

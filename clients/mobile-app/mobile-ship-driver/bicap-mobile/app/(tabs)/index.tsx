@@ -4,7 +4,7 @@ import { View, FlatList, StyleSheet, RefreshControl, Alert } from 'react-native'
 import { Card, Text, Badge, Button, Title, ActivityIndicator, Chip } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { shipmentService, Shipment, ShipmentStatus } from '../services/shipmentService';
+import { shipmentService, Shipment, ShipmentStatus } from '../../services/shipmentService';
 
 export default function DriverHomeScreen() {
     const router = useRouter();

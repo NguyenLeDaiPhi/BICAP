@@ -4,7 +4,7 @@ import { View, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { List, Divider, Text, Appbar, Chip, ActivityIndicator, Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { shipmentService, Shipment, ShipmentStatus } from '../services/shipmentService';
+import { shipmentService, Shipment, ShipmentStatus } from '../../services/shipmentService';
 
 export default function HistoryScreen() {
     const router = useRouter();
