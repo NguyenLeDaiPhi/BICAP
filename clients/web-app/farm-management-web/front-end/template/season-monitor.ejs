@@ -376,7 +376,7 @@
       const cookies = document.cookie.split(';');
       for (let cookie of cookies) {
         const [name, value] = cookie.trim().split('=');
-        if (name === 'auth_token') {
+        if (name === 'farm_token' || name === 'auth_token') { // legacy fallback
           return value;
         }
       }

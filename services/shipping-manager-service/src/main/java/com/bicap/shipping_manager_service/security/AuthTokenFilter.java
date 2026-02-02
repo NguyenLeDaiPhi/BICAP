@@ -1,14 +1,14 @@
 package com.bicap.shipping_manager_service.security;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.security.Key;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,8 +25,10 @@ import java.util.stream.Collectors;
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
 
-    @Value("${bicap.app.jwtSecret}")
-    private String jwtSecret;
+    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @Override
     protected void doFilterInternal(
@@ -38,12 +39,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         
         try {
             String jwt = parseJwt(request);
-            if (jwt != null && validateJwtToken(jwt)) {
-                Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(getSigningKey())
-                        .build()
-                        .parseClaimsJws(jwt)
-                        .getBody();
+            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+                Claims claims = jwtUtils.getClaimsFromJwtToken(jwt);
 
                 String username = claims.getSubject();
                 
@@ -66,14 +63,18 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                         .collect(Collectors.toList())
                     : Collections.emptyList();
 
+                logger.info("JWT Auth - Authorities: " + authorities + " | Request URI: " + request.getRequestURI());
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         username, null, authorities);
                 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                logger.warn("JWT token missing or invalid for request: " + request.getRequestURI());
             }
         } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}", e);
+            logger.error("Cannot set user authentication for URI: " + request.getRequestURI() + " | Error: " + e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);
@@ -84,21 +85,19 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
             return headerAuth.substring(7);
         }
-        return null;
-    }
-
-    private boolean validateJwtToken(String authToken) {
-        try {
-            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(authToken);
-            return true;
-        } catch (Exception e) {
-            logger.error("Invalid JWT token: {}", e);
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                String name = cookie.getName();
+                if ("admin_token".equals(name) ||
+                        "retailer_token".equals(name) ||
+                        "farm_token".equals(name) ||
+                        "shipping_manager_token".equals(name) ||
+                        "shipping_driver_token".equals(name) ||
+                        "auth_token".equals(name)) { // legacy fallback
+                    return cookie.getValue();
+                }
+            }
         }
-        return false;
-    }
-
-    private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return null;
     }
 }

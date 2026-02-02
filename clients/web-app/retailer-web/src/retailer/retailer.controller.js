@@ -3,7 +3,7 @@ const orderService = require("./order.service");
 
 const showMarketplace = async (req, res) => {
   const keyword = req.query.name || "";
-  const token = req.cookies.auth_token;
+  const token = req.cookies.retailer_token || req.cookies.auth_token; // legacy fallback
   const products = await marketplaceService.getMarketplaceProducts(
     keyword,
     token
@@ -18,7 +18,7 @@ const showMarketplace = async (req, res) => {
 };
 
 const showMyOrders = async (req, res) => {
-  const token = req.cookies.auth_token;
+  const token = req.cookies.retailer_token || req.cookies.auth_token; // legacy fallback
 
   // ✅ KHÔNG TRUYỀN userId
   const orders = await orderService.getMyOrders(token);
@@ -34,7 +34,7 @@ const showMyOrders = async (req, res) => {
 };
 
 const showOrderDetail = async (req, res) => {
-  const token = req.cookies.auth_token;
+  const token = req.cookies.retailer_token || req.cookies.auth_token; // legacy fallback
   const order = await orderService.getOrderDetail(req.params.id, token);
 
   res.render("order-detail", {

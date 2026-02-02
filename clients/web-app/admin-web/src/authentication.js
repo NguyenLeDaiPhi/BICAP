@@ -8,9 +8,12 @@ const axios = require('axios');
 require('dotenv').config({ path: path.resolve(__dirname, '..', 'config', '.env') });
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
+// Per-role JWT secret for admin (must match auth-service bicap.app.jwtSecret.admin)
+const JWT_SECRET_STRING = process.env.JWT_SECRET_ADMIN || 'YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 const APPLICATION_ROLE = 'ROLE_ADMIN';
+const CLIENT_ID = 'admin';
+const COOKIE_NAME = 'admin_token';
 const app = express();
 const port = 3001;
 
@@ -25,7 +28,7 @@ app.use(cookieParser());
 
 // Set the clear authentication cookie for user when logout
 const clearAuthCookie = (res) => {
-    res.setHeader('Set-Cookie', serialize('auth_token', '', {
+    res.setHeader('Set-Cookie', serialize(COOKIE_NAME, '', {
         httpOnly: true, 
         secure: process.env.NODE_ENV === 'production', 
         sameSite: 'strict',
@@ -35,7 +38,7 @@ const clearAuthCookie = (res) => {
 }
 
 const requireAuth = (req, res, next) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
 
     if (!token) {
         return res.redirect('/login');
@@ -55,8 +58,9 @@ const requireAuth = (req, res, next) => {
 app.get('/', (req, res) => {
     let user = null;
     try {
-        if (req.cookies.auth_token) {
-            const decoded = jwt.verify(req.cookies.auth_token, JWT_SECRET);
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
+        if (token) {
+            const decoded = jwt.verify(token, JWT_SECRET);
             user = {
                 sub: decoded.sub,
                 username: decoded.sub,
@@ -81,7 +85,7 @@ app.post('/login', async(req, res) => {
         console.log('AUTH_SERVICE_URL:', AUTH_SERVICE_URL);
         console.log('Full URL:', `${AUTH_SERVICE_URL}/login`);
         
-        const apiResponse = await axios.post(`${AUTH_SERVICE_URL}/login`, { email, password }, {
+        const apiResponse = await axios.post(`${AUTH_SERVICE_URL}/login`, { email, password, clientId: CLIENT_ID }, {
             headers: { 'Content-Type': 'application/json' }
         });
 
@@ -108,7 +112,7 @@ app.post('/login', async(req, res) => {
             return res.status(403).render('login', { error: 'Bạn không có quyền truy cập Admin!', success: null });
         }
 
-        const cookie = serialize('auth_token', accessToken, {
+        const cookie = serialize(COOKIE_NAME, accessToken, {
             httpOnly: true, 
             secure: process.env.NODE_ENV === 'production', 
             sameSite: 'strict', 

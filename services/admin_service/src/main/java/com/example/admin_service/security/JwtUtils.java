@@ -5,9 +5,11 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -17,11 +19,32 @@ import java.util.function.Function;
 public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-    // Shared secret from your configuration (must match auth-service)
-    private static final String SECRET = "YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u";
+    @Value("${bicap.app.jwtSecret:}")
+    private String jwtSecret;
+    @Value("${bicap.app.jwtSecret.admin:}")
+    private String jwtSecretAdmin;
+    @Value("${bicap.app.jwtSecret.retailer:}")
+    private String jwtSecretRetailer;
+    @Value("${bicap.app.jwtSecret.farm:}")
+    private String jwtSecretFarm;
+    @Value("${bicap.app.jwtSecret.shippingManager:}")
+    private String jwtSecretShippingManager;
+    @Value("${bicap.app.jwtSecret.shippingDriver:}")
+    private String jwtSecretShippingDriver;
 
-    private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
+    private List<String> allSecrets() {
+        List<String> list = new ArrayList<>();
+        if (jwtSecretAdmin != null && !jwtSecretAdmin.isEmpty()) list.add(jwtSecretAdmin);
+        if (jwtSecretRetailer != null && !jwtSecretRetailer.isEmpty()) list.add(jwtSecretRetailer);
+        if (jwtSecretFarm != null && !jwtSecretFarm.isEmpty()) list.add(jwtSecretFarm);
+        if (jwtSecretShippingManager != null && !jwtSecretShippingManager.isEmpty()) list.add(jwtSecretShippingManager);
+        if (jwtSecretShippingDriver != null && !jwtSecretShippingDriver.isEmpty()) list.add(jwtSecretShippingDriver);
+        if (jwtSecret != null && !jwtSecret.isEmpty()) list.add(jwtSecret);
+        return list;
+    }
+
+    private Key getSignInKey(String base64Secret) {
+        byte[] keyBytes = Decoders.BASE64.decode(base64Secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -31,41 +54,45 @@ public class JwtUtils {
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        return claims != null ? claimsResolver.apply(claims) : null;
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSignInKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        for (String secret : allSecrets()) {
+            try {
+                return Jwts.parserBuilder()
+                        .setSigningKey(getSignInKey(secret))
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
+            } catch (JwtException | IllegalArgumentException e) {
+                // try next key
+            }
+        }
+        logger.warn("JWT could not be parsed with any configured key");
+        return null;
     }
 
     public boolean validateToken(String authToken) {
-        try {
-            Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(authToken);
-            return true;
-        } catch (MalformedJwtException e) {
-            logger.error("Invalid JWT token: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
-            logger.error("JWT token is expired: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            logger.error("JWT token is unsupported: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            logger.error("JWT claims string is empty: {}", e.getMessage());
+        for (String secret : allSecrets()) {
+            try {
+                Jwts.parserBuilder().setSigningKey(getSignInKey(secret)).build().parseClaimsJws(authToken);
+                return true;
+            } catch (MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+                // try next key
+            }
         }
+        logger.error("JWT validation failed for all configured keys");
         return false;
     }
 
     public List<String> getRolesFromJwtToken(String token) {
         Claims claims = extractAllClaims(token);
+        if (claims == null) return Collections.emptyList();
         Object roles = claims.get("roles");
-        
         if (roles instanceof List) {
             return (List<String>) roles;
         } else if (roles instanceof String) {
-            // Handle case where roles are a comma-separated string
             return Arrays.asList(((String) roles).split(","));
         }
         return Collections.emptyList();

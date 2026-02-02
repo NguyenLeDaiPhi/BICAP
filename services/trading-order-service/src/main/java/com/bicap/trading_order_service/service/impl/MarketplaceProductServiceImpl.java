@@ -95,10 +95,17 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
     @Override
     public List<MarketplaceProduct> searchByName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            System.out.println(">>> SEARCH BY NAME = " + name);
             return repository.findAll();
         }
-        System.out.println(">>> SEARCH BY NAME = " + name);
         return repository.findByNameContainingIgnoreCase(name.trim());
+    }
+
+    @Override
+    public List<ProductResponse> searchApprovedByName(String keyword) {
+        List<MarketplaceProduct> products = searchByName(keyword);
+        return products.stream()
+                .filter(p -> "APPROVED".equals(p.getStatus()))
+                .map(this::mapToProductResponse)
+                .collect(Collectors.toList());
     }
 }

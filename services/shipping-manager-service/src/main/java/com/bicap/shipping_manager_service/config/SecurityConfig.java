@@ -31,16 +31,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Chỉ cho phép frontend web apps
+        // Cho phép frontend web apps và mobile app
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",  // Retailer Web
             "http://localhost:3001",  // Admin Web
             "http://localhost:3002",  // Farm Management Web
             "http://localhost:3003",  // Shipping Manager Web
+            "http://localhost:19000", // Mobile Ship Driver App (Expo)
             "http://127.0.0.1:3000",
             "http://127.0.0.1:3001",
             "http://127.0.0.1:3002",
-            "http://127.0.0.1:3003"
+            "http://127.0.0.1:3003",
+            "http://127.0.0.1:19000"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));

@@ -26,7 +26,7 @@ const getFarmId = async (ownerId, token) => {
 exports.getProductsPage = async (req, res) => {
     try {
         const ownerId = req.user.userId || req.user.id || req.user.sub;
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token; // legacy fallback
         const farmId = await getFarmId(ownerId, token);
 
         // Construct the correct marketplace URL for the frontend

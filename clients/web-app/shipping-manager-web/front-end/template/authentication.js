@@ -26,10 +26,11 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const port = 3003;
 
-// Base64 String from Java properties (FIX: Remove extra 'Cg==' to eliminate trailing newline in decoded key)
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
-// Convert the Base64 string to a Buffer, exactly like Java's Decoders.BASE64.decode()
+// Per-role JWT secret for shipping manager (must match auth-service bicap.app.jwtSecret.shippingManager)
+const JWT_SECRET_STRING = process.env.JWT_SECRET_SHIPPING_MANAGER || 'YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
+const CLIENT_ID = 'shippingManager';
+const COOKIE_NAME = 'shipping_manager_token';
 
 app.set("views", __dirname);
 app.set('view engine', "ejs");
@@ -48,7 +49,7 @@ app.use((req, res, next) => {
 // Utility: Clear Cookie
 // -------------------------------------------------------------
 const clearAuthCookie = (res) => {
-    res.setHeader('Set-Cookie', serialize('auth_token', '', {
+    res.setHeader('Set-Cookie', serialize(COOKIE_NAME, '', {
         httpOnly: true, 
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'Strict',
@@ -59,7 +60,7 @@ const clearAuthCookie = (res) => {
 
 // Auth-Middleware
 const requireAuth = (req, res, next) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
 
     if (!token) {
         return res.redirect('/login');
@@ -84,9 +85,10 @@ const requireAuth = (req, res, next) => {
 app.get('/', (req, res) => {
     let user = null;
     try {
-        if (req.cookies.auth_token) {
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
+        if (token) {
             // Just decoding for display is fine here, verify() is safer though
-            const decoded = jwt.verify(req.cookies.auth_token, JWT_SECRET); 
+            const decoded = jwt.verify(token, JWT_SECRET); 
             user = {
                 sub: decoded.sub,
                 username: decoded.sub,  // Normalize for EJS (username = sub from JWT)
@@ -150,12 +152,18 @@ app.post('/login', async (req, res) => {
         // Sử dụng axios để tránh lỗi node-fetch ESM
         const response = await axios.post(`${AUTH_SERVICE_URL}/login`, { 
             email, 
-            password 
+            password,
+            clientId: CLIENT_ID 
         });
-        const accessToken = response.data;
+        const accessToken = typeof response.data === 'string'
+            ? response.data
+            : (response.data?.accessToken || response.data?.access_token || response.data?.token);
+        if (!accessToken) {
+            return res.status(502).render('login', { error: 'Auth service did not return token.' });
+        }
         
         // 2. Verify Token & Check Role
-        // Using the Buffer secret to verify signature
+        // Using the Buffer secret to verify signature (must match auth-service)
         const decodedToken = jwt.verify(accessToken, JWT_SECRET); 
         
         // Java sends "roles" (plural) in the claim: .claim("roles", roles)
@@ -169,7 +177,7 @@ app.post('/login', async (req, res) => {
         }
 
         // 3. Set Cookie
-        const cookie = serialize('auth_token', accessToken, {
+        const cookie = serialize(COOKIE_NAME, accessToken, {
             httpOnly: true, 
             secure: process.env.NODE_ENV === 'production', 
             sameSite: 'Strict',
@@ -192,7 +200,7 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/dashboard', requireAuth, async (req, res) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
     // Gọi API lấy báo cáo và danh sách vận đơn
     const report = await apiService.getSummaryReport(token);
     const shipments = await apiService.getAllShipments(token);
@@ -222,7 +230,7 @@ app.get('/dashboard', requireAuth, async (req, res) => {
 
 // --- 1. Trang Đơn hàng chờ (Orders) ---
 app.get('/orders', requireAuth, async (req, res) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
     const pendingOrders = await apiService.getConfirmedOrders(token);
     
     res.render('pages/orders', {
@@ -234,7 +242,7 @@ app.get('/orders', requireAuth, async (req, res) => {
 
 // --- 2. Trang Quản lý Vận chuyển (Shipments) ---
 app.get('/shipments', requireAuth, async (req, res) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
     const shipments = await apiService.getAllShipments(token);
     const drivers = await apiService.getAllDrivers(token);
     const vehicles = await apiService.getAllVehicles(token);
@@ -250,7 +258,7 @@ app.get('/shipments', requireAuth, async (req, res) => {
 
 // --- 3. Trang Quản lý Xe (Vehicles) ---
 app.get('/vehicles', requireAuth, async (req, res) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
     const vehicles = await apiService.getAllVehicles(token);
     res.render('pages/vehicles', { 
         user: { username: req.user.sub }, 
@@ -261,7 +269,7 @@ app.get('/vehicles', requireAuth, async (req, res) => {
 
 app.post('/vehicles', requireAuth, async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
         console.log('📝 [DEBUG] Creating vehicle - Request body:', JSON.stringify(req.body, null, 2));
         await apiService.createVehicle(token, req.body);
         res.redirect('/vehicles?success=Xe đã được thêm thành công');
@@ -305,7 +313,7 @@ app.post('/vehicles', requireAuth, async (req, res) => {
 
 app.post('/vehicles/:id', requireAuth, async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
         const vehicleId = req.params.id;
         if (req.body._method === 'PUT') {
             await apiService.updateVehicle(token, vehicleId, req.body);
@@ -325,7 +333,7 @@ app.post('/vehicles/:id', requireAuth, async (req, res) => {
 
 // --- 4. Trang Quản lý Tài xế (Drivers) ---
 app.get('/drivers', requireAuth, async (req, res) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
     const drivers = await apiService.getAllDrivers(token);
     res.render('pages/drivers', { 
         user: { username: req.user.sub }, 
@@ -336,7 +344,7 @@ app.get('/drivers', requireAuth, async (req, res) => {
 
 app.post('/drivers', requireAuth, async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
         console.log('📝 [DEBUG] Creating driver - Request body:', JSON.stringify(req.body, null, 2));
         await apiService.createDriver(token, req.body);
         res.redirect('/drivers?success=Tài xế đã được thêm thành công');
@@ -380,7 +388,7 @@ app.post('/drivers', requireAuth, async (req, res) => {
 
 app.post('/drivers/:id', requireAuth, async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
         const driverId = req.params.id;
         if (req.body._method === 'PUT') {
             await apiService.updateDriver(token, driverId, req.body);
@@ -400,7 +408,7 @@ app.post('/drivers/:id', requireAuth, async (req, res) => {
 
 // --- 5. Trang Báo cáo (Reports) ---
 app.get('/reports', requireAuth, async (req, res) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
     const report = await apiService.getSummaryReport(token);
     const driverReports = await apiService.getAllDriverReports(token);
     const pendingDriverReports = await apiService.getPendingDriverReports(token);
@@ -418,7 +426,7 @@ app.get('/reports', requireAuth, async (req, res) => {
 
 app.post('/reports/admin', requireAuth, async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
         const { title, description, reportType, priority } = req.body;
         await apiService.sendReportToAdmin(token, {
             title,
@@ -443,7 +451,7 @@ app.get('/notifications', requireAuth, async (req, res) => {
 
 app.post('/notifications', requireAuth, async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
         const { recipientType, title, message, priority, relatedOrderId } = req.body;
         
         const notificationData = {
@@ -470,7 +478,7 @@ app.post('/notifications', requireAuth, async (req, res) => {
 
 app.post('/shipments/create', requireAuth, async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
         await apiService.createShipment(token, req.body);
         res.redirect('/shipments?success=Tạo vận đơn thành công');
     } catch (error) {
@@ -481,7 +489,7 @@ app.post('/shipments/create', requireAuth, async (req, res) => {
 
 app.post('/shipments/assign', requireAuth, async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
         const { shipmentId, driverId, vehicleId } = req.body;
         const success = await apiService.assignDriver(token, shipmentId, driverId, vehicleId);
         if (success) {

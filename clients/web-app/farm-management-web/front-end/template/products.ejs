@@ -138,8 +138,9 @@
                 <textarea name="description" class="form-control border px-2" rows="2"></textarea>
             </div>
             <div class="mb-3">
-                <label class="form-label">Link hình ảnh</label>
-                <input type="text" name="imageUrl" class="form-control border px-2">
+                <label class="form-label">Hình ảnh sản phẩm</label>
+                <input type="file" id="productImage" name="productImage" class="form-control border px-2" accept="image/*">
+                <small class="text-muted">Chọn ảnh (JPEG, PNG) - tối đa 10MB</small>
             </div>
           </div>
           <div class="modal-footer">
@@ -150,10 +151,38 @@
     </div>
   </div>
 
+  <!-- Product Detail Modal -->
+  <div class="modal fade" id="productDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Chi tiết sản phẩm</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-4">
+              <img id="detailProductImg" src="" alt="" class="img-fluid rounded" style="max-height:240px;object-fit:cover" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f3f6f4%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo image%3C/text%3E%3C/svg%3E'">
+            </div>
+            <div class="col-md-8">
+              <h5 id="detailProductName" class="mb-2"></h5>
+              <p class="text-sm text-secondary mb-1"><strong>Lô:</strong> <span id="detailProductBatch"></span></p>
+              <p class="text-sm text-secondary mb-1"><strong>Danh mục:</strong> <span id="detailProductCategory"></span></p>
+              <p class="text-sm text-secondary mb-1"><strong>Số lượng:</strong> <span id="detailProductQty"></span> <span id="detailProductUnit"></span></p>
+              <p class="text-success fw-bold mb-2" id="detailProductPrice"></p>
+              <p class="text-sm" id="detailProductDesc"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="/assets/js/core/bootstrap.min.js"></script>
   <script>
     const farmId = document.getElementById('farmId').value;
-    let exportBatches = []; // Store batches globally
+    let exportBatches = [];
+    let marketplaceProducts = [];
 
     document.addEventListener('DOMContentLoaded', () => {
         fetchExportBatches();
@@ -181,24 +210,65 @@
     // 2. Lấy kho sản phẩm
     async function fetchMarketplaceProducts() {
         const res = await fetch(`/api/marketplace-products/farm/${farmId}`);
-        const products = await res.json();
+        marketplaceProducts = await res.json();
+        const products = marketplaceProducts;
         const tbody = document.getElementById('productTableBody');
         tbody.innerHTML = products.map(p => {
             const statusClass = p.status === 'APPROVED' ? 'bg-gradient-success' : 'bg-gradient-warning';
+            const imgFallback = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect fill=%22%23f3f6f4%22 width=%2240%22 height=%2240%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%228%22%3E?%3C/text%3E%3C/svg%3E";
+            const thumbSrc = p.imageUrl ? p.imageUrl : imgFallback;
             return `
             <tr>
                 <td class="ps-4">
-                    <div class="d-flex flex-column">
-                        <h6 class="mb-0 text-sm">${p.name}</h6>
-                        <p class="text-xxs text-secondary mb-0">Lô: ${p.exportBatch?.batchCode}</p>
+                    <div class="d-flex align-items-center">
+                        <img src="${thumbSrc}" alt="${p.name}" class="rounded me-2" style="width:40px;height:40px;object-fit:cover" onerror="this.onerror=null;this.src='${imgFallback}'">
+                        <div class="d-flex flex-column">
+                            <h6 class="mb-0 text-sm">${p.name}</h6>
+                            <p class="text-xxs text-secondary mb-0">Lô: ${p.exportBatch?.batchCode || 'N/A'}</p>
+                        </div>
                     </div>
                 </td>
                 <td class="text-center text-sm">${p.quantity} ${p.unit}</td>
                 <td class="text-center text-sm">${Number(p.price).toLocaleString()}đ</td>
                 <td class="text-center"><span class="badge badge-sm ${statusClass}">${p.status}</span></td>
-                <td class="text-center"><button class="btn btn-link text-danger" onclick="deleteProduct(${p.id})">Gỡ bỏ</button></td>
+                <td class="text-center">
+                    <button class="btn btn-link text-info btn-sm me-1" onclick="viewProductDetail(${p.id})" title="Xem chi tiết">Xem</button>
+                    <button class="btn btn-link text-danger btn-sm" onclick="deleteProduct(${p.id})">Gỡ bỏ</button>
+                </td>
             </tr>`;
         }).join('');
+    }
+
+    async function deleteProduct(productId) {
+        if (!confirm('Bạn có chắc muốn gỡ sản phẩm này?')) return;
+        try {
+            const res = await fetch(`/api/marketplace-products/${productId}`, { method: 'DELETE', credentials: 'include' });
+            if (res.ok) {
+                alert('Đã gỡ sản phẩm');
+                location.reload();
+            } else {
+                alert('Không thể gỡ sản phẩm');
+            }
+        } catch (e) {
+            alert('Lỗi: ' + e.message);
+        }
+    }
+
+    function viewProductDetail(productId) {
+        const p = marketplaceProducts.find(x => x.id == productId);
+        if (!p) return;
+        const imgFallback = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f3f6f4%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo image%3C/text%3E%3C/svg%3E";
+        const img = document.getElementById('detailProductImg');
+        img.src = p.imageUrl ? p.imageUrl : imgFallback;
+        document.getElementById('detailProductName').textContent = p.name || '';
+        document.getElementById('detailProductBatch').textContent = p.exportBatch?.batchCode || 'N/A';
+        document.getElementById('detailProductCategory').textContent = p.category || 'N/A';
+        document.getElementById('detailProductQty').textContent = p.quantity || '0';
+        document.getElementById('detailProductUnit').textContent = p.unit || '';
+        document.getElementById('detailProductPrice').textContent = (p.price ? Number(p.price).toLocaleString() : '0') + ' đ';
+        document.getElementById('detailProductDesc').textContent = p.description || 'Không có mô tả.';
+        const modal = new bootstrap.Modal(document.getElementById('productDetailModal'));
+        modal.show();
     }
 
     function openModal(index) {
@@ -221,21 +291,59 @@
     // Xử lý submit form và reload cả 2 bảng
     document.getElementById('productForm').onsubmit = async (e) => {
         e.preventDefault();
-        const data = Object.fromEntries(new FormData(e.target));
-        // Thêm farmId vào data gửi đi
-        data.farmId = farmId; 
+        const form = e.target;
+        const formData = new FormData(form);
+        const imageFile = form.querySelector('#productImage').files[0];
 
-        // Convert numeric fields
-        if (data.quantity) data.quantity = Number(data.quantity);
-        if (data.price) data.price = Number(data.price);
-        
-        await fetch('/api/marketplace-products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        alert('Đã thêm vào kho sản phẩm!');
-        location.reload(); 
+        // Build JSON payload (exclude file input)
+        const data = {
+            exportBatchId: formData.get('exportBatchId'),
+            name: formData.get('name'),
+            category: formData.get('category'),
+            description: formData.get('description'),
+            quantity: Number(formData.get('quantity')),
+            price: Number(formData.get('price')),
+            unit: formData.get('unit'),
+            farmId: farmId
+        };
+
+        try {
+            const createRes = await fetch('/api/marketplace-products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!createRes.ok) {
+                const err = await createRes.json().catch(() => ({}));
+                throw new Error(err.error || 'Không thể tạo sản phẩm');
+            }
+
+            const product = await createRes.json();
+
+            // Nếu có ảnh, tải lên farm-production-service endpoint (nó sẽ cập nhật product.imageUrl)
+            if (imageFile && product.id) {
+                const uploadForm = new FormData();
+                uploadForm.append('file', imageFile);
+                uploadForm.append('farmId', farmId);
+
+                const uploadRes = await fetch(`/api/marketplace-products/${product.id}/images`, {
+                    method: 'POST',
+                    body: uploadForm,
+                    credentials: 'include'
+                });
+
+                if (!uploadRes.ok) {
+                    const err = await uploadRes.json().catch(() => ({}));
+                    console.warn('Tạo sản phẩm thành công nhưng tải ảnh thất bại:', err.error);
+                }
+            }
+
+            alert('Đã thêm vào kho sản phẩm!');
+            location.reload();
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
+        }
     };
   </script>
 </body>

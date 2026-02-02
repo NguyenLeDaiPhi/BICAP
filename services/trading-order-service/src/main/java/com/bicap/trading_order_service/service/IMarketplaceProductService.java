@@ -13,4 +13,5 @@ public interface IMarketplaceProductService {
     ProductResponse getProductDetail(Long id);
 
     List<MarketplaceProduct> searchByName(String keyword);
+    List<ProductResponse> searchApprovedByName(String keyword);
 }

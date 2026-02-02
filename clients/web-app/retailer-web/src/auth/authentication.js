@@ -8,19 +8,18 @@ const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
 console.log('AUTH_SERVICE_URL', AUTH_SERVICE_URL);
 
-// Update Role to match Java Enum (RETAILER)
-const APPLICATION_ROLE = "RETAILER";
-
-// Base64 String from Java properties (FIX: Remove extra 'Cg==' to eliminate trailing newline in decoded key)
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
-// Convert the Base64 string to a Buffer, exactly like Java's Decoders.BASE64.decode()
+const APPLICATION_ROLE = 'ROLE_RETAILER';
+// Per-role JWT secret for retailer (must match auth-service bicap.app.jwtSecret.retailer)
+const JWT_SECRET_STRING = process.env.JWT_SECRET_RETAILER || 'YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
+const CLIENT_ID = 'retailer';
+const COOKIE_NAME = 'retailer_token';
 
 // -------------------------------------------------------------
 // Utility: Clear Cookie
 // -------------------------------------------------------------
 const clearAuthCookie = (res) => {
-    res.setHeader('Set-Cookie', serialize('auth_token', '', {
+    res.setHeader('Set-Cookie', serialize(COOKIE_NAME, '', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'Strict',
@@ -31,7 +30,7 @@ const clearAuthCookie = (res) => {
 
 // Auth-Middleware
 const requireAuth = (req, res, next) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
 
     if (!token) {
         return res.redirect('/login');
@@ -97,7 +96,7 @@ const login = async (req, res) => {
         const apiResponse = await fetch(`${AUTH_SERVICE_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, clientId: CLIENT_ID }),
         });
 
         const responseText = await apiResponse.text();
@@ -124,7 +123,7 @@ const login = async (req, res) => {
         }
 
         // 3. Set Cookie
-        const cookie = serialize('auth_token', accessToken, {
+        const cookie = serialize(COOKIE_NAME, accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'Strict',

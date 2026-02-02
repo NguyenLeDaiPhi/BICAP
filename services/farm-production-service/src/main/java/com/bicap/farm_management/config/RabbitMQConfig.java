@@ -30,6 +30,15 @@ public class RabbitMQConfig {
     @Value("${bicap.rabbitmq.queue.response:farm_response_queue}")
     private String responseQueue;
 
+    @Value("${bicap.rabbitmq.exchange:bicap_exchange}")
+    private String blockchainExchange;
+
+    @Value("${bicap.rabbitmq.routing-key.request:bicap_routing_key}")
+    private String blockchainRequestRoutingKey;
+
+    @Value("${bicap.rabbitmq.routing-key.response:bicap_routing_key_response}")
+    private String blockchainResponseRoutingKey;
+
     @Bean
     public Queue authQueue() {
         // Create a durable queue
@@ -52,8 +61,18 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public TopicExchange blockchainExchange() {
+        return new TopicExchange(blockchainExchange);
+    }
+
+    @Bean
     public Binding farmCreationBinding() {
         return BindingBuilder.bind(farmCreationQueue()).to(farmCreationExchange()).with(farmCreationRoutingKey);
+    }
+
+    @Bean
+    public Binding blockchainResponseBinding() {
+        return BindingBuilder.bind(responseQueue()).to(blockchainExchange()).with(blockchainResponseRoutingKey);
     }
 
     @Bean

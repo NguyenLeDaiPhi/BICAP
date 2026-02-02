@@ -10,6 +10,8 @@ console.log('AUTH_SERVICE_URL', AUTH_SERVICE_URL);
 
 // Update Role to match Java Enum (ROLE_RETAILER)
 const APPLICATION_ROLE = "ROLE_RETAILER"; 
+const COOKIE_NAME = "retailer_token";
+const CLIENT_ID = "retailer";
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -19,8 +21,7 @@ const app = express();
 const port = process.env.PORT || 3004;
 
 // Base64 String from Java properties (FIX: Remove extra 'Cg==' to eliminate trailing newline in decoded key)
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
-// Convert the Base64 string to a Buffer, exactly like Java's Decoders.BASE64.decode()
+const JWT_SECRET_STRING = process.env.JWT_SECRET_RETAILER || 'YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 
 app.set("views", path.join(__dirname, "..", "front-end", "template"));
@@ -34,7 +35,7 @@ app.use(cookieParser());
 // Utility: Clear Cookie
 // -------------------------------------------------------------
 const clearAuthCookie = (res) => {
-    res.setHeader('Set-Cookie', serialize('auth_token', '', {
+    res.setHeader('Set-Cookie', serialize(COOKIE_NAME, '', {
         httpOnly: true, 
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'Strict',
@@ -45,7 +46,7 @@ const clearAuthCookie = (res) => {
 
 // Auth-Middleware
 const requireAuth = (req, res, next) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
 
     if (!token) {
         return res.redirect('/login');
@@ -70,9 +71,10 @@ const requireAuth = (req, res, next) => {
 app.get('/', (req, res) => {
     let user = null;
     try {
-        if (req.cookies.auth_token) {
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
+        if (token) {
             // Just decoding for display is fine here, verify() is safer though
-            const decoded = jwt.verify(req.cookies.auth_token, JWT_SECRET); 
+            const decoded = jwt.verify(token, JWT_SECRET); 
             user = {
                 sub: decoded.sub,
                 username: decoded.sub,  // Normalize for EJS (username = sub from JWT)
@@ -100,7 +102,7 @@ app.post('/login', async (req, res) => {
         const apiResponse = await fetch(`${AUTH_SERVICE_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, clientId: CLIENT_ID }),
         });
 
         const responseText = await apiResponse.text();
@@ -127,7 +129,7 @@ app.post('/login', async (req, res) => {
         }
 
         // 3. Set Cookie
-        const cookie = serialize('auth_token', accessToken, {
+        const cookie = serialize(COOKIE_NAME, accessToken, {
             httpOnly: true, 
             secure: process.env.NODE_ENV === 'production', 
             sameSite: 'Strict',

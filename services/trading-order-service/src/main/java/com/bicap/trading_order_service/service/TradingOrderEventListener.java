@@ -53,10 +53,9 @@ public class TradingOrderEventListener {
         System.out.println("📩 [TRADING] Received Product Data: " + message);
         try {
             // Extract data from the map sent by MarketplaceProductServiceImpl
-            Long farmIdNum = ((Number) message.get("farmId")).longValue();
-            if (farmIdNum == null) throw new IllegalAccessException("Missing farmId");
-
-            Long farmId = farmIdNum.longValue();
+            Object farmIdObj = message.get("farmId");
+            if (!(farmIdObj instanceof Number)) throw new IllegalAccessException("Missing farmId");
+            Long farmId = ((Number) farmIdObj).longValue();
 
             FarmManager farmManager = farmManagerRepository.findByFarmId(farmId)
                 .orElseThrow(() -> new RuntimeException("No FarmManager found from table in database"));
@@ -69,9 +68,30 @@ public class TradingOrderEventListener {
             String category = (String) message.get("category");
             String imageUrl = (String) message.get("imageUrl");
             String batchId = message.get("batchId") != null ? String.valueOf(message.get("batchId")) : null;
-            
-            MarketplaceProduct product = new MarketplaceProduct();
-            product.setFarmManager(farmManager);
+
+            // Upsert by batchId (image is often uploaded after product creation)
+            MarketplaceProduct product = null;
+            if (batchId != null && !batchId.isBlank()) {
+                product = productRepository.findFirstByBatchId(batchId).orElse(null);
+            }
+            // Backward-compat: older records may have null batchId; try match by farm + name + PENDING
+            if (product == null && productName != null) {
+                MarketplaceProduct candidate = productRepository
+                        .findFirstByFarmManager_FarmIdAndNameIgnoreCaseAndStatusOrderByCreatedAtDesc(farmId, productName, "PENDING")
+                        .orElse(null);
+                if (candidate != null && (candidate.getBatchId() == null || candidate.getBatchId().isBlank())) {
+                    product = candidate;
+                }
+            }
+
+            if (product == null) {
+                product = new MarketplaceProduct();
+                product.setFarmManager(farmManager);
+                product.setStatus("PENDING"); // Default status on trading floor
+                product.setCreatedAt(LocalDateTime.now());
+            }
+
+            // Update fields (do not reset status on updates)
             product.setName(productName);
             product.setDescription(description);
             product.setUnit(unit);
@@ -80,11 +100,9 @@ public class TradingOrderEventListener {
             product.setCategory(category);
             product.setImageUrl(imageUrl);
             product.setBatchId(batchId);
-            product.setStatus("PENDING"); // Default status on trading floor
-            product.setCreatedAt(LocalDateTime.now());
 
             productRepository.save(product);
-            System.out.println("✅ [TRADING] Saved Product: " + productName);
+            System.out.println("✅ [TRADING] Upserted Product: " + productName + " | batchId=" + batchId);
         } catch (Exception e) {
             System.err.println("❌ Error saving product: " + e.getMessage());
         }

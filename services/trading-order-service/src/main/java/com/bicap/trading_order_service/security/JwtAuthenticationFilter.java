@@ -48,7 +48,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Nếu không có header → lấy từ cookie (Frontend)
         if (token == null && request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if ("auth_token".equals(cookie.getName())) {
+                String name = cookie.getName();
+                if ("admin_token".equals(name) ||
+                        "retailer_token".equals(name) ||
+                        "farm_token".equals(name) ||
+                        "shipping_manager_token".equals(name) ||
+                        "shipping_driver_token".equals(name) ||
+                        "auth_token".equals(name)) { // legacy fallback
                     token = cookie.getValue();
                     break;
                 }
@@ -72,6 +78,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String username = claims.getSubject();
         String email = claims.get("email", String.class);
+        Long userId = jwtUtils.getUserId(token);
 
         /* =====================================================
            3️⃣ XỬ LÝ ROLES (STRING hoặc LIST)
@@ -107,7 +114,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         JwtUser jwtUser = new JwtUser(
                 username,
                 email,
-                roles
+                roles,
+                userId
         );
 
         UsernamePasswordAuthenticationToken authentication =

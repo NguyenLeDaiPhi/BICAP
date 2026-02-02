@@ -31,5 +31,5 @@ bicap:
       response: farm_response_queue
     exchange: bicap_exchange
     routing-key:
-      request: farm.request.routing.key
-      response: farm.response.routing.key
+      request: bicap_routing_key
+      response: bicap_routing_key_response

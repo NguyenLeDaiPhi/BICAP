@@ -12,16 +12,18 @@ const ADMIN_SERVICE_URL = process.env.ADMIN_SERVICE_URL || 'http://localhost:808
 const TRADING_ORDER_SERVICE_URL = process.env.TRADING_ORDER_SERVICE_URL || 'http://localhost:8083';
 
 // Đồng bộ secret/role với authentication.js để đọc JWT trong cookie
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
+// Per-role JWT secret for admin (must match auth-service bicap.app.jwtSecret.admin)
+const JWT_SECRET_STRING = process.env.JWT_SECRET_ADMIN || 'YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 const APPLICATION_ROLE = 'ROLE_ADMIN';
+const COOKIE_NAME = 'admin_token';
 
 // Gắn cookie-parser cho router
 router.use(cookieParser());
 
 // Lấy JWT từ cookie và gán req.user
 const requireAuth = (req, res, next) => {
-    const token = req.cookies?.auth_token;
+    const token = req.cookies?.[COOKIE_NAME] || req.cookies?.auth_token; // legacy fallback
     if (!token) return res.redirect('/login');
     try {
         const decoded = jwt.verify(token, JWT_SECRET);

@@ -27,6 +27,14 @@ public interface MarketplaceProductRepository
     @Query("SELECT p FROM MarketplaceProduct p WHERE p.farmManager.farmId = :farmId")
     List<MarketplaceProduct> findByFarmId(@Param("farmId") Long farmId);
 
+    Optional<MarketplaceProduct> findFirstByBatchId(String batchId);
+
+    Optional<MarketplaceProduct> findFirstByFarmManager_FarmIdAndNameIgnoreCaseAndStatusOrderByCreatedAtDesc(
+            Long farmId,
+            String name,
+            String status
+    );
+
     // ===============================
     // COMMON
     // ===============================

@@ -31,9 +31,10 @@ module.exports = (requireAuth) => {
     router.get('/profile', requireAuth, async (req, res) => {
         let profileData = {};
         try {
-            console.log('Fetching profile with token:', req.cookies.auth_token?.substring(0, 20) + '...'); // Partial log
+            const token = req.cookies.farm_token || req.cookies.auth_token;
+            console.log('Fetching profile with token:', token?.substring(0, 20) + '...'); // Partial log
             const response = await fetch(`${AUTH_SERVICE_URL_UPDATE}/profile`, {
-                headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` },
+                headers: { 'Authorization': `Bearer ${token}` },
                 cache: 'no-store'  // Force no cache
             });
             if (response.ok) {
@@ -95,7 +96,7 @@ module.exports = (requireAuth) => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${req.cookies.auth_token || ''}`
+                    'Authorization': `Bearer ${(req.cookies.farm_token || req.cookies.auth_token) || ''}`
                 },
                 body: JSON.stringify(payload)
             });

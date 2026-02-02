@@ -30,6 +30,8 @@ console.log('AUTH_SERVICE_URL', AUTH_SERVICE_URL);
 
 // Update Role to match Java Enum (ROLE_FARM_MANAGER)
 const APPLICATION_ROLE = "ROLE_FARMMANAGER"; 
+const CLIENT_ID = "farm";
+const COOKIE_NAME = "farm_token";
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -56,17 +58,11 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage });
+// Memory storage for proxying file uploads to image-storage-service
+const uploadMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-// Base64 String from Java properties - MUST match auth-service JWT secret
-// auth-service uses: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
-// Java decodes this with Decoders.BASE64.decode() and uses Keys.hmacShaKeyFor()
-// The decoded string is: "bicap-secret-key-for-jwt-authentication"
-// IMPORTANT: Java's Keys.hmacShaKeyFor() uses the raw bytes from base64 decode
-// For jsonwebtoken library, we can use either the Buffer or the decoded string
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
-// Decode base64 to get the actual secret string
-const JWT_SECRET_DECODED = Buffer.from(JWT_SECRET_STRING, 'base64').toString('utf8');
-// Use Buffer (raw bytes) - this is what Java's Keys.hmacShaKeyFor() expects
+// Per-role JWT secret for farm manager (must match auth-service bicap.app.jwtSecret.farm)
+const JWT_SECRET_STRING = process.env.JWT_SECRET_FARM || 'YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 
 app.set("views", path.join(__dirname, "..", "front-end", "template"));
@@ -85,7 +81,7 @@ app.use(cookieParser());
 
 // Utility: Clear Cookie
 const clearAuthCookie = (res) => {
-    res.setHeader('Set-Cookie', serialize('auth_token', '', {
+    res.setHeader('Set-Cookie', serialize(COOKIE_NAME, '', {
         httpOnly: true, 
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'Strict',
@@ -96,7 +92,7 @@ const clearAuthCookie = (res) => {
 
 // Auth-Middleware
 const requireAuth = (req, res, next) => {
-    const token = req.cookies.auth_token;
+    const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
 
     if (!token) {
         return res.redirect('/login');
@@ -117,8 +113,9 @@ const requireAuth = (req, res, next) => {
 app.get('/', (req, res) => {
     let user = null;
     try {
-        if (req.cookies.auth_token) {
-            const decoded = jwt.verify(req.cookies.auth_token, JWT_SECRET, { algorithms: ['HS256'] }); 
+        const token = req.cookies[COOKIE_NAME] || req.cookies.auth_token; // legacy fallback
+        if (token) {
+            const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }); 
             user = {
                 sub: decoded.sub,
                 username: decoded.sub,
@@ -151,7 +148,7 @@ app.post('/login', async (req, res) => {
         const apiResponse = await fetch(loginUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, clientId: CLIENT_ID }),
         });
 
         const responseText = await apiResponse.text();
@@ -211,14 +208,7 @@ app.post('/login', async (req, res) => {
                 console.log('✓ Token verified successfully with String');
             } catch (stringError) {
                 console.error('✗ String verification also failed:', stringError.message);
-                
-                // TEMPORARY FIX: Decode without verification to allow login
-                console.warn('⚠️  TEMPORARY: Using decoded token without verification');
-                decodedToken = jwt.decode(accessToken);
-                if (!decodedToken) {
-                    throw new Error('Failed to decode token');
-                }
-                console.log('⚠️  Using unverified token payload:', JSON.stringify(decodedToken));
+                throw stringError;
             }
         }
         console.log('=== END JWT DEBUG ==='); 
@@ -248,7 +238,7 @@ app.post('/login', async (req, res) => {
         }
         
         console.log(`✓ Role check passed. User has ${APPLICATION_ROLE}. Roles: ${JSON.stringify(userRoles)}`);
-        const cookie = serialize('auth_token', accessToken, {
+        const cookie = serialize(COOKIE_NAME, accessToken, {
             httpOnly: true, 
             secure: process.env.NODE_ENV === 'production', 
             sameSite: 'Strict',
@@ -427,6 +417,8 @@ app.get('/api/marketplace-products/farm/:farmId', requireAuth, productProxyContr
 app.post('/api/marketplace-products', requireAuth, productProxyController.createProduct);
 app.put('/api/marketplace-products/:productId', requireAuth, productProxyController.updateProduct);
 app.delete('/api/marketplace-products/:productId', requireAuth, productProxyController.deleteProduct);
+app.post('/api/marketplace-products/:productId/images', requireAuth, uploadMemory.single('file'), productProxyController.uploadMarketplaceProductImage);
+app.post('/api/images/upload', requireAuth, uploadMemory.single('file'), productProxyController.uploadProductImage);
 
 app.get('/shipping', requireAuth, shippingController.getShippingPage);
 

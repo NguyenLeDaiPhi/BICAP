@@ -233,7 +233,7 @@
         <div class="modal-body">
             <div class="row">
                 <div class="col-md-4">
-                    <img id="detailImg" src="" class="img-fluid border-radius-lg shadow-sm" style="width: 100%; object-fit: cover;">
+                    <img id="detailImg" src="" alt="" class="img-fluid border-radius-lg shadow-sm" style="width: 100%; object-fit: cover; min-height: 200px;" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f3f6f4%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo image%3C/text%3E%3C/svg%3E'">
                 </div>
                 <div class="col-md-8">
                     <h4 id="detailName"></h4>
@@ -273,7 +273,8 @@
             // Giả định API endpoint cho việc approve
             const res = await fetch(`/api/v1/admin/products/${id}/approve`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
             });
 
             if (res.ok) {
@@ -312,7 +313,8 @@
             const res = await fetch(`/api/v1/admin/products/${id}/reject`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reason: reason })
+                body: JSON.stringify({ reason: reason }),
+                credentials: 'include'
             });
 
             if (res.ok) {
@@ -326,11 +328,14 @@
         }
     }
 
-    // 4. Xem chi tiết (Tương tự file admin-products nhưng thêm nút duyệt nhanh)
+    // 4. Xem chi tiết (Admin xem trước khi duyệt - image với onerror tránh blink)
     function showDetails(jsonStr) {
         try {
             const p = JSON.parse(jsonStr);
-            document.getElementById('detailImg').src = p.imageUrl || '/assets/img/product-placeholder.jpg';
+            const imgEl = document.getElementById('detailImg');
+            const fallbackSvg = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f3f6f4%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo image%3C/text%3E%3C/svg%3E";
+            imgEl.src = p.imageUrl ? p.imageUrl : fallbackSvg;
+            imgEl.onerror = function() { this.onerror=null; this.src=fallbackSvg; };
             document.getElementById('detailName').innerText = p.name;
             document.getElementById('detailBatch').innerText = p.batchId || 'N/A';
             document.getElementById('detailPrice').innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price || 0);

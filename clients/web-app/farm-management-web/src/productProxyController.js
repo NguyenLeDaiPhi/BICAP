@@ -8,6 +8,7 @@ const getApiGatewayBaseUrl = () => {
 
 const API_GATEWAY_BASE_URL = getApiGatewayBaseUrl();
 const MARKETPLACE_PRODUCTS_API_URL = process.env.MARKETPLACE_API_PATH || `${API_GATEWAY_BASE_URL}/api/marketplace-products`;
+const IMAGES_API_URL = process.env.IMAGES_API_PATH || `${API_GATEWAY_BASE_URL}/api/images`;
 const FARM_API_URL = process.env.FARM_API_URL || `${API_GATEWAY_BASE_URL}/api/farm-features`;
 const EXPORT_BATCH_API_URL = process.env.EXPORT_BATCH_API_URL || `${API_GATEWAY_BASE_URL}/api/export-batches`;
 
@@ -27,7 +28,7 @@ const getFarmId = async (ownerId, token) => {
 // Proxy: Get export batches by farm
 exports.getExportBatches = async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token; // legacy fallback
         if (!token) {
             return res.status(401).json({ error: 'Token không tồn tại' });
         }
@@ -65,7 +66,7 @@ exports.getExportBatches = async (req, res) => {
 exports.getProductsByFarm = async (req, res) => {
     try {
         const { farmId } = req.params;
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token; // legacy fallback
 
         if (!token) {
             return res.status(401).json({ error: 'Token không tồn tại' });
@@ -96,7 +97,7 @@ exports.getProductsByFarm = async (req, res) => {
 // Proxy: Create product
 exports.createProduct = async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token; // legacy fallback
 
         if (!token) {
             return res.status(401).json({ error: 'Token không tồn tại' });
@@ -234,7 +235,7 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { productId } = req.params;
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token; // legacy fallback
 
         if (!token) {
             return res.status(401).json({ error: 'Token không tồn tại' });
@@ -266,7 +267,7 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
     try {
         const { productId } = req.params;
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token; // legacy fallback
 
         if (!token) {
             return res.status(401).json({ error: 'Token không tồn tại' });
@@ -338,4 +339,87 @@ exports.createProduct = async (req, res) => {
     } catch (error) {
         res.status(error.response?.status || 500).json({ error: error.message });
     }
-}
+};
+
+// Proxy: Upload product image to image-storage-service
+exports.uploadProductImage = async (req, res) => {
+    try {
+        const token = req.cookies.farm_token || req.cookies.auth_token; // legacy fallback
+        if (!token) {
+            return res.status(401).json({ error: 'Token không tồn tại' });
+        }
+
+        const { productId, farmId } = req.body;
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).json({ error: 'Vui lòng chọn ảnh sản phẩm' });
+        }
+        if (!productId || !farmId) {
+            return res.status(400).json({ error: 'Thiếu productId hoặc farmId' });
+        }
+
+        const FormData = require('form-data');
+        const formData = new FormData();
+        // Use buffer from memory storage or read from path if disk storage
+        const fileBuffer = file.buffer || require('fs').readFileSync(file.path);
+        formData.append('file', fileBuffer, { filename: file.originalname });
+        formData.append('productId', productId);
+        formData.append('farmId', farmId);
+
+        const response = await axios.post(`${IMAGES_API_URL}/upload`, formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                ...formData.getHeaders()
+            }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error uploading product image:', error.message);
+        const status = error.response?.status || 500;
+        const msg = error.response?.data?.message || error.response?.data?.error || error.message;
+        res.status(status).json({ error: 'Không thể tải ảnh lên: ' + msg });
+    }
+};
+
+// Proxy: Upload product image via farm-production-service (updates product.imageUrl)
+exports.uploadMarketplaceProductImage = async (req, res) => {
+    try {
+        const token = req.cookies.farm_token || req.cookies.auth_token; // legacy fallback
+        if (!token) {
+            return res.status(401).json({ error: 'Token không tồn tại' });
+        }
+
+        const { productId } = req.params;
+        const { farmId } = req.body;
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).json({ error: 'Vui lòng chọn ảnh sản phẩm' });
+        }
+        if (!productId || !farmId) {
+            return res.status(400).json({ error: 'Thiếu productId hoặc farmId' });
+        }
+
+        const FormData = require('form-data');
+        const formData = new FormData();
+        const fileBuffer = file.buffer || require('fs').readFileSync(file.path);
+        formData.append('file', fileBuffer, { filename: file.originalname });
+        formData.append('farmId', farmId);
+
+        const response = await axios.post(`${MARKETPLACE_PRODUCTS_API_URL}/${productId}/images`, formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                ...formData.getHeaders()
+            }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error uploading marketplace product image:', error.message);
+        const status = error.response?.status || 500;
+        const msg = error.response?.data?.message || error.response?.data?.error || error.message;
+        res.status(status).json({ error: 'Không thể tải ảnh lên: ' + msg });
+    }
+};

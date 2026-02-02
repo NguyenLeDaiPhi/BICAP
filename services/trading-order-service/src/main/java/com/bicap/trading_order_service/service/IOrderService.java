@@ -7,7 +7,7 @@ import com.bicap.trading_order_service.dto.OrderResponse;
 
 public interface IOrderService {
 
-    OrderResponse createOrder(CreateOrderRequest request, String buyerEmail);
+    OrderResponse createOrder(CreateOrderRequest request, String buyerEmail, Long buyerId);
 
     OrderResponse completeOrder(Long orderId);
     

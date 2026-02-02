@@ -7,7 +7,7 @@ const AUTH_API_URL = process.env.REACT_APP_AUTH_API_URL || 'http://localhost:808
 
 // Helper function to get auth token from localStorage
 const getToken = () => {
-  return localStorage.getItem('auth_token');
+  return localStorage.getItem('shipping_manager_token') || localStorage.getItem('auth_token'); // legacy fallback
 };
 
 // Helper function to get headers with token
@@ -28,7 +28,8 @@ const api = {
       const loginData = {
         email: emailOrUsername, // Backend signIn method dùng email
         username: emailOrUsername, // Có thể cần username
-        password: password
+        password: password,
+        clientId: "shippingmanager"
       };
 
       const response = await axios.post(`${AUTH_API_URL}/login`, loginData, {
@@ -44,7 +45,7 @@ const api = {
         throw new Error('Thông tin đăng nhập không chính xác');
       }
       
-      localStorage.setItem('auth_token', token);
+      localStorage.setItem('shipping_manager_token', token);
       
       // Decode token để lấy thông tin user
       try {
@@ -139,12 +140,13 @@ const api = {
   },
 
   logout: () => {
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('shipping_manager_token');
+    localStorage.removeItem('auth_token'); // legacy
     localStorage.removeItem('user');
   },
 
   isAuthenticated: () => {
-    return !!localStorage.getItem('auth_token');
+    return !!(localStorage.getItem('shipping_manager_token') || localStorage.getItem('auth_token'));
   },
 
   // Shipments

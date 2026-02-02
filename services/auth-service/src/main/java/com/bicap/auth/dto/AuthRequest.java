@@ -8,4 +8,6 @@ public class AuthRequest {
     private String username;
     private String password;
     private String role;
+    /** Client/role identifier: admin, retailer, farm, shippingManager, shippingDriver */
+    private String clientId;
 }

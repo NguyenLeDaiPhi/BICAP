@@ -125,7 +125,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if ("auth_token".equals(cookie.getName())) {
+                String name = cookie.getName();
+                if ("admin_token".equals(name) ||
+                        "retailer_token".equals(name) ||
+                        "farm_token".equals(name) ||
+                        "shipping_manager_token".equals(name) ||
+                        "shipping_driver_token".equals(name) ||
+                        "auth_token".equals(name)) { // legacy fallback
                     return cookie.getValue();
                 }
             }

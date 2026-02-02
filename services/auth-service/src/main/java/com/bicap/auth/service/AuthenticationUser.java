@@ -69,10 +69,29 @@ public class AuthenticationUser implements IAuthenticationUser {
     public String signIn(AuthRequest authRequest) {
         try {
             Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
-            return jwtUtils.generateJwtToken(authentication);
+            String clientId = authRequest.getClientId();
+            if (clientId != null && !clientId.isBlank()) {
+                if (!userHasRoleForClient(authentication, clientId)) {
+                    return null;
+                }
+            }
+            return jwtUtils.generateJwtToken(authentication, clientId);
         } catch (BadCredentialsException e) {
             return null;
         }
+    }
+
+    private boolean userHasRoleForClient(Authentication authentication, String clientId) {
+        String roles = authentication.getAuthorities().stream()
+                .map(a -> a.getAuthority())
+                .collect(java.util.stream.Collectors.joining(","));
+        String c = clientId.toLowerCase();
+        if ("admin".equals(c)) return roles.contains("ROLE_ADMIN");
+        if ("retailer".equals(c)) return roles.contains("ROLE_RETAILER");
+        if ("farm".equals(c)) return roles.contains("ROLE_FARMMANAGER");
+        if ("shippingmanager".equals(c)) return roles.contains("ROLE_SHIPPINGMANAGER");
+        if ("shippingdriver".equals(c)) return roles.contains("ROLE_DELIVERYDRIVER");
+        return true;
     }
 
     @Override

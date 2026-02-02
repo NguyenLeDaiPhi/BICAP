@@ -114,11 +114,9 @@ public class ProductServiceImpl implements IProductService {
             builder.farmId(farmManager.getFarmId())
                    .farmManagerId(farmManager.getId())
                    .farmManagerUsername(farmManager.getUsername())
-                   .farmManagerEmail(farmManager.getEmail());
-            
-            // TODO: Gọi Farm Service để lấy tên Farm nếu cần
-            // Hiện tại có thể để farmName = farmManager.getUsername() + "'s Farm"
-            builder.farmName(farmManager.getUsername() + "'s Farm");
+                   .farmManagerEmail(farmManager.getEmail())
+                   .ownerName(farmManager.getUsername())
+                   .farmName(farmManager.getUsername() + "'s Farm");
         }
 
         // Lấy tên Category nếu có

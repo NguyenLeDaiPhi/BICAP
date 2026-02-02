@@ -72,23 +72,27 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
         product.setStatus("PENDING");
         product.setCreatedAt(LocalDateTime.now());
 
+        // Store first (so we can safely reference exportBatch + other fields)
+        MarketplaceProduct saved = repository.save(product);
+
         // Send message to the trading order service
         Map<String, Object> dataProduct = new HashMap<>();
-        dataProduct.put("farmId", product.getFarm().getId());
-        dataProduct.put("farmName", product.getFarm().getFarmName());
-        dataProduct.put("name", product.getName());
-        dataProduct.put("description", product.getDescription());
-        dataProduct.put("unit", product.getUnit());
-        dataProduct.put("price", product.getPrice());
-        dataProduct.put("quantity", product.getQuantity());
-        dataProduct.put("category", product.getCategory());
-        dataProduct.put("imageUrl", product.getImageUrl());
-        
-        LOGGER.info("Sending message to trading-order-service for product: {}", product.getName());
+        dataProduct.put("farmId", saved.getFarm().getId());
+        dataProduct.put("farmName", saved.getFarm().getFarmName());
+        dataProduct.put("name", saved.getName());
+        dataProduct.put("description", saved.getDescription());
+        dataProduct.put("unit", saved.getUnit());
+        dataProduct.put("price", saved.getPrice());
+        dataProduct.put("quantity", saved.getQuantity());
+        dataProduct.put("category", saved.getCategory());
+        dataProduct.put("imageUrl", saved.getImageUrl());
+        // Correlation key for upsert on trading side
+        dataProduct.put("batchId", saved.getExportBatch() != null ? saved.getExportBatch().getBatchCode() : null);
+
+        LOGGER.info("Sending message to trading-order-service for product: {}", saved.getName());
         productProducerMQ.sendMessageToTradingOrderService("CREATED_PRODUCT", dataProduct);
-        
-        // Store the data to database
-        return repository.save(product);
+
+        return saved;
     }
 
     @Override
@@ -133,8 +137,29 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
         product.setQuantity(request.getQuantity());
         product.setCategory(request.getCategory());
         product.setImageUrl(request.getImageUrl());
-        
-        return repository.save(product);
+
+        MarketplaceProduct saved = repository.save(product);
+
+        // Broadcast update (especially imageUrl updates after upload)
+        try {
+            Map<String, Object> dataProduct = new HashMap<>();
+            dataProduct.put("farmId", saved.getFarm() != null ? saved.getFarm().getId() : null);
+            dataProduct.put("farmName", saved.getFarm() != null ? saved.getFarm().getFarmName() : null);
+            dataProduct.put("name", saved.getName());
+            dataProduct.put("description", saved.getDescription());
+            dataProduct.put("unit", saved.getUnit());
+            dataProduct.put("price", saved.getPrice());
+            dataProduct.put("quantity", saved.getQuantity());
+            dataProduct.put("category", saved.getCategory());
+            dataProduct.put("imageUrl", saved.getImageUrl());
+            dataProduct.put("batchId", saved.getExportBatch() != null ? saved.getExportBatch().getBatchCode() : null);
+
+            productProducerMQ.sendMessageToTradingOrderService("UPDATED_PRODUCT", dataProduct);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to broadcast UPDATED_PRODUCT for id={}: {}", productId, e.getMessage());
+        }
+
+        return saved;
     }
 
     @Override
@@ -143,6 +168,12 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
             .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + productId));
         product.setStatus("APPROVED");
         return repository.save(product);
+    }
+
+    @Override
+    public MarketplaceProduct getProductById(Long productId) {
+        return repository.findById(productId)
+            .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + productId));
     }
 
     @Override

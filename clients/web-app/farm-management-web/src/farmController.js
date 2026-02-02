@@ -18,8 +18,9 @@ exports.getFarmInfoPage = async (req, res) => {
         console.log(`Owner ID used for API call: ${ownerId}`); 
         
         // GỌI API: Tìm farm theo Owner ID
+        const token = req.cookies.farm_token || req.cookies.auth_token;
         const response = await axios.get(`${BASE_API_URL}/owner/${ownerId}`, {   
-            headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         
         const farmData = response.data;
@@ -62,16 +63,18 @@ exports.getEditFarmPage = async (req, res) => {
         console.log(`Đang lấy dữ liệu edit cho Owner ID: ${ownerId}`);
         
         // Tái sử dụng API tìm theo Owner để lấy dữ liệu điền vào form
+        const token = req.cookies.farm_token || req.cookies.auth_token;
         const farmResponse = await axios.get(`${BASE_API_URL}/owner/${ownerId}`, {
-            headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         
         // Fetch profile data để lấy avatar (tương tự profile.js)
         let profileData = {};
         try {
-            console.log('Fetching profile with token:', req.cookies.auth_token?.substring(0, 20) + '...'); // Partial log
+            const token = req.cookies.farm_token || req.cookies.auth_token;
+            console.log('Fetching profile with token:', token?.substring(0, 20) + '...'); // Partial log
             const profileResp = await axios.get(`${AUTH_SERVICE_URL_UPDATE}/profile`, {
-                headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             profileData = profileResp.data;
             console.log('Fetched profile data for edit: ', profileData);
@@ -132,7 +135,7 @@ exports.createFarm = async (req, res) => {
 
         // Gọi API tạo farm
         const createResponse = await axios.post(`${BASE_API_URL}/`, farmData, {
-            headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+            headers: { 'Authorization': `Bearer ${(req.cookies.farm_token || req.cookies.auth_token)}` }
         });
 
         console.log('✓ Tạo farm thành công:', createResponse.data);
@@ -141,7 +144,7 @@ exports.createFarm = async (req, res) => {
         if (createResponse.data && !createResponse.data.ownerId) {
             const updateData = { ownerId: ownerId };
             await axios.put(`${BASE_API_URL}/${createResponse.data.id}/info`, updateData, {
-                headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+                headers: { 'Authorization': `Bearer ${(req.cookies.farm_token || req.cookies.auth_token)}` }
             });
         }
 
@@ -164,7 +167,7 @@ exports.updateFarmInfo = async (req, res) => {
         // Bước 1: Lấy lại thông tin Farm để biết FarmID (an toàn nhất)
         const ownerId = req.user.userId || req.user.id || req.user.sub;
         const farmResponse = await axios.get(`${BASE_API_URL}/owner/${ownerId}`, {
-            headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+            headers: { 'Authorization': `Bearer ${(req.cookies.farm_token || req.cookies.auth_token)}` }
         });
         const farmId = farmResponse.data.id; // Lấy ID thật từ database
 
@@ -182,7 +185,7 @@ exports.updateFarmInfo = async (req, res) => {
 
         // Bước 3: Gọi API PUT theo FarmID
         const updateResponse = await axios.put(`${BASE_API_URL}/${farmId}/info`, updateData, {
-            headers: { 'Authorization': `Bearer ${req.cookies.auth_token}` }
+            headers: { 'Authorization': `Bearer ${(req.cookies.farm_token || req.cookies.auth_token)}` }
         });
         console.log('Cập nhật thành công:', updateResponse.data);
         

@@ -31,7 +31,7 @@ const getFarmId = async (ownerId, token) => {
 exports.getSeasonMonitorPage = async (req, res) => {
     try {
         const ownerId = req.user.userId || req.user.id || req.user.sub;
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token; // legacy fallback
         const farmId = await getFarmId(ownerId, token);
 
         if (!farmId) {
@@ -97,7 +97,7 @@ exports.getSeasonMonitorPage = async (req, res) => {
 exports.getSeasonDetail = async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token;
 
         if (!token) {
             return res.status(401).json({ error: 'Token không tồn tại' });
@@ -127,7 +127,7 @@ exports.getSeasonDetail = async (req, res) => {
             headers: { 
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
-                'Cookie': `auth_token=${token}` // Thêm cookie để Kong Gateway có thể forward
+                'Cookie': `farm_token=${token}` // Kong now validates farm_token cookie
             },
             withCredentials: true // Đảm bảo gửi credentials
         });
@@ -214,7 +214,7 @@ exports.getSeasonDetail = async (req, res) => {
 exports.createSeason = async (req, res) => {
     try {
         const ownerId = req.user.userId || req.user.id || req.user.sub;
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token;
         const farmId = await getFarmId(ownerId, token);
 
         if (!farmId) {
@@ -241,7 +241,7 @@ exports.createSeason = async (req, res) => {
 exports.updateSeasonProgress = async (req, res) => {
     try {
         const { batchId } = req.params;
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token;
         const ownerId = req.user.userId || req.user.id || req.user.sub;
 
         const response = await axios.post(`${FARMING_PROCESS_API_URL}/batch/${batchId}`, req.body, {
@@ -264,7 +264,7 @@ exports.updateSeasonProgress = async (req, res) => {
 exports.exportSeason = async (req, res) => {
     try {
         const { batchId } = req.params;
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token;
         const ownerId = req.user.userId || req.user.id || req.user.sub;
 
         if (!token) {
@@ -302,7 +302,7 @@ exports.exportSeason = async (req, res) => {
 exports.getExportBatchesForFarm = async (req, res) => {
     try {
         const ownerId = req.user.userId || req.user.id || req.user.sub;
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token;
         const farmId = await getFarmId(ownerId, token);
 
         if (!farmId) {

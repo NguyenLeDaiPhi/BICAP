@@ -117,7 +117,7 @@ app.post("/cart/remove", auth.requireAuth, (req, res) => {
 
 /* ================= HOME REDIRECT ================= */
 app.get("/", (req, res) => {
-  const token = req.cookies.auth_token;
+  const token = req.cookies.retailer_token || req.cookies.auth_token; // legacy fallback
   if (token) {
     res.redirect("/marketplace");
   } else {
@@ -131,7 +131,7 @@ app.get("/", (req, res) => {
 app.use("/api", auth.requireAuth, async (req, res) => {
   try {
     const kongUrl = `http://localhost:8000${req.originalUrl}`;
-    const authToken = req.cookies.auth_token;
+    const authToken = req.cookies.retailer_token || req.cookies.auth_token; // legacy fallback
 
     const response = await fetch(kongUrl, {
       method: req.method,

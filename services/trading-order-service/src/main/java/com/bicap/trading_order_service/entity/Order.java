@@ -19,6 +19,9 @@ public class Order {
     @Column(name = "shipping_address", nullable = false)
     private String shippingAddress;
 
+    @Column(name = "buyer_id", nullable = false)
+    private Long buyerId;
+
     @Column(name = "buyer_email", nullable = false, length = 255)
     private String buyerEmail;
 
@@ -48,7 +51,14 @@ public class Order {
         return id;
     }
 
-    // GET/SET buyerEmail
+    public Long getBuyerId() {
+        return buyerId;
+    }
+
+    public void setBuyerId(Long buyerId) {
+        this.buyerId = buyerId;
+    }
+
     public String getBuyerEmail() {
         return buyerEmail;
     }
