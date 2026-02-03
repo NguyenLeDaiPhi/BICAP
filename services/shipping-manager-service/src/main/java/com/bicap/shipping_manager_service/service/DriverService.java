@@ -38,6 +38,9 @@ public class DriverService {
         if (driver.getCitizenId() == null || driver.getCitizenId().trim().isEmpty()) {
             throw new IllegalArgumentException("Số căn cước công dân không được để trống");
         }
+        if (driver.getEmail() == null || driver.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email không được để trống");
+        }
         
         // Validate: Giấy phép lái xe không được trùng
         String license = driver.getLicense().trim().toUpperCase();
@@ -51,8 +54,15 @@ public class DriverService {
             throw new IllegalArgumentException("Số căn cước công dân " + citizenId + " đã được sử dụng bởi tài xế khác");
         });
         
+        // Validate: Email không được trùng
+        String email = driver.getEmail().trim().toLowerCase();
+        driverRepository.findByEmailIgnoreCase(email).ifPresent(existingDriver -> {
+            throw new IllegalArgumentException("Email " + email + " đã được sử dụng bởi tài xế khác");
+        });
+        
         driver.setLicense(license);
         driver.setCitizenId(citizenId);
+        driver.setEmail(email);
         return driverRepository.save(driver);
     }
     
@@ -104,6 +114,19 @@ public class DriverService {
                 });
             }
             existing.setCitizenId(newCitizenId);
+        }
+        
+        // Validate: Email không được trùng (nếu thay đổi)
+        if (driver.getEmail() != null && !driver.getEmail().trim().isEmpty()) {
+            String newEmail = driver.getEmail().trim().toLowerCase();
+            if (existing.getEmail() == null || !newEmail.equalsIgnoreCase(existing.getEmail())) {
+                driverRepository.findByEmailIgnoreCase(newEmail).ifPresent(conflictDriver -> {
+                    if (!conflictDriver.getId().equals(id)) {
+                        throw new IllegalArgumentException("Email " + newEmail + " đã được sử dụng bởi tài xế khác");
+                    }
+                });
+            }
+            existing.setEmail(newEmail);
         }
         
         if (driver.getUserId() != null) {

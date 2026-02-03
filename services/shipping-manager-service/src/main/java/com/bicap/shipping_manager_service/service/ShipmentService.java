@@ -103,9 +103,27 @@ public class ShipmentService {
     public List<Shipment> getMyShipments() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetailsImpl) {
-            Long userId = ((UserDetailsImpl) principal).getId();
-            // Logic thực tế: Tìm Driver theo userId rồi lấy shipment
-            // return shipmentRepository.findByDriverUserId(userId);
+            UserDetailsImpl userDetails = (UserDetailsImpl) principal;
+            Long userId = userDetails.getId();
+            String email = userDetails.getEmail();
+            
+            // Tìm Driver theo userId từ Auth Service
+            java.util.Optional<Driver> driverOpt = driverRepository.findByUserId(userId);
+            
+            // Nếu không tìm thấy theo userId, thử tìm theo email và auto-link
+            if (driverOpt.isEmpty() && email != null && !email.isEmpty()) {
+                driverOpt = driverRepository.findByEmailIgnoreCase(email);
+                if (driverOpt.isPresent()) {
+                    // Auto-link driver với userId
+                    Driver driver = driverOpt.get();
+                    driver.setUserId(userId);
+                    driverRepository.save(driver);
+                }
+            }
+            
+            return driverOpt
+                    .map(driver -> shipmentRepository.findByDriverId(driver.getId()))
+                    .orElse(List.of());
         }
         return List.of();
     }

@@ -44,6 +44,24 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
                 String username = claims.getSubject();
                 
+                // Trích xuất userId từ JWT claims (được Auth Service gửi sang)
+                Long userId = null;
+                Object userIdClaim = claims.get("userId");
+                if (userIdClaim != null) {
+                    if (userIdClaim instanceof Number) {
+                        userId = ((Number) userIdClaim).longValue();
+                    } else if (userIdClaim instanceof String) {
+                        try {
+                            userId = Long.parseLong((String) userIdClaim);
+                        } catch (NumberFormatException e) {
+                            logger.warn("Could not parse userId from token: " + userIdClaim);
+                        }
+                    }
+                }
+                
+                // Trích xuất email từ JWT claims
+                String email = claims.get("email", String.class);
+                
                 // Trích xuất Roles từ Claim "roles" (được Auth Service gửi sang)
                 // Lưu ý: Auth Service gửi roles như String (comma-separated), ví dụ: "ROLE_SHIPPING_MANAGER,ROLE_USER"
                 String rolesString = claims.get("roles", String.class);
@@ -54,7 +72,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                     roles = java.util.Arrays.asList(rolesString.split(","));
                 }
                 
-                logger.info("JWT Auth - Username: " + username + " | Roles extracted: " + roles);
+                logger.info("JWT Auth - Username: " + username + " | UserId: " + userId + " | Roles extracted: " + roles);
 
                 List<SimpleGrantedAuthority> authorities = (roles != null && !roles.isEmpty()) 
                     ? roles.stream()
@@ -65,8 +83,16 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
                 logger.info("JWT Auth - Authorities: " + authorities + " | Request URI: " + request.getRequestURI());
 
+                // Tạo UserDetailsImpl với userId để sử dụng trong getMyShipments()
+                UserDetailsImpl userDetails = UserDetailsImpl.build(
+                        userId != null ? userId : 0L,
+                        username,
+                        email,
+                        roles != null ? roles : Collections.emptyList()
+                );
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        username, null, authorities);
+                        userDetails, null, authorities);
                 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);

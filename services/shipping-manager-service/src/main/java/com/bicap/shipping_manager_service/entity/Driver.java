@@ -22,6 +22,9 @@ public class Driver {
     @Column(unique = true)
     private String citizenId; // Số căn cước công dân (CMND/CCCD)
     
+    @Column(unique = true)
+    private String email; // Email để liên kết với tài khoản Auth Service
+    
     // ID người dùng từ Auth Service (để tài xế đăng nhập App)
     private Long userId; 
 }
