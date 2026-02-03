@@ -2,6 +2,7 @@ package com.bicap.trading_order_service.controller;
 
 import com.bicap.trading_order_service.dto.CreateOrderRequest;
 import com.bicap.trading_order_service.dto.OrderResponse;
+import com.bicap.trading_order_service.security.JwtUser;
 import com.bicap.trading_order_service.service.IOrderService;
 import com.bicap.trading_order_service.service.OrderService;
 
@@ -130,19 +131,22 @@ public class OrderController {
      * =======================
      */
     @GetMapping("/my")
-    public ResponseEntity<List<OrderResponse>> getMyOrders(Authentication authentication) {
+public ResponseEntity<List<OrderResponse>> getMyOrders(Authentication authentication) {
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).build();
-        }
-
-        // Lấy email từ JWT (trong project của bạn = email)
-        String buyerEmail = authentication.getName();
-
-        return ResponseEntity.ok(
-                orderService.getOrdersByBuyerEmail(buyerEmail)
-        );
+    if (authentication == null || !authentication.isAuthenticated()) {
+        return ResponseEntity.status(401).build();
     }
+
+    JwtUser jwtUser =
+            (JwtUser) authentication.getPrincipal();
+
+    String buyerEmail = jwtUser.getEmail(); // ✅ ĐÚNG
+
+    return ResponseEntity.ok(
+            orderService.getOrdersByBuyerEmail(buyerEmail)
+    );
+}
+
 
     @GetMapping("/detail/{orderId}")
     public ResponseEntity<OrderResponse> getOrderDetail(
@@ -153,7 +157,8 @@ public class OrderController {
             return ResponseEntity.status(401).build();
         }
 
-        String buyerEmail = authentication.getName();
+       JwtUser jwtUser = (JwtUser) authentication.getPrincipal();
+        String buyerEmail = jwtUser.getEmail();
 
         return ResponseEntity.ok(
                 orderService.getOrderDetailByIdAndBuyerEmail(orderId, buyerEmail)
