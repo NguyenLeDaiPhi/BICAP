@@ -297,7 +297,7 @@ exports.deleteProduct = async (req, res) => {
 
 exports.getExportBatches = async(req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token;
         if (!token) return res.status(401).json({ error: 'Token không tồn tại.'})
 
         const ownerId = req.user?.userId || req.user?.id || req.user?.sub;
@@ -328,7 +328,10 @@ exports.getExportBatches = async(req, res) => {
 
 exports.createProduct = async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
+        const token = req.cookies.farm_token || req.cookies.auth_token;
+        if (!token) {
+            return res.status(401).json({ error: 'Token không tồn tại' });
+        }
         const response = await axios.post(`${MARKETPLACE_PRODUCTS_API_URL}`, req.body, {
             headers: {
                 'Authorization': `Bearer ${token}`,

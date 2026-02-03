@@ -162,7 +162,7 @@ async function startMomoPayment() {
       return;
     }
 
-    const res = await fetch("http://localhost:8000/api/payments/momo", {
+    const res = await fetch("/api/payments/momo", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -212,7 +212,7 @@ async function confirmMomoPayment() {
     }
 
     const res = await fetch(
-      `http://localhost:8000/api/payments/momo/success/${currentPaymentToken}`,
+      `/api/payments/momo/success/${currentPaymentToken}`,
       {
         method: "GET",
         credentials: "include"

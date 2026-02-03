@@ -26,14 +26,8 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const port = 3003;
 
-<<<<<<< HEAD
 // Per-role JWT secret for shipping manager (must match auth-service bicap.app.jwtSecret.shippingManager)
 const JWT_SECRET_STRING = process.env.JWT_SECRET_SHIPPING_MANAGER || 'YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==';
-=======
-// Base64 string from auth-service application.properties (must match exactly – no trailing Cg==)
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
-// Convert the Base64 string to a Buffer, exactly like Java's Decoders.BASE64.decode()
->>>>>>> 8fb834f394323cf4fa05dd6fbcd8d0773cd39bc0
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 const CLIENT_ID = 'shippingManager';
 const COOKIE_NAME = 'shipping_manager_token';

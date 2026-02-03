@@ -130,7 +130,8 @@ app.get("/", (req, res) => {
    ================================================= */
 app.use("/api", auth.requireAuth, async (req, res) => {
   try {
-    const kongUrl = `http://localhost:8000${req.originalUrl}`;
+    const kongBase = process.env.API_GATEWAY_BASE_URL || "http://localhost:8000";
+    const kongUrl = `${kongBase}${req.originalUrl}`;
     const authToken = req.cookies.retailer_token || req.cookies.auth_token; // legacy fallback
 
     const response = await fetch(kongUrl, {
