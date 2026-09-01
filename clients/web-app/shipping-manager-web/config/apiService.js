@@ -100,83 +100,15 @@ const apiService = {
 
     createVehicle: async (token, vehicleData) => {
         try {
-            console.log('📝 [apiService] Creating vehicle with data:', JSON.stringify(vehicleData, null, 2));
-            
-            // Sử dụng validateStatus để không throw error cho 4xx, cho phép xử lý response body
-            const response = await axios.post(`${SHIPPING_API}/vehicles`, vehicleData, {
-                ...getHeaders(token),
-                validateStatus: function (status) {
-                    // Không throw error cho status < 500, cho phép xử lý response body
-                    return status < 500;
-                }
-            });
-            
-            // Nếu status là 4xx, extract error message từ response body và throw
-            if (response.status >= 400 && response.status < 500) {
-                let errorMessage = 'Có lỗi xảy ra khi thêm xe';
-                const responseData = response.data;
-                
-                console.error('❌ [apiService] Received 4xx response:', {
-                    status: response.status,
-                    data: responseData,
-                    dataType: typeof responseData,
-                    headers: response.headers
-                });
-                
-                // Extract error message từ response body
-                if (responseData !== null && responseData !== undefined) {
-                    if (typeof responseData === 'string') {
-                        errorMessage = responseData.trim();
-                    } else if (typeof responseData === 'object') {
-                        errorMessage = responseData.message || responseData.error || JSON.stringify(responseData);
-                    } else {
-                        errorMessage = String(responseData);
-                    }
-                }
-                
-                console.error('❌ [apiService] Extracted error message from 4xx response:', errorMessage);
-                throw new Error(errorMessage);
-            }
-            
+            const response = await axios.post(`${SHIPPING_API}/vehicles`, vehicleData, getHeaders(token));
             return response.data;
         } catch (error) {
-            // Nếu error đã có message từ 4xx response (không phải message mặc định của axios), re-throw ngay
-            if (error.message && 
-                !error.message.includes('status code') && 
-                !error.message.includes('Request failed') && 
-                error.message !== 'Có lỗi xảy ra khi thêm xe' &&
-                error.message.length > 20) { // Message từ backend thường dài hơn 20 ký tự
-                console.error('❌ [apiService] Re-throwing error with extracted message:', error.message);
-                throw error;
+            let message = error.message;
+            if (error.response && error.response.data) {
+                const data = error.response.data;
+                message = typeof data === 'string' ? data : (data.error || data.message || JSON.stringify(data));
             }
-            
-            // Nếu chưa có message đúng, extract từ error.response
-            console.error('❌ [apiService] Error creating vehicle - Status:', error.response?.status);
-            console.error('❌ [apiService] Error message:', error.message);
-            console.error('❌ [apiService] Error response:', error.response);
-            
-            let errorMessage = 'Có lỗi xảy ra khi thêm xe';
-            
-            if (error.response) {
-                const responseData = error.response.data;
-                
-                if (responseData !== null && responseData !== undefined) {
-                    if (typeof responseData === 'string') {
-                        errorMessage = responseData.trim();
-                    } else if (typeof responseData === 'object') {
-                        errorMessage = responseData.message || responseData.error || JSON.stringify(responseData);
-                    } else {
-                        errorMessage = String(responseData);
-                    }
-                } else {
-                    errorMessage = error.response.statusText || errorMessage;
-                }
-            } else if (error.message && !error.message.includes('status code') && !error.message.includes('Request failed')) {
-                errorMessage = error.message;
-            }
-            
-            console.error('❌ [apiService] Final extracted error message:', errorMessage);
-            throw new Error(errorMessage);
+            throw new Error(message);
         }
     },
 
@@ -203,83 +135,15 @@ const apiService = {
 
     createDriver: async (token, driverData) => {
         try {
-            console.log('📝 [apiService] Creating driver with data:', JSON.stringify(driverData, null, 2));
-            
-            // Sử dụng validateStatus để không throw error cho 4xx, cho phép xử lý response body
-            const response = await axios.post(`${SHIPPING_API}/drivers`, driverData, {
-                ...getHeaders(token),
-                validateStatus: function (status) {
-                    // Không throw error cho status < 500, cho phép xử lý response body
-                    return status < 500;
-                }
-            });
-            
-            // Nếu status là 4xx, extract error message từ response body và throw
-            if (response.status >= 400 && response.status < 500) {
-                let errorMessage = 'Có lỗi xảy ra khi thêm tài xế';
-                const responseData = response.data;
-                
-                console.error('❌ [apiService] Received 4xx response:', {
-                    status: response.status,
-                    data: responseData,
-                    dataType: typeof responseData,
-                    headers: response.headers
-                });
-                
-                // Extract error message từ response body
-                if (responseData !== null && responseData !== undefined) {
-                    if (typeof responseData === 'string') {
-                        errorMessage = responseData.trim();
-                    } else if (typeof responseData === 'object') {
-                        errorMessage = responseData.message || responseData.error || JSON.stringify(responseData);
-                    } else {
-                        errorMessage = String(responseData);
-                    }
-                }
-                
-                console.error('❌ [apiService] Extracted error message from 4xx response:', errorMessage);
-                throw new Error(errorMessage);
-            }
-            
+            const response = await axios.post(`${SHIPPING_API}/drivers`, driverData, getHeaders(token));
             return response.data;
         } catch (error) {
-            // Nếu error đã có message từ 4xx response (không phải message mặc định của axios), re-throw ngay
-            if (error.message && 
-                !error.message.includes('status code') && 
-                !error.message.includes('Request failed') && 
-                error.message !== 'Có lỗi xảy ra khi thêm tài xế' &&
-                error.message.length > 20) { // Message từ backend thường dài hơn 20 ký tự
-                console.error('❌ [apiService] Re-throwing error with extracted message:', error.message);
-                throw error;
+            let message = error.message;
+            if (error.response && error.response.data) {
+                const data = error.response.data;
+                message = typeof data === 'string' ? data : (data.error || data.message || JSON.stringify(data));
             }
-            
-            // Nếu chưa có message đúng, extract từ error.response
-            console.error('❌ [apiService] Error creating driver - Status:', error.response?.status);
-            console.error('❌ [apiService] Error message:', error.message);
-            console.error('❌ [apiService] Error response:', error.response);
-            
-            let errorMessage = 'Có lỗi xảy ra khi thêm tài xế';
-            
-            if (error.response) {
-                const responseData = error.response.data;
-                
-                if (responseData !== null && responseData !== undefined) {
-                    if (typeof responseData === 'string') {
-                        errorMessage = responseData.trim();
-                    } else if (typeof responseData === 'object') {
-                        errorMessage = responseData.message || responseData.error || JSON.stringify(responseData);
-                    } else {
-                        errorMessage = String(responseData);
-                    }
-                } else {
-                    errorMessage = error.response.statusText || errorMessage;
-                }
-            } else if (error.message && !error.message.includes('status code') && !error.message.includes('Request failed')) {
-                errorMessage = error.message;
-            }
-            
-            console.error('❌ [apiService] Final extracted error message:', errorMessage);
-            throw new Error(errorMessage);
+            throw new Error(message);
         }
     },
 

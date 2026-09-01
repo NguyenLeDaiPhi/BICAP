@@ -24,13 +24,7 @@
             <% } %>
             <% if (typeof query !== 'undefined' && query.error) { %>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <% 
-                        let errorMsg = query.error;
-                        if (errorMsg && (errorMsg.includes('status code') || errorMsg.includes('Request failed') || errorMsg === 'Network Error' || errorMsg.length < 10)) {
-                            errorMsg = 'Có lỗi xảy ra khi thêm xe. Vui lòng thử lại.';
-                        }
-                    %>
-                    <%= errorMsg %>
+                    <%= query.error %>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <% } %>

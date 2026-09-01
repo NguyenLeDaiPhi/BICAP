@@ -274,40 +274,8 @@ app.post('/vehicles', requireAuth, async (req, res) => {
         await apiService.createVehicle(token, req.body);
         res.redirect('/vehicles?success=Xe đã được thêm thành công');
     } catch (error) {
-        console.error('❌ [ERROR] Error creating vehicle - Full error:', error);
-        console.error('❌ [ERROR] Error message:', error.message);
-        console.error('❌ [ERROR] Error name:', error.name);
-        console.error('❌ [ERROR] Error response:', error.response);
-        
-        // Extract error message - ưu tiên error.message vì đã được extract từ apiService
-        let errorMessage = error.message || 'Có lỗi xảy ra khi thêm xe';
-        
-        // Nếu error.message là message từ backend (dài hơn 20 ký tự và không chứa "status code" hoặc "Request failed")
-        if (errorMessage && 
-            errorMessage.length > 20 && 
-            !errorMessage.includes('status code') && 
-            !errorMessage.includes('Request failed') &&
-            !errorMessage.includes('Network Error')) {
-            // Đây là message từ backend, sử dụng trực tiếp
-            console.error('❌ [ERROR] Using backend error message:', errorMessage);
-        } else {
-            // Nếu là message mặc định của axios, thử extract từ error.response
-            if (error.response && error.response.data) {
-                const responseData = error.response.data;
-                if (typeof responseData === 'string' && responseData.length > 10) {
-                    errorMessage = responseData.trim();
-                    console.error('❌ [ERROR] Extracted from response.data:', errorMessage);
-                } else if (typeof responseData === 'object' && responseData.error) {
-                    errorMessage = responseData.error;
-                    console.error('❌ [ERROR] Extracted from response.data.error:', errorMessage);
-                }
-            } else {
-                errorMessage = 'Có lỗi xảy ra khi thêm xe';
-            }
-        }
-        
-        console.error('❌ [ERROR] Final error message to display:', errorMessage);
-        res.redirect('/vehicles?error=' + encodeURIComponent(errorMessage));
+        console.error('❌ [ERROR] Error creating vehicle:', error.message);
+        res.redirect('/vehicles?error=' + encodeURIComponent(error.message || 'Có lỗi xảy ra khi thêm xe'));
     }
 });
 
@@ -349,40 +317,8 @@ app.post('/drivers', requireAuth, async (req, res) => {
         await apiService.createDriver(token, req.body);
         res.redirect('/drivers?success=Tài xế đã được thêm thành công');
     } catch (error) {
-        console.error('❌ [ERROR] Error creating driver - Full error:', error);
-        console.error('❌ [ERROR] Error message:', error.message);
-        console.error('❌ [ERROR] Error name:', error.name);
-        console.error('❌ [ERROR] Error response:', error.response);
-        
-        // Extract error message - ưu tiên error.message vì đã được extract từ apiService
-        let errorMessage = error.message || 'Có lỗi xảy ra khi thêm tài xế';
-        
-        // Nếu error.message là message từ backend (dài hơn 20 ký tự và không chứa "status code" hoặc "Request failed")
-        if (errorMessage && 
-            errorMessage.length > 20 && 
-            !errorMessage.includes('status code') && 
-            !errorMessage.includes('Request failed') &&
-            !errorMessage.includes('Network Error')) {
-            // Đây là message từ backend, sử dụng trực tiếp
-            console.error('❌ [ERROR] Using backend error message:', errorMessage);
-        } else {
-            // Nếu là message mặc định của axios, thử extract từ error.response
-            if (error.response && error.response.data) {
-                const responseData = error.response.data;
-                if (typeof responseData === 'string' && responseData.length > 10) {
-                    errorMessage = responseData.trim();
-                    console.error('❌ [ERROR] Extracted from response.data:', errorMessage);
-                } else if (typeof responseData === 'object' && responseData.error) {
-                    errorMessage = responseData.error;
-                    console.error('❌ [ERROR] Extracted from response.data.error:', errorMessage);
-                }
-            } else {
-                errorMessage = 'Có lỗi xảy ra khi thêm tài xế';
-            }
-        }
-        
-        console.error('❌ [ERROR] Final error message to display:', errorMessage);
-        res.redirect('/drivers?error=' + encodeURIComponent(errorMessage));
+        console.error('❌ [ERROR] Error creating driver:', error.message);
+        res.redirect('/drivers?error=' + encodeURIComponent(error.message || 'Có lỗi xảy ra khi thêm tài xế'));
     }
 });
 
