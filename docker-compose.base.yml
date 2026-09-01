@@ -1,0 +1,9 @@
+# BICAP Base Configuration
+# Chứa network và volumes dùng chung cho tất cả services
+
+networks:
+  bicap-global-net:
+    driver: bridge
+
+volumes:
+  minio-data:
