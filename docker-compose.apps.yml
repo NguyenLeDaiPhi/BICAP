@@ -1,24 +1,13 @@
 # BICAP Web Applications
 # Guest Web, Retailer Web, Admin Web, Farm Management Web, Shipping Manager Web, Mobile Apps
 
-# ==================== SHARED ANCHORS ====================
-# Template tái sử dụng cho tất cả web apps
-
 x-web-app-base: &web-app-base
   restart: unless-stopped
   networks:
     - bicap-global-net
 
-x-web-app-env: &web-app-env
-  AUTH_SERVICE_URL: http://kong-gateway:8000/api/auth
-  AUTH_SERVICE_URL_UPDATE: http://kong-gateway:8000/api/update
-  NODE_ENV: development
-  API_GATEWAY_BASE_URL: http://kong-gateway:8000
-  RABBITMQ_URL: amqp://root:root@bicap-message-queue:5672
-
 services:
-  # ==================== GUEST WEB ====================
-  
+  # ============ GUEST WEB ============
   guest-web:
     <<: *web-app-base
     build:
@@ -30,14 +19,15 @@ services:
       - NODE_ENV=development
       - PORT=3005
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - TRADING_SERVICE_URL=http://kong-gateway:8000/api/trading
       - BLOCKCHAIN_SERVICE_URL=http://kong-gateway:8000/api/blockchain
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
     ports:
       - "3005:3005"
 
-  # ==================== RETAILER WEB ====================
-  
+  # ============ RETAILER WEB ============
   retailer-web:
     <<: *web-app-base
     build:
@@ -46,7 +36,11 @@ services:
     depends_on:
       - kong-gateway
     environment:
-      <<: *web-app-env
+      - NODE_ENV=development
+      - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
       - JWT_SECRET_RETAILER=YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/fetch-marketplace-products
@@ -54,8 +48,7 @@ services:
     ports:
       - "3000:3000"
 
-  # ==================== ADMIN WEB ====================
-  
+  # ============ ADMIN WEB ============
   admin-web:
     <<: *web-app-base
     build:
@@ -65,7 +58,11 @@ services:
       - kong-gateway
       - admin-service
     environment:
-      <<: *web-app-env
+      - NODE_ENV=development
+      - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
       - JWT_SECRET_ADMIN=YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
@@ -75,8 +72,7 @@ services:
     ports:
       - "3001:3001"
 
-  # ==================== FARM MANAGEMENT WEB ====================
-  
+  # ============ FARM MANAGEMENT WEB ============
   farm-management-web:
     <<: *web-app-base
     build:
@@ -87,7 +83,11 @@ services:
       - bicap-message-queue
       - image-storage-service
     environment:
-      <<: *web-app-env
+      - NODE_ENV=development
+      - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
       - DOCKER_ENV=true
       - JWT_SECRET_FARM=YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
       - RABBITMQ_ENABLED=true
@@ -101,8 +101,7 @@ services:
     ports:
       - "3002:3002"
 
-  # ==================== SHIPPING MANAGER WEB ====================
-  
+  # ============ SHIPPING MANAGER WEB ============
   shipping-manager-web:
     <<: *web-app-base
     build:
@@ -111,7 +110,11 @@ services:
     depends_on:
       - kong-gateway
     environment:
-      <<: *web-app-env
+      - NODE_ENV=development
+      - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
       - JWT_SECRET_SHIPPING_MANAGER=YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
       - FARM_API_URL=http://kong-gateway:8000/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
@@ -120,65 +123,3 @@ services:
       - REACT_APP_SHIPPING_API_URL=http://localhost:8000/api
     ports:
       - "3003:3003"
-
-  # ==================== MOBILE APPS ====================
-  
-  mobile-driver-app:
-    <<: *web-app-base
-    build:
-      context: ./clients/mobile-app/mobile-ship-driver/bicap-mobile
-    container_name: mobile-driver-app
-    depends_on:
-      - kong-gateway
-      - shipping-manager-service
-    environment:
-      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
-      - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
-      - NODE_ENV=development
-      - API_GATEWAY_URL=http://kong-gateway:8000
-      - EXPO_PUBLIC_API_URL=http://kong-gateway:8000
-    ports:
-      - "8097:8081"
-      - "19000:19000"
-      - "19001:19001"
-      - "19002:19002"
-    stdin_open: true
-    tty: true
-
-  mobile-ship-driver:
-    <<: *web-app-base
-    build:
-      context: ./clients/mobile-app/mobile-ship-driver/bicap-mobile
-    container_name: mobile-ship-driver
-    restart: unless-stopped
-    depends_on:
-      - kong-gateway
-    environment:
-      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
-      - REACT_NATIVE_PACKAGER_HOSTNAME=${HOST_IP:-host.docker.internal}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "19000:19000"
-      - "19001:19001"
-      - "19002:19002"
-      - "18081:8081"
-
-  # ============================================================
-  # HƯỚNG DẪN THÊM WEB APP MỚI:
-  # ============================================================
-  # Để thêm web app mới, chỉ cần copy cấu hình dưới đây và sửa:
-  #
-  # new-app-web:
-  #   <<: *web-app-base
-  #   build:
-  #     context: ./clients/web-app/new-app
-  #   container_name: new-app-web
-  #   depends_on:
-  #     - kong-gateway
-  #   environment:
-  #     <<: *web-app-env
-  #     - JWT_SECRET=your-secret-here
-  #   ports:
-  #     - "3XXX:3XXX"
-  # ============================================================
