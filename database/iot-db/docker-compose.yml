@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  mysql-iot:
+    image: mysql:8.0
+    container_name: mysql-iot
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: iot_db
+    ports:
+      - "4311:3306"
+    volumes:
+      - ./bicap_iot_db.sql:/docker-entrypoint-initdb.d/01_bicap_iot_db.sql
+      - iot-data:/var/lib/mysql
+    networks:
+      - bicap-net
+
+  iot-service:
+    build:
+      context: ../../services/iot-service
+      dockerfile: Dockerfile
+    container_name: iot-service
+    depends_on:
+      - mysql-iot
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-iot:3306/iot_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8011:8080"
+    networks:
+      - bicap-net
+
+volumes:
+  iot-data:
+
+networks:
+  bicap-net:
+    driver: bridge

@@ -1,0 +1,58 @@
+# Server Config
+spring:
+  application:
+    name: shipping-manager-service
+
+server:
+  port: 8083
+
+# MySQL Database
+  datasource:
+    url: jdbc:mysql://shipping-db:3306/shipping_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA Config
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # Kafka Config
+  kafka:
+    bootstrap-servers: bicap-kafka:9092
+    consumer:
+      group-id: shipping-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  # RabbitMQ Config
+  rabbitmq:
+    host: bicap-message-queue
+    port: 5672
+    username: root
+    password: root
+
+# Management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.bicap: DEBUG

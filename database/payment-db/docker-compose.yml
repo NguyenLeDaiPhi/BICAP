@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  mysql-payment:
+    image: mysql:8.0
+    container_name: mysql-payment
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: payment_db
+    ports:
+      - "4312:3306"
+    volumes:
+      - ./bicap_payment_db.sql:/docker-entrypoint-initdb.d/01_bicap_payment_db.sql
+      - payment-data:/var/lib/mysql
+    networks:
+      - bicap-net
+
+  payment-service:
+    build:
+      context: ../../services/payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    depends_on:
+      - mysql-payment
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-payment:3306/payment_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8012:8080"
+    networks:
+      - bicap-net
+
+volumes:
+  payment-data:
+
+networks:
+  bicap-net:
+    driver: bridge

@@ -1,0 +1,83 @@
+# Server Config
+spring:
+  application:
+    name: auth-service
+
+server:
+  port: 8080
+
+# MySQL Database
+  datasource:
+    url: jdbc:mysql://auth-db:3306/bicap_auth_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA Config
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # Kafka Config
+  kafka:
+    bootstrap-servers: bicap-kafka:9092
+    consumer:
+      group-id: auth-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  # Redis Config
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 6000ms
+
+  # RabbitMQ Config
+  rabbitmq:
+    host: bicap-message-queue
+    port: 5672
+    username: root
+    password: root
+
+# JWT Config
+bicap:
+  app:
+    jwtExpirationMs: 86400000
+    jwtSecret: YmljYXAtand0LXNlY3JldC1rZXktZm9yLWJpY2FwLXN5c3RlbS1taW5pbXVtLTI1Ni1iaXRz
+    jwtSecretAdmin: YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
+    jwtSecretRetailer: YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
+    jwtSecretFarm: YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
+    jwtSecretShippingManager: YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
+    jwtSecretShippingDriver: YmljYXAtand0LXNoaXBwaW5nLWRyaXZlci1yb2xlLXNlY3JldC1rZXkhISEh
+  auth:
+    exchange: bicap.auth.exchange
+    routing_key: bicap.auth.routing.key
+
+# Storage
+storage:
+  upload-dir: /tmp/bicap-uploads
+
+# Management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.bicap: DEBUG

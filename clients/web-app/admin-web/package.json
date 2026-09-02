@@ -1,0 +1,10 @@
+{
+  "name": "admin-web",
+  "version": "1.0.0",
+  "description": "BICAP Admin Web Application",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo 'Admin web placeholder'"
+  },
+  "dependencies": {}
+}

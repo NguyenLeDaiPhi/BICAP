@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  mysql-traceability:
+    image: mysql:8.0
+    container_name: mysql-traceability
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: traceability_db
+    ports:
+      - "4313:3306"
+    volumes:
+      - ./bicap_traceability_db.sql:/docker-entrypoint-initdb.d/01_bicap_traceability_db.sql
+      - traceability-data:/var/lib/mysql
+    networks:
+      - bicap-net
+
+  traceability-service:
+    build:
+      context: ../../services/traceability-service
+      dockerfile: Dockerfile
+    container_name: traceability-service
+    depends_on:
+      - mysql-traceability
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-traceability:3306/traceability_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8013:8080"
+    networks:
+      - bicap-net
+
+volumes:
+  traceability-data:
+
+networks:
+  bicap-net:
+    driver: bridge

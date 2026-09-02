@@ -1,0 +1,10 @@
+{
+  "name": "farm-management-web",
+  "version": "1.0.0",
+  "description": "BICAP Farm Management Web Application",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo 'Farm management web placeholder'"
+  },
+  "dependencies": {}
+}

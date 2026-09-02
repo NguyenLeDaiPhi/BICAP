@@ -1,35 +1,76 @@
+# Server Config
+spring:
+  application:
+    name: blockchain-adapter-service
+
 server:
   port: 8084
 
-spring:
+# MySQL Database
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/bicap_blockchain_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
-    username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:root}
+    url: jdbc:mysql://blockchain-db:3306/bicap_blockchain_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA Config
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-    database-platform: org.hibernate.dialect.MySQLDialect
-  
-  # Cấu hình RabbitMQ khớp với các service khác
-  rabbitmq:
-    host: ${SPRING_RABBITMQ_HOST:localhost}
-    port: 5672
-    username: ${SPRING_RABBITMQ_USERNAME:root}
-    password: ${SPRING_RABBITMQ_PASSWORD:root}
 
-# SỬA: Định nghĩa tên Queue khớp với Farm Service
+  # Kafka Config
+  kafka:
+    bootstrap-servers: bicap-kafka:9092
+    consumer:
+      group-id: blockchain-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  # RabbitMQ Config
+  rabbitmq:
+    host: bicap-message-queue
+    port: 5672
+    username: root
+    password: root
+
+# BICAP RabbitMQ Config
 bicap:
   rabbitmq:
+    exchange: bicap_exchange
     queue:
       request: farm_request_queue
       response: farm_response_queue
-    exchange: bicap_exchange
     routing-key:
       request: bicap_routing_key
       response: bicap_routing_key_response
+
+# VeChainThor Config
+vechainthor:
+  node:
+    url: https://mainnet.veblocks.net
+    api:
+      key: 
+
+# Management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.bicap: DEBUG

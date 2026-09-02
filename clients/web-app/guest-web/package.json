@@ -1,0 +1,10 @@
+{
+  "name": "guest-web",
+  "version": "1.0.0",
+  "description": "BICAP Guest Web Application",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo 'Guest web placeholder'"
+  },
+  "dependencies": {}
+}

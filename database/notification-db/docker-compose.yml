@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  mysql-notification:
+    image: mysql:8.0
+    container_name: mysql-notification
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: notification_db
+    ports:
+      - "4310:3306"
+    volumes:
+      - ./bicap_notification_db.sql:/docker-entrypoint-initdb.d/01_bicap_notification_db.sql
+      - notification-data:/var/lib/mysql
+    networks:
+      - bicap-net
+
+  notification-service:
+    build:
+      context: ../../services/notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    depends_on:
+      - mysql-notification
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-notification:3306/notification_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8010:8080"
+    networks:
+      - bicap-net
+
+volumes:
+  notification-data:
+
+networks:
+  bicap-net:
+    driver: bridge

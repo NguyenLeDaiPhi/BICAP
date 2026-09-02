@@ -1,24 +1,12 @@
 # BICAP Backend Services
 # Authentication, Farm Production, Trading Order, Blockchain, Shipping, Admin, Image Storage
 
-x-shared-env: &shared-env
-  - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
-  - BICAP_APP_JWTSECRET_ADMIN=YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
-  - BICAP_APP_JWTSECRET_RETAILER=YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
-  - BICAP_APP_JWTSECRET_FARM=YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
-  - BICAP_APP_JWTSECRET_SHIPPINGMANAGER=YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
-  - BICAP_APP_JWTSECRET_SHIPPINGDRIVER=YmljYXAtand0LXNoaXBwaW5nLWRyaXZlci1yb2xlLXNlY3JldC1rZXkhISEh
-  - BICAP_APP_JWTEXPIRATIONMS=86400000
-  - SPRING_RABBITMQ_HOST=bicap-message-queue
-  - SPRING_RABBITMQ_USERNAME=root
-  - SPRING_RABBITMQ_PASSWORD=root
-
 services:
-  # ==================== AUTH SERVICE ====================
-  
   auth-service:
     build:
       context: ./services/auth-service
+      dockerfile: Dockerfile
+    image: bicap/auth-service:latest
     container_name: auth-service
     restart: unless-stopped
     depends_on:
@@ -27,7 +15,13 @@ services:
       bicap-message-queue:
         condition: service_started
     environment:
-      - spring.datasource.url=jdbc:mysql://auth-db:3306/bicap_auth_db
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=bicap-kafka:9092
+      - spring.datasource.url=jdbc:mysql://auth-db:3306/bicap_auth_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
       - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
@@ -36,12 +30,18 @@ services:
       - "8088:8080"
     networks:
       - bicap-global-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-  # ==================== FARM PRODUCTION SERVICE ====================
-  
   farm-production-service:
     build:
       context: ./services/farm-production-service
+      dockerfile: Dockerfile
+    image: bicap/farm-production-service:latest
     container_name: farm-production-service
     restart: unless-stopped
     depends_on:
@@ -52,10 +52,13 @@ services:
       image-storage-service:
         condition: service_started
     environment:
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
-      - spring.datasource.url=jdbc:mysql://farm-production-db:3306/farm_production_db
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=bicap-kafka:9092
+      - spring.datasource.url=jdbc:mysql://farm-production-db:3306/farm_production_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
       - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
@@ -64,12 +67,18 @@ services:
       - "8081:8081"
     networks:
       - bicap-global-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-  # ==================== TRADING ORDER SERVICE ====================
-  
   trading-order-service:
     build:
       context: ./services/trading-order-service
+      dockerfile: Dockerfile
+    image: bicap/trading-order-service:latest
     container_name: trading-order-service
     restart: unless-stopped
     depends_on:
@@ -78,10 +87,13 @@ services:
       bicap-message-queue:
         condition: service_started
     environment:
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
       - SPRING_RABBITMQ_HOST=bicap-message-queue
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=root
-      - spring.datasource.url=jdbc:mysql://trading-order-db:3306/bicap_order_db
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=bicap-kafka:9092
+      - spring.datasource.url=jdbc:mysql://trading-order-db:3306/bicap_order_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
       - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
@@ -91,12 +103,18 @@ services:
       - "8082:8082"
     networks:
       - bicap-global-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-  # ==================== BLOCKCHAIN ADAPTER SERVICE ====================
-  
   blockchain-adapter-service:
     build:
       context: ./services/blockchain-adapter-service
+      dockerfile: Dockerfile
+    image: bicap/blockchain-adapter-service:latest
     container_name: blockchain-adapter-service
     restart: unless-stopped
     depends_on:
@@ -104,22 +122,37 @@ services:
         condition: service_healthy
       bicap-message-queue:
         condition: service_started
+      bicap-redis:
+        condition: service_started
     environment:
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=bicap-kafka:9092
       - spring.datasource.url=jdbc:mysql://blockchain-db:3306/bicap_blockchain_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
       - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
-      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_REDIS_HOST=bicap-redis
     ports:
       - "8084:8084"
     networks:
       - bicap-global-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-  # ==================== SHIPPING MANAGER SERVICE ====================
-  
   shipping-manager-service:
     build:
       context: ./services/shipping-manager-service
+      dockerfile: Dockerfile
+    image: bicap/shipping-manager-service:latest
     container_name: shipping-manager-service
     restart: unless-stopped
     depends_on:
@@ -132,6 +165,12 @@ services:
       blockchain-adapter-service:
         condition: service_started
     environment:
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=bicap-kafka:9092
       - spring.datasource.url=jdbc:mysql://shipping-db:3306/shipping_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
       - spring.datasource.password=root
@@ -143,12 +182,18 @@ services:
       - "8083:8083"
     networks:
       - bicap-global-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-  # ==================== ADMIN SERVICE ====================
-  
   admin-service:
     build:
       context: ./services/admin_service
+      dockerfile: Dockerfile
+    image: bicap/admin-service:latest
     container_name: admin-service
     restart: unless-stopped
     depends_on:
@@ -156,27 +201,42 @@ services:
         condition: service_healthy
       bicap-message-queue:
         condition: service_started
+      bicap-redis:
+        condition: service_started
       farm-production-service:
         condition: service_started
       trading-order-service:
         condition: service_started
     environment:
-      - spring.datasource.url=jdbc:mysql://auth-db:3306/bicap_auth_db
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=bicap-kafka:9092
+      - spring.datasource.url=jdbc:mysql://auth-db:3306/bicap_auth_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
       - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
       - FARM_SERVICE_URL=http://farm-production-service:8081
       - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
+      - SPRING_REDIS_HOST=bicap-redis
     ports:
       - "8085:8085"
     networks:
       - bicap-global-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-  # ==================== IMAGE STORAGE SERVICE ====================
-  
   image-storage-service:
     build:
       context: ./services/image-storage-service
+      dockerfile: Dockerfile
+    image: bicap/image-storage-service:latest
     container_name: image-storage-service
     restart: unless-stopped
     depends_on:
@@ -185,15 +245,32 @@ services:
       minio:
         condition: service_healthy
     environment:
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=bicap-kafka:9092
       - spring.datasource.url=jdbc:mysql://image-storage-db:3306/image_storage_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
       - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
-      - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
-      - STORAGE_BUCKET_NAME=bicap-product-images
+      - minio.endpoint=http://minio:9000
+      - minio.access-key=minioadmin
+      - minio.secret-key=minioadmin
+      - minio.bucket-name=bicap-product-images
+      - minio.presigned-url-expiry=3600
     ports:
       - "8086:8086"
     networks:
       - bicap-global-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  bicap-global-net:
+    external: true

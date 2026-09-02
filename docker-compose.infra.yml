@@ -157,6 +157,53 @@ services:
       timeout: 20s
       retries: 3
 
+  # ==================== REDIS ====================
+  
+  bicap-redis:
+    image: redis:7-alpine
+    container_name: bicap-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - bicap-global-net
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== KAFKA ====================
+  
+  bicap-zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: bicap-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - bicap-global-net
+
+  bicap-kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: bicap-kafka
+    restart: unless-stopped
+    depends_on:
+      - bicap-zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: bicap-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://bicap-kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - bicap-global-net
+
   # ==================== API GATEWAY ====================
   
   kong-gateway:
@@ -179,3 +226,11 @@ services:
       - bicap-global-net
     volumes:
       - ./api-gateway/kong.yml:/usr/local/kong/declarative/kong.yml
+
+networks:
+  bicap-global-net:
+    driver: bridge
+
+volumes:
+  minio-data:
+  redis-data:

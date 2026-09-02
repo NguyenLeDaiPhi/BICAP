@@ -1,0 +1,131 @@
+version: "3.9"
+# BICAP Database Infrastructure - Docker Compose
+# This file runs all database containers for local development
+# Each database is isolated in its own container
+
+services:
+  # ===========================================
+  # Notification Database
+  # ===========================================
+  mysql-notification:
+    image: mysql:8.0
+    container_name: bicap-mysql-notification
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: notification_db
+    ports:
+      - "4310:3306"
+    volumes:
+      - ./notification-db/bicap_notification_db.sql:/docker-entrypoint-initdb.d/01_bicap_notification_db.sql
+      - notification-data:/var/lib/mysql
+    networks:
+      - bicap-db-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # IoT Database
+  # ===========================================
+  mysql-iot:
+    image: mysql:8.0
+    container_name: bicap-mysql-iot
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: iot_db
+    ports:
+      - "4311:3306"
+    volumes:
+      - ./iot-db/bicap_iot_db.sql:/docker-entrypoint-initdb.d/01_bicap_iot_db.sql
+      - iot-data:/var/lib/mysql
+    networks:
+      - bicap-db-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # Payment Database
+  # ===========================================
+  mysql-payment:
+    image: mysql:8.0
+    container_name: bicap-mysql-payment
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: payment_db
+    ports:
+      - "4312:3306"
+    volumes:
+      - ./payment-db/bicap_payment_db.sql:/docker-entrypoint-initdb.d/01_bicap_payment_db.sql
+      - payment-data:/var/lib/mysql
+    networks:
+      - bicap-db-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # Traceability Database
+  # ===========================================
+  mysql-traceability:
+    image: mysql:8.0
+    container_name: bicap-mysql-traceability
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: traceability_db
+    ports:
+      - "4313:3306"
+    volumes:
+      - ./traceability-db/bicap_traceability_db.sql:/docker-entrypoint-initdb.d/01_bicap_traceability_db.sql
+      - traceability-data:/var/lib/mysql
+    networks:
+      - bicap-db-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # User Database
+  # ===========================================
+  mysql-user:
+    image: mysql:8.0
+    container_name: bicap-mysql-user
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: user_db
+    ports:
+      - "4318:3306"
+    volumes:
+      - ./user-db/bicap_user_db.sql:/docker-entrypoint-initdb.d/01_bicap_user_db.sql
+      - user-data:/var/lib/mysql
+    networks:
+      - bicap-db-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  notification-data:
+    driver: local
+  iot-data:
+    driver: local
+  payment-data:
+    driver: local
+  traceability-data:
+    driver: local
+  user-data:
+    driver: local
+
+networks:
+  bicap-db-net:
+    driver: bridge

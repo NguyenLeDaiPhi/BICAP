@@ -1,0 +1,202 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:8081"
+              - "http://localhost:8082"
+              - "http://localhost:8083"
+              - "http://localhost:8084"
+              - "http://localhost:8085"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      
+      default-filters:
+        - name: RequestSize
+          args:
+            maxSize: 10MB
+        - name: Retry
+          args:
+            retries: 3
+            statuses: SERVICE_UNAVAILABLE,GATEWAY_TIMEOUT
+        - name: AddRequestHeader
+          args:
+            name: X-Gateway
+            value: BICAP
+      
+      routes:
+        # Auth Service
+        - id: auth-service
+          uri: http://auth-service:8080
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
+        
+        # User Service
+        - id: user-service
+          uri: http://user-service:8080
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=0
+        
+        # Farm Service
+        - id: farm-service
+          uri: http://farm-service:8080
+          predicates:
+            - Path=/api/farms/**
+          filters:
+            - StripPrefix=0
+        
+        # Product Service
+        - id: product-service
+          uri: http://product-service:8080
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - StripPrefix=0
+        
+        # Trading Service
+        - id: trading-service
+          uri: http://trading-service:8080
+          predicates:
+            - Path=/api/trading/**
+          filters:
+            - StripPrefix=0
+        
+        # Order Service
+        - id: order-service
+          uri: http://order-service:8080
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - StripPrefix=0
+        
+        # Payment Service
+        - id: payment-service
+          uri: http://payment-service:8080
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - StripPrefix=0
+        
+        # Shipping Service
+        - id: shipping-service
+          uri: http://shipping-service:8080
+          predicates:
+            - Path=/api/shipping/**
+          filters:
+            - StripPrefix=0
+        
+        # Notification Service
+        - id: notification-service
+          uri: http://notification-service:8080
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - StripPrefix=0
+        
+        # IoT Service
+        - id: iot-service
+          uri: http://iot-service:8080
+          predicates:
+            - Path=/api/iot/**
+          filters:
+            - StripPrefix=0
+        
+        # Blockchain Service
+        - id: blockchain-service
+          uri: http://blockchain-service:8080
+          predicates:
+            - Path=/api/blockchain/**
+          filters:
+            - StripPrefix=0
+        
+        # Traceability Service (Public - No Auth Required)
+        - id: traceability-service
+          uri: http://traceability-service:8080
+          predicates:
+            - Path=/api/trace/**
+          filters:
+            - StripPrefix=0
+        
+        # Admin Service
+        - id: admin-service
+          uri: http://admin-service:8080
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - StripPrefix=0
+        
+        # Swagger UI (All services)
+        - id: swagger-resources
+          uri: http://auth-service:8080
+          predicates:
+            - Path=/swagger-resources/**
+          filters:
+            - StripPrefix=0
+        
+        - id: swagger-ui
+          uri: http://auth-service:8080
+          predicates:
+            - Path=/swagger-ui/**
+          filters:
+            - StripPrefix=0
+        
+        - id: swagger-ui-html
+          uri: http://auth-service:8080
+          predicates:
+            - Path=/v3/api-docs/**
+          filters:
+            - StripPrefix=0
+
+  # Redis Configuration
+  data:
+    redis:
+      host: redis
+      port: 6379
+      timeout: 6000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+# Management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# Logging
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG
+    com.bicap: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
