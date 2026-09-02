@@ -107,4 +107,27 @@ public class TradingOrderEventListener {
             System.err.println("❌ Error saving product: " + e.getMessage());
         }
     }
+
+    // 3. Listen for Farm Creation from Farm Production Service
+    // This updates FarmManager.farmId so that products can be linked correctly
+    @RabbitListener(queues = "${bicap.farm.creation.queue}")
+    public void receiveFarmCreationData(Map<String, Object> message) {
+        System.out.println("📩 [TRADING] Received Farm Creation Data: " + message);
+        try {
+            Long farmId = ((Number) message.get("farmId")).longValue();
+            Long ownerId = ((Number) message.get("ownerId")).longValue();
+
+            // Find the FarmManager by ownerId (user ID) and update the farmId
+            FarmManager farmManager = farmManagerRepository.findById(ownerId).orElse(null);
+            if (farmManager != null) {
+                farmManager.setFarmId(farmId);
+                farmManagerRepository.save(farmManager);
+                System.out.println("✅ [TRADING] Updated FarmManager.farmId = " + farmId + " for ownerId = " + ownerId);
+            } else {
+                System.out.println("⚠️ [TRADING] FarmManager not found for ownerId = " + ownerId);
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error processing farm creation: " + e.getMessage());
+        }
+    }
 }

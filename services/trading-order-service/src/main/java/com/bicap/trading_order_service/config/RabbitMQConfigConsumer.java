@@ -23,6 +23,9 @@ public class RabbitMQConfigConsumer {
     @Value("${bicap.auth.response.queue:bicap.auth.response.queue}")
     private String authResponseQueue;
 
+    @Value("${bicap.farm.creation.queue:bicap.farm.creation.queue}")
+    private String farmCreationQueue;
+
     @Bean
     public Queue productQueue() {
         return new Queue(productQueue, true);
@@ -31,6 +34,11 @@ public class RabbitMQConfigConsumer {
     @Bean
     public Queue authQueue() {
         return new Queue(authResponseQueue, true);
+    }
+
+    @Bean
+    public Queue farmCreationQueue() {
+        return new Queue(farmCreationQueue, true);
     }
 
     @Bean 

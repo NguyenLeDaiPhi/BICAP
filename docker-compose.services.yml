@@ -52,6 +52,9 @@ services:
       image-storage-service:
         condition: service_started
     environment:
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
       - spring.datasource.url=jdbc:mysql://farm-production-db:3306/farm_production_db
       - spring.datasource.username=root
       - spring.datasource.password=root
@@ -75,6 +78,9 @@ services:
       bicap-message-queue:
         condition: service_started
     environment:
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
       - spring.datasource.url=jdbc:mysql://trading-order-db:3306/bicap_order_db
       - spring.datasource.username=root
       - spring.datasource.password=root

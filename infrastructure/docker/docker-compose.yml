@@ -1,0 +1,312 @@
+version: '3.8'
+
+services:
+  # SQL Server
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: bicap-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - bicap-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: bicap-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bicap-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Zookeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: bicap-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - bicap-network
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: bicap-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - bicap-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kafka UI (for development)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: bicap-kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    networks:
+      - bicap-network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/api-gateway.dockerfile
+    container_name: bicap-api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - auth-service
+      - user-service
+      - farm-service
+    networks:
+      - bicap-network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/auth-service.dockerfile
+    container_name: bicap-auth-service
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapAuthDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # User Service
+  user-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/user-service.dockerfile
+    container_name: bicap-user-service
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapUserDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # Farm Service
+  farm-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/farm-service.dockerfile
+    container_name: bicap-farm-service
+    ports:
+      - "8083:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # Product Service
+  product-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/product-service.dockerfile
+    container_name: bicap-product-service
+    ports:
+      - "8084:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapProductDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # Trading Service
+  trading-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/trading-service.dockerfile
+    container_name: bicap-trading-service
+    ports:
+      - "8085:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapTradingDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # Order Service
+  order-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/order-service.dockerfile
+    container_name: bicap-order-service
+    ports:
+      - "8086:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapOrderDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # Payment Service
+  payment-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/payment-service.dockerfile
+    container_name: bicap-payment-service
+    ports:
+      - "8087:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapPaymentDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # Shipping Service
+  shipping-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/shipping-service.dockerfile
+    container_name: bicap-shipping-service
+    ports:
+      - "8088:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapShippingDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/notification-service.dockerfile
+    container_name: bicap-notification-service
+    ports:
+      - "8089:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapNotificationDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # IoT Service
+  iot-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/iot-service.dockerfile
+    container_name: bicap-iot-service
+    ports:
+      - "8091:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapIoTDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # Blockchain Service
+  blockchain-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/blockchain-service.dockerfile
+    container_name: bicap-blockchain-service
+    ports:
+      - "8092:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapBlockchainDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+  # Traceability Service
+  traceability-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/traceability-service.dockerfile
+    container_name: bicap-traceability-service
+    ports:
+      - "8093:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=BicapTraceabilityDB
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - bicap-network
+
+volumes:
+  sqlserver_data:
+  redis_data:
+
+networks:
+  bicap-network:
+    driver: bridge
