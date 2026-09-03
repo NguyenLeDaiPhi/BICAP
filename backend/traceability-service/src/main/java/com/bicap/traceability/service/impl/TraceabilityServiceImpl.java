@@ -5,18 +5,10 @@ import com.bicap.traceability.entity.TraceCode;
 import com.bicap.traceability.exception.ResourceNotFoundException;
 import com.bicap.traceability.repository.TraceCodeRepository;
 import com.bicap.traceability.service.TraceabilityService;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -85,18 +77,5 @@ public class TraceabilityServiceImpl implements TraceabilityService {
                 .build();
 
         return response;
-    }
-
-    private byte[] generateQRCode(String data, int width, int height) {
-        try {
-            QRCodeWriter qrCodeWriter = new QRCodeWriter();
-            Map<EncodeHintType, Object> hints = new HashMap<>();
-            hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
-            BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, width, height, hints);
-            return MatrixToImageWriter.toByteArray(bitMatrix, "PNG");
-        } catch (Exception e) {
-            log.error("Error generating QR code: {}", e.getMessage());
-            return null;
-        }
     }
 }

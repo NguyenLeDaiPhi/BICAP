@@ -10,9 +10,6 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.time.Instant;
-
 @Component
 public class LoggingFilter implements GlobalFilter, Ordered {
 
@@ -30,18 +27,18 @@ public class LoggingFilter implements GlobalFilter, Ordered {
 
         logger.info("[{}] {} {} - Started", requestId, method, path);
 
-        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-            long duration = System.currentTimeMillis() - startTime;
-            int statusCode = response.getStatusCode() != null ? response.getStatusCode().value() : 0;
-            
-            logger.info("[{}] {} {} - Completed with status {} in {}ms", 
-                    requestId, method, path, statusCode, duration);
-        })).onErrorResume(error -> {
-            long duration = System.currentTimeMillis() - startTime;
-            logger.error("[{}] {} {} - Error: {} after {}ms", 
-                    requestId, method, path, error.getMessage(), duration);
-            return Mono.error(error);
-        });
+        return chain.filter(exchange)
+                .doOnError(error -> {
+                    long duration = System.currentTimeMillis() - startTime;
+                    logger.error("[{}] {} {} - Error: {} after {}ms",
+                            requestId, method, path, error.getMessage(), duration);
+                })
+                .then(Mono.fromRunnable(() -> {
+                    long duration = System.currentTimeMillis() - startTime;
+                    int statusCode = response.getStatusCode() != null ? response.getStatusCode().value() : 0;
+                    logger.info("[{}] {} {} - Completed with status {} in {}ms",
+                            requestId, method, path, statusCode, duration);
+                }));
     }
 
     @Override

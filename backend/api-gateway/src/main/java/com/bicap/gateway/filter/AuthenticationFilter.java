@@ -1,4 +1,4 @@
-package com.bicap.gateway.config;
+package com.bicap.gateway.filter;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;

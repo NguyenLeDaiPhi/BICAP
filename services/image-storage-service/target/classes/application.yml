@@ -1,0 +1,57 @@
+# Server Config
+spring:
+  application:
+    name: image-storage-service
+
+server:
+  port: 8086
+
+# MySQL Database
+  datasource:
+    url: jdbc:mysql://image-storage-db:3306/image_storage_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA Config
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # File Upload Config
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+# MinIO Config
+minio:
+  endpoint: http://minio:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket-name: bicap-product-images
+  presigned-url-expiry: 3600
+
+# App Config
+app:
+  base-url: http://localhost:8086
+
+# Management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.bicap: DEBUG

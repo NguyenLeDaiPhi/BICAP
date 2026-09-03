@@ -2,11 +2,9 @@ package com.bicap.gateway.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpRequest;
-import org.springframework.security.config.web.server.ServerHttpResponse;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -41,9 +39,9 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(org.springframework.security.config.web.server.ServerHttpSecurity http) {
         return http
-                .csrf(org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec::disable)
-                .httpBasic(org.springframework.security.config.web.server.ServerHttpSecurity.HttpBasicSpec::disable)
-                .formLogin(org.springframework.security.config.web.server.ServerHttpSecurity.FormLoginSpec::disable)
+                .csrf(csrf -> csrf.disable())
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(PUBLIC_PATHS.toArray(new String[0]))
                         .permitAll()
