@@ -229,8 +229,11 @@ services:
 
 networks:
   bicap-global-net:
+    name: bicap-global-net
     driver: bridge
 
 volumes:
   minio-data:
+    name: minio-data
   redis-data:
+    name: redis-data

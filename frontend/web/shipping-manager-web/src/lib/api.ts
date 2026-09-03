@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -39,7 +39,9 @@ api.interceptors.response.use(
 // Auth API
 export const authApi = {
   login: (email: string, password: string) =>
-    api.post('/api/auth/login', { email, password }),
+    api.post('/api/auth/login', { email, password, clientId: 'shippingManager' }),
+  register: (data: any) =>
+    api.post('/api/auth/register', data),
 };
 
 // Shipping API

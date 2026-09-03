@@ -29,6 +29,9 @@ public class UserRegistrationFactory {
     public User createUser(AuthRequest authRequest) {
         String requestedRole = authRequest.getRole().toUpperCase();
         
+        // Normalize role name: remove underscores to handle variations like FARM_MANAGER -> FARMMANAGER
+        requestedRole = requestedRole.replace("_", "");
+        
         // Ensure role has ROLE_ prefix
         if (!requestedRole.startsWith("ROLE_")) {
             requestedRole = "ROLE_" + requestedRole;
@@ -37,11 +40,11 @@ public class UserRegistrationFactory {
         if (requestedRole.equals("ROLE_ADMIN") || requestedRole.equals("ROLE_DELIVERYDRIVER")) {
             throw new IllegalArgumentException("Cannot self-register for high-priviledge roles.");
         }
-
+        
         User user = new User();
-
         Set<Role> roles = new HashSet<>();
 
+        // Check for role (now normalized without underscores)
         if (requestedRole.equals("ROLE_FARMMANAGER")) {
             roles.add(getRole(ERole.ROLE_FARMMANAGER));
             user.setStatus(UserStatus.ACTIVE);

@@ -22,7 +22,7 @@ export default function DashboardPage() {
       return;
     }
     
-    if (role !== 'RETAILER') {
+    if (role !== 'RETAILER' && role !== 'ROLE_RETAILER') {
       router.push('/login');
     }
   }, [router]);

@@ -31,12 +31,15 @@ services:
   retailer-web:
     <<: *web-app-base
     build:
-      context: ./clients/web-app/retailer-web
+      context: ./frontend/web/retailer-web
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
     container_name: retailer-web
     depends_on:
       - kong-gateway
     environment:
       - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
@@ -53,12 +56,15 @@ services:
     <<: *web-app-base
     build:
       context: ./frontend/web/admin-web
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
     container_name: admin-web
     depends_on:
       - kong-gateway
       - admin-service
     environment:
       - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
@@ -77,6 +83,8 @@ services:
     <<: *web-app-base
     build:
       context: ./frontend/web/farm-manager-web
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
     container_name: farm-management-web
     depends_on:
       - kong-gateway
@@ -84,6 +92,7 @@ services:
       - image-storage-service
     environment:
       - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
@@ -106,11 +115,14 @@ services:
     <<: *web-app-base
     build:
       context: ./frontend/web/shipping-manager-web
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
     container_name: shipping-manager-web
     depends_on:
       - kong-gateway
     environment:
       - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000

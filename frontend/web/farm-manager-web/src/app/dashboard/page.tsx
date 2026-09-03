@@ -20,7 +20,7 @@ export default function DashboardPage() {
     // Demo mode: nếu chưa có token, cho phép trải nghiệm trực tiếp để bảo vệ đồ án và kiểm thử UI mượt mà
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
-    if (token && role && role !== 'FARM_MANAGER') {
+    if (token && role && role !== 'FARM_MANAGER' && role !== 'ROLE_FARMMANAGER') {
       router.push('/login');
     }
   }, [router]);

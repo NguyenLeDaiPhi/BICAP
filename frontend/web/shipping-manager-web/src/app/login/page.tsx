@@ -18,15 +18,37 @@ export default function LoginPage() {
 
     try {
       const response = await authApi.login(email, password);
-      const { token, user } = response.data.data;
+      let token = '';
+      let user: any = null;
+
+      if (typeof response.data === 'string') {
+        token = response.data;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          user = { email: payload.email, role: 'SHIPPING_MANAGER', username: payload.sub };
+        } catch (e) {
+          user = { email, role: 'SHIPPING_MANAGER' };
+        }
+      } else if (response.data?.data) {
+        token = response.data.data.token || response.data.data;
+        user = response.data.data.user || { email, role: 'SHIPPING_MANAGER' };
+      } else if (response.data?.token) {
+        token = response.data.token;
+        user = response.data.user || { email, role: 'SHIPPING_MANAGER' };
+      }
       
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('role', user.role);
+      localStorage.setItem('role', 'SHIPPING_MANAGER');
       
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Đăng nhập thất bại');
+      const errorMsg =
+        err.response?.data?.message ||
+        (typeof err.response?.data === 'string' ? err.response.data : null) ||
+        err.message ||
+        'Đăng nhập thất bại';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
