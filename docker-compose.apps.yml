@@ -11,13 +11,13 @@ services:
   guest-web:
     <<: *web-app-base
     build:
-      context: ./clients/web-app/guest-web
+      context: ./frontend/web/guest-web
     container_name: guest-web
     depends_on:
       - kong-gateway
     environment:
       - NODE_ENV=development
-      - PORT=3005
+      - PORT=3010
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - TRADING_SERVICE_URL=http://kong-gateway:8000/api/trading
@@ -25,7 +25,7 @@ services:
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
       - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
     ports:
-      - "3005:3005"
+      - "3010:3010"
 
   # ============ RETAILER WEB ============
   retailer-web:
@@ -52,7 +52,7 @@ services:
   admin-web:
     <<: *web-app-base
     build:
-      context: ./clients/web-app/admin-web
+      context: ./frontend/web/admin-web
     container_name: admin-web
     depends_on:
       - kong-gateway
@@ -76,7 +76,7 @@ services:
   farm-management-web:
     <<: *web-app-base
     build:
-      context: ./clients/web-app/farm-management-web
+      context: ./frontend/web/farm-manager-web
     container_name: farm-management-web
     depends_on:
       - kong-gateway
@@ -105,7 +105,7 @@ services:
   shipping-manager-web:
     <<: *web-app-base
     build:
-      context: ./clients/web-app/shipping-manager-web
+      context: ./frontend/web/shipping-manager-web
     container_name: shipping-manager-web
     depends_on:
       - kong-gateway
