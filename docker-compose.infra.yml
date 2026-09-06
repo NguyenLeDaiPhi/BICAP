@@ -94,6 +94,7 @@ services:
     volumes:
       - ./database/blockchain-adapter-database/bicap_blockchain_db_blockchain_records.sql:/docker-entrypoint-initdb.d/01_blockchain_records.sql
       - ./database/blockchain-adapter-database/bicap_blockchain_db_trace_logs.sql:/docker-entrypoint-initdb.d/02_trace_logs.sql
+      - ./database/blockchain-adapter-database/migration/V002__add_blockchain_record_fields.sql:/docker-entrypoint-initdb.d/03_add_blockchain_record_fields.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s

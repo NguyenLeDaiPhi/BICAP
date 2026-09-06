@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface Product {
   id: number;
@@ -19,6 +20,19 @@ interface Product {
 }
 
 export default function MarketplacePage() {
+  const router = useRouter();
+  
+  // Auth check - redirect to login if not authenticated as retailer
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    
+    if (!token || (role !== 'RETAILER' && role !== 'ROLE_RETAILER')) {
+      router.push('/login');
+      return;
+    }
+  }, [router]);
+
   const [products] = useState<Product[]>([
     {
       id: 1,

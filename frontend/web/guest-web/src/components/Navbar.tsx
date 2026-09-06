@@ -12,7 +12,7 @@ export default function Navbar() {
     { name: 'Trang Chủ', href: '/' },
     { name: 'Nông Sản Tươi', href: '/products' },
     { name: 'Truy Xuất Nguồn Gốc', href: '/trace', highlight: true },
-    { name: 'Sàn Bán Lẻ B2B', href: 'http://localhost:3000/marketplace', external: true },
+    { name: 'Sàn Bán Lẻ B2B', href: '/retailer', highlight: true },
   ];
 
   return (

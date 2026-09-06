@@ -557,13 +557,16 @@ function TraceContent() {
             )}
 
             {/* CTA Đặt Mua Ngay */}
-            <div className="text-center pt-4">
+            <div className="text-center pt-4 space-y-3">
               <Link
-                href="/products"
+                href="/retailer"
                 className="btn-buy-now text-base py-3.5 px-8 inline-flex"
               >
                 <span>🛒 Đặt Mua Nông Sản Từ Lô Hàng Này</span>
               </Link>
+              <p className="text-xs text-slate-500">
+                <Link href="/retailer" className="text-emerald-600 font-semibold underline">Đăng nhập Retailer</Link> để đặt hàng
+              </p>
             </div>
 
           </div>

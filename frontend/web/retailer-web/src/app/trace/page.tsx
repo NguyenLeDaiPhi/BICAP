@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { traceApi } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 
 export default function TracePage() {
   const [traceCode, setTraceCode] = useState('');
@@ -19,7 +20,7 @@ export default function TracePage() {
       console.log('Trace result:', response.data.data);
       // Handle result
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Không tìm thấy thông tin');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

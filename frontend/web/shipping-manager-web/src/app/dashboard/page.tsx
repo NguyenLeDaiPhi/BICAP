@@ -127,7 +127,7 @@ export default function DashboardPage() {
                 <p className="font-bold text-sm text-slate-900">Danh Sách Chuyến</p>
                 <p className="text-xs text-slate-500">Giám sát lộ trình giao</p>
               </Link>
-              <Link href="/shipments" className="p-4 bg-teal-50 rounded-2xl hover:bg-teal-100 transition-colors">
+              <Link href="/shipments/new" className="p-4 bg-teal-50 rounded-2xl hover:bg-teal-100 transition-colors">
                 <span className="text-2xl mb-1 block">➕</span>
                 <p className="font-bold text-sm text-slate-900">Tạo Chuyến Mới</p>
                 <p className="text-xs text-slate-500">Gán đơn hàng thành công</p>
@@ -145,7 +145,7 @@ export default function DashboardPage() {
                 <p className="font-bold text-sm text-slate-900">Danh Sách Tài Xế</p>
                 <p className="text-xs text-slate-500">Bằng lái & Lịch trình</p>
               </Link>
-              <Link href="/drivers" className="p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors">
+              <Link href="/vehicles" className="p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors">
                 <span className="text-2xl mb-1 block">❄️</span>
                 <p className="font-bold text-sm text-slate-900">Phương Tiện Bảo Ôn</p>
                 <p className="text-xs text-slate-500">Kiểm định thùng lạnh</p>

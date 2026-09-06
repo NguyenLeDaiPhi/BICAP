@@ -1,0 +1,12 @@
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\config\MinioConfig.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\config\WebConfig.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\controller\GlobalExceptionHandler.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\controller\ImageController.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\dto\ApiResponse.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\dto\ImageResponse.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\dto\ImageUploadRequest.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\entity\ImageMetadata.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\ImageStorageServiceApplication.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\repository\ImageMetadataRepository.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\service\ImageStorageService.java
+E:\java\BICAP\services\image-storage-service\src\main\java\com\bicap\imagestorage\service\impl\ImageStorageServiceImpl.java

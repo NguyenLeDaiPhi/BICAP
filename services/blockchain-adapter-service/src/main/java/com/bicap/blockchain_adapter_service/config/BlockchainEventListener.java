@@ -2,6 +2,7 @@ package com.bicap.blockchain_adapter_service.config;
 
 import com.bicap.blockchain_adapter_service.dto.BlockchainMessage;
 import com.bicap.blockchain_adapter_service.dto.BlockchainResult;
+import com.bicap.blockchain_adapter_service.entity.BlockchainRecord;
 import com.bicap.blockchain_adapter_service.service.IBlockchainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,8 +56,10 @@ public class BlockchainEventListener {
             blockchainService.write(id, resourceType, message.getDataHash());
             
             // 2. Tạo kết quả THÀNH CÔNG
-            // Giả lập Transaction Hash (Trong thực tế sẽ lấy từ blockchainService.write trả về)
-            String txHash = "0x" + message.getDataHash().substring(0, 15) + "..."; 
+            // Lấy txHash thực tế từ BlockchainRecord (66 ký tự chuẩn Keccak256)
+            String txHash = blockchainService.getBlockchainInfo(id)
+                    .map(BlockchainRecord::getBlockchainTx)
+                    .orElse("0x" + message.getDataHash()); 
             
             result.setSuccess(true);
             result.setTransactionId(txHash);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import AuthModal from '@/components/AuthModal';
 
 interface ProductItem {
   id: number;
@@ -25,6 +26,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMessage, setAuthModalMessage] = useState('');
 
   // Danh mục sản phẩm nông sản sạch phong phú
   const categories = [
@@ -169,6 +172,16 @@ export default function HomePage() {
   ];
 
   const handleAddToCart = (productName: string) => {
+    // Check if user is logged in as retailer
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    
+    if (!token || role !== 'RETAILER') {
+      setAuthModalMessage(`"${productName}" - Bạn cần đăng nhập với tư cách Nhà Bán Lẻ để mua hàng.`);
+      setShowAuthModal(true);
+      return;
+    }
+    
     setCartCount(prev => prev + 1);
     setToastMessage(`Đã thêm "${productName}" vào giỏ hàng thành công!`);
     setTimeout(() => {
@@ -632,6 +645,13 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Auth Modal for Guest Users */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)}
+        message={authModalMessage}
+      />
 
     </div>
   );

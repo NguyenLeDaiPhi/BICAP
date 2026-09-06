@@ -46,29 +46,32 @@ export const authApi = {
 
 // Shipping API
 export const shippingApi = {
-  getShipments: () => api.get('/api/shipping/shipments'),
-  getShipmentById: (id: number) => api.get(`/api/shipping/shipments/${id}`),
-  createShipment: (data: any) => api.post('/api/shipping/shipments', data),
-  assignDriver: (shipmentId: number, driverId: number) =>
-    api.put(`/api/shipping/shipments/${shipmentId}/assign`, { driverId }),
+  getShipments: () => api.get('/api/shipments'),
+  getShipmentById: (id: number) => api.get(`/api/shipments/${id}`),
+  createShipment: (data: any) => api.post('/api/shipments', data),
+  assignDriver: (shipmentId: number, driverId: number, vehicleId: number) =>
+    api.put(`/api/shipments/${shipmentId}/assign?driverId=${driverId}&vehicleId=${vehicleId}`),
   updateStatus: (shipmentId: number, status: string) =>
-    api.put(`/api/shipping/shipments/${shipmentId}/status`, { status }),
-  cancelShipment: (id: number) => api.put(`/api/shipping/shipments/${id}/cancel`),
+    api.put(`/api/shipments/${shipmentId}/status?status=${status}`),
+  cancelShipment: (id: number) => api.delete(`/api/shipments/${id}`),
 };
 
 // Driver API
 export const driverApi = {
-  getDrivers: () => api.get('/api/shipping/drivers'),
-  getDriverById: (id: number) => api.get(`/api/shipping/drivers/${id}`),
-  createDriver: (data: any) => api.post('/api/shipping/drivers', data),
-  updateDriver: (id: number, data: any) => api.put(`/api/shipping/drivers/${id}`, data),
+  getDrivers: () => api.get('/api/drivers'),
+  getDriverById: (id: number) => api.get(`/api/drivers/${id}`),
+  createDriver: (data: any) => api.post('/api/drivers', data),
+  updateDriver: (id: number, data: any) => api.put(`/api/drivers/${id}`, data),
+  deleteDriver: (id: number) => api.delete(`/api/drivers/${id}`),
 };
 
 // Vehicle API
 export const vehicleApi = {
-  getVehicles: () => api.get('/api/shipping/vehicles'),
-  createVehicle: (data: any) => api.post('/api/shipping/vehicles', data),
-  updateVehicle: (id: number, data: any) => api.put(`/api/shipping/vehicles/${id}`, data),
+  getVehicles: () => api.get('/api/vehicles'),
+  getVehicleById: (id: number) => api.get(`/api/vehicles/${id}`),
+  createVehicle: (data: any) => api.post('/api/vehicles', data),
+  updateVehicle: (id: number, data: any) => api.put(`/api/vehicles/${id}`, data),
+  deleteVehicle: (id: number) => api.delete(`/api/vehicles/${id}`),
 };
 
 // Report API
@@ -85,3 +88,31 @@ export const notificationApi = {
 };
 
 export default api;
+
+/**
+ * Hàm helper trích xuất thông báo lỗi từ response
+ * Xử lý nhiều format response khác nhau từ Backend:
+ * - { error: "message" } - BICAP Backend format
+ * - { message: "message" } - Một số service
+ * - Plain string response
+ * - Fallback sang err.message
+ */
+export const getErrorMessage = (err: any): string => {
+  // Backend BICAP trả về { error: "..." }
+  if (err.response?.data?.error) {
+    return err.response.data.error;
+  }
+  // Một số service trả về { message: "..." }
+  if (err.response?.data?.message) {
+    return err.response.data.message;
+  }
+  // Response là string trực tiếp
+  if (typeof err.response?.data === 'string') {
+    return err.response.data;
+  }
+  // Fallback sang err.message (sẽ là "Request failed with status code 400" nếu không có các trường trên)
+  if (err.message) {
+    return err.message;
+  }
+  return 'Đã xảy ra lỗi không xác định';
+};

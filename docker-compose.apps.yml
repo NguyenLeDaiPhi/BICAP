@@ -24,6 +24,7 @@ services:
       - BLOCKCHAIN_SERVICE_URL=http://kong-gateway:8000/api/blockchain
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
       - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
+      - NEXT_PUBLIC_RETAILER_URL=http://localhost:3000
     ports:
       - "3010:3010"
 
@@ -32,20 +33,19 @@ services:
     <<: *web-app-base
     build:
       context: ./frontend/web/retailer-web
-      args:
-        - NEXT_PUBLIC_API_URL=http://localhost:8000
     container_name: retailer-web
     depends_on:
       - kong-gateway
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://kong-gateway:8000
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
       - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
       - JWT_SECRET_RETAILER=YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
-      - FARM_API_URL=http://farm-production-service:8081/api/farm-features
+      - FARM_API_URL=http://kong-gateway:8000/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/fetch-marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
     ports:
@@ -64,6 +64,7 @@ services:
       - admin-service
     environment:
       - NODE_ENV=development
+      - PORT=3001
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update

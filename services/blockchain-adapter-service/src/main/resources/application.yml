@@ -41,6 +41,12 @@ server:
     username: root
     password: root
 
+  # Redis Config
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:bicap-redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
 # BICAP RabbitMQ Config
 bicap:
   rabbitmq:

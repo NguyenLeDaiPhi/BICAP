@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,12 +44,7 @@ export default function LoginPage() {
       
       router.push('/dashboard');
     } catch (err: any) {
-      const errorMsg =
-        err.response?.data?.message ||
-        (typeof err.response?.data === 'string' ? err.response.data : null) ||
-        err.message ||
-        'Đăng nhập thất bại';
-      setError(errorMsg);
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
