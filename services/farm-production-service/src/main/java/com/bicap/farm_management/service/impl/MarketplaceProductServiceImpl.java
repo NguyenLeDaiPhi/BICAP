@@ -2,7 +2,6 @@ package com.bicap.farm_management.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.bicap.farm_management.dto.CreateMarketplaceProductRequest;
@@ -29,16 +28,12 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MarketplaceProductServiceImpl.class);
 
-    @Autowired
     private final MarketplaceProductRepository repository;
 
-    @Autowired
     private final FarmRepository farmRepository;
 
-    @Autowired
     private final ProductProducerMQ productProducerMQ;
 
-    @Autowired
     private final ExportBatchRepository exportBatchRepository;
 
     
@@ -52,11 +47,24 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
     @Override
     public MarketplaceProduct createProduct(CreateMarketplaceProductRequest request) {
         LOGGER.info("Creating product for Farm ID: {}", request.getFarmId());
-        Farm farm = farmRepository.findById(request.getFarmId())
-            .orElseThrow(() -> new RuntimeException("Farm not found with ID: " + request.getFarmId()));
+        
+        // Lấy farm - ưu tiên farmId từ request, nếu không có thì lấy farm mặc định
+        Farm farm;
+        if (request.getFarmId() != null) {
+            farm = farmRepository.findById(request.getFarmId())
+                .orElseThrow(() -> new RuntimeException("Farm not found with ID: " + request.getFarmId()));
+        } else {
+            // Lấy farm đầu tiên làm mặc định
+            farm = farmRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new RuntimeException("No farm found in system"));
+        }
 
-        ExportBatch exportBatch = exportBatchRepository.findById(request.getExportBatchId())
-            .orElseThrow(() -> new RuntimeException("Export Batch not found."));
+        // Lấy exportBatch nếu có - MADE NULLABLE để cho phép thêm sản phẩm trực tiếp
+        ExportBatch exportBatch = null;
+        if (request.getExportBatchId() != null) {
+            exportBatch = exportBatchRepository.findById(request.getExportBatchId())
+                .orElse(null); // Không throw exception nếu không tìm thấy
+        }
         
         // Create new product saved to it owns database
         MarketplaceProduct product = new MarketplaceProduct();

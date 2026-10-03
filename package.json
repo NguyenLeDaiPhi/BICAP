@@ -2,12 +2,25 @@
   "name": "bicap",
   "private": true,
   "workspaces": [
-    "clients/web-app/*"
+    "frontend/web/*"
   ],
   "scripts": {
     "bootstrap": "npm install",
+    "compose:check": "docker compose -f docker-compose.yml config --quiet",
+    "compose:up": "docker compose -f docker-compose.yml up -d --build",
+    "compose:down": "docker compose -f docker-compose.yml down",
+    "compose:status": "docker compose -f docker-compose.yml ps",
+    "compose:logs": "docker compose -f docker-compose.yml logs -f",
+    "build:web": "npm run build --workspaces",
+    "dev:admin": "npm run dev --workspace=admin-web",
+    "dev:farm": "npm run dev --workspace=farm-manager-web",
+    "dev:guest": "npm run dev --workspace=guest-web",
+    "dev:retailer": "npm run dev --workspace=retailer-web",
+    "dev:shipping": "npm run dev --workspace=shipping-manager-web",
     "start:admin": "npm start --workspace=admin-web",
-    "start:farm": "npm start --workspace=farm-management-web",
-    "start:guest": "npm start --workspace=guest-web"
+    "start:farm": "npm start --workspace=farm-manager-web",
+    "start:guest": "npm start --workspace=guest-web",
+    "start:retailer": "npm start --workspace=retailer-web",
+    "start:shipping": "npm start --workspace=shipping-manager-web"
   }
 }

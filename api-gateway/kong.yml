@@ -56,6 +56,17 @@ services:
         config:
           path: /tmp/kong/auth-service.log
 
+  - name: product-service
+    url: http://farm-production-service:8081
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:
+          path: /tmp/kong/product-service.log
+
   - name: retailer-web
     url: http://retailer-web:3000
     plugins:
@@ -286,6 +297,38 @@ routes:
         config:
           path: /tmp/kong/marketplace-products-api.log
 
+  # Product Service API - CRUD sản phẩm nông sản
+  - name: product-service-api
+    service: product-service
+    paths:
+      - /api/products
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/product-service-api.log
+
   # New: Retailer Marketplace API (for trading-order-service)
   - name: retailer-marketplace-api
     service: trading-order-service
@@ -349,6 +392,8 @@ routes:
     methods:
       - GET
       - POST
+      - PUT
+      - DELETE
       - OPTIONS
     strip_path: false
     plugins:
@@ -367,7 +412,7 @@ routes:
       - name: cors
         config:
           origins: ["*"]
-          methods: ["GET", "POST", "OPTIONS"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
           headers: ["Accept", "Content-Type", "Authorization"]
           credentials: true
       - name: file-log

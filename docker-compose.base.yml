@@ -1,7 +1,6 @@
 # BICAP Base Configuration
 # Chứa network và volumes dùng chung cho tất cả services
-# NOTE: Để chạy riêng lẻ từng file docker-compose, trước tiên cần tạo network:
-#   docker network create bicap-global-net 2>/dev/null || true
+# Compose gốc quản lý network; dùng Makefile để chạy từng nhóm với đủ dependency.
 
 networks:
   bicap-global-net:

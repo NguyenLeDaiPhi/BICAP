@@ -61,12 +61,64 @@ export const farmApi = {
     api.post(`/api/farms/seasons/${seasonId}/processes`, data),
 };
 
-// Product API
+// Product API - Kết nối với product-service
 export const productApi = {
+  // Lấy tất cả sản phẩm
+  getAllProducts: () => api.get('/api/products'),
+  // Lấy sản phẩm của trang trại hiện tại
   getMyProducts: () => api.get('/api/products/my'),
+  // Lấy sản phẩm theo farmId
+  getProductsByFarm: (farmId: number) => api.get(`/api/products/farm/${farmId}`),
+  // Tạo sản phẩm mới
   createProduct: (data: any) => api.post('/api/products', data),
+  // Cập nhật sản phẩm
   updateProduct: (id: number, data: any) => api.put(`/api/products/${id}`, data),
+  // Xóa sản phẩm (soft delete)
   deleteProduct: (id: number) => api.delete(`/api/products/${id}`),
+  // Lấy sản phẩm theo ID
+  getProductById: (id: number) => api.get(`/api/products/${id}`),
+};
+
+// Farm Production API - Kết nối với farm-production-service qua Kong routes
+export const farmProductionApi = {
+  // Lấy danh sách mùa vụ (GET /api/production-batches)
+  getSeasons: () => api.get('/api/production-batches'),
+  
+  // Tạo mùa vụ mới (POST /api/production-batches)
+  createSeason: (data: any) => api.post('/api/production-batches', data),
+  
+  // Lấy chi tiết mùa vụ (GET /api/production-batches/{id})
+  getSeasonById: (id: number) => api.get(`/api/production-batches/${id}`),
+  
+  // Lấy chi tiết mùa vụ với process và export (GET /api/production-batches/{id}/detail)
+  getSeasonDetail: (id: number) => api.get(`/api/production-batches/${id}/detail`),
+  
+  // Cập nhật mùa vụ (PUT /api/production-batches/{id})
+  updateSeason: (id: number, data: any) => api.put(`/api/production-batches/${id}`, data),
+  
+  // Xóa mùa vụ (DELETE /api/production-batches/{id})
+  deleteSeason: (id: number) => api.delete(`/api/production-batches/${id}`),
+  
+  // Lấy mùa vụ theo farm (GET /api/production-batches/farm/{farmId})
+  getSeasonsByFarm: (farmId: number) => api.get(`/api/production-batches/farm/${farmId}`),
+  
+  // Lấy marketplace products
+  getMarketplaceProducts: (farmId: number) => api.get(`/api/marketplace-products/farm/${farmId}`),
+  
+  // Tạo marketplace product
+  createMarketplaceProduct: (data: any) => api.post('/api/marketplace-products', data),
+  
+  // Cập nhật marketplace product
+  updateMarketplaceProduct: (id: number, data: any) => api.put(`/api/marketplace-products/${id}`, data),
+  
+  // Xóa marketplace product
+  deleteMarketplaceProduct: (id: number) => api.delete(`/api/marketplace-products/${id}`),
+  
+  // Tạo nhật ký canh tác (farming process)
+  createProcess: (seasonId: number, data: any) => api.post(`/api/farming-processes/batch/${seasonId}`, data),
+  
+  // Lấy nhật ký canh tác
+  getProcesses: (seasonId: number) => api.get(`/api/farming-processes/batch/${seasonId}`),
 };
 
 // Trading API

@@ -1,114 +1,75 @@
-# BICAP Docker Management Scripts
+# Run from the repository root. All targets use the same Compose project.
+COMPOSE = docker compose -f docker-compose.yml
+INFRA = auth-db farm-production-db trading-order-db shipping-db blockchain-db image-storage-db bicap-message-queue minio bicap-redis bicap-zookeeper bicap-kafka kong-gateway
+BACKEND = auth-service farm-production-service trading-order-service blockchain-adapter-service shipping-manager-service admin-service image-storage-service
+WEB = admin-web farm-management-web retailer-web shipping-manager-web guest-web
 
-# ============================================================
-# CÁCH SỬ DỤNG
-# ============================================================
-# Chế độ 1: Chạy TẤT CẢ (khuyến nghị)
-#   make up              # Khởi động tất cả (infra + services)
-#   make down            # Dừng tất cả
-#   make restart         # Restart tất cả
-#
-# Chế độ 2: Chạy RIÊNG LẺ (cần tạo network trước)
-#   make init-network    # Tạo network chung
-#   make up-infra        # Chỉ infrastructure
-#   make up-services     # Chỉ backend services
-#   make down-infra      # Dừng infrastructure
-#   make down-services   # Dừng services
-#
-# Chế độ 3: Development
-#   make up-dev          # Full development mode
-#   make logs            # Xem logs
-#   make logs-svc        # Xem logs services
-# ============================================================
+.PHONY: up down restart up-infra up-services up-apps down-infra down-services down-apps up-dev logs logs-svc logs-infra status status-infra status-services build build-svc check clean help
 
-.PHONY: up down restart logs clean init-network up-infra up-services down-infra down-services
+up:
+	$(COMPOSE) up -d --build
 
-# Biến môi trường
-COMPOSE = docker compose
-PROJECT = bicap
-
-# Tạo network chung trước khi chạy riêng lẻ
-init-network:
-	@echo "Creating bicap-global-net network..."
-	@docker network create bicap-global-net 2>/dev/null || echo "Network already exists"
-	@echo "Network ready!"
-
-# Khởi động tất cả (khuyến nghị)
-up: init-network
-	$(COMPOSE) up -d
-	@echo ""
-	@echo "All services started! Access:"
-	@echo "  - Kong Gateway:     http://localhost:8000"
-	@echo "  - RabbitMQ:         http://localhost:15672 (root/root)"
-	@echo "  - MinIO Console:    http://localhost:9001 (minioadmin/minioadmin)"
-
-# Dừng tất cả
 down:
 	$(COMPOSE) down
 
-# Restart tất cả
-restart: down up
+restart:
+	$(COMPOSE) restart
 
-# Khởi động chỉ infrastructure
-up-infra: init-network
-	$(COMPOSE) -f docker-compose.infra.yml up -d
+# Compose starts dependencies and creates the shared network automatically.
+up-infra:
+	$(COMPOSE) up -d $(INFRA)
 
-# Dừng chỉ infrastructure
-down-infra:
-	$(COMPOSE) -f docker-compose.infra.yml down
-
-# Khởi động chỉ services (cần infra đang chạy!)
 up-services:
-	$(COMPOSE) -f docker-compose.services.yml up -d
+	$(COMPOSE) up -d --build $(BACKEND)
 
-# Dừng chỉ services
+up-apps:
+	$(COMPOSE) up -d --build $(WEB)
+
+# Stop selected containers without removing the shared project/network.
+down-infra:
+	$(COMPOSE) stop $(INFRA)
+
 down-services:
-	$(COMPOSE) -f docker-compose.services.yml down
+	$(COMPOSE) stop $(BACKEND)
 
-# Xem tất cả logs
+down-apps:
+	$(COMPOSE) stop $(WEB)
+
+up-dev: up
+
 logs:
 	$(COMPOSE) logs -f
 
-# Xem logs services
 logs-svc:
-	$(COMPOSE) -f docker-compose.services.yml logs -f
+	$(COMPOSE) logs -f $(BACKEND)
 
-# Xem logs infrastructure
 logs-infra:
-	$(COMPOSE) -f docker-compose.infra.yml logs -f
+	$(COMPOSE) logs -f $(INFRA)
 
-# Development mode
-up-dev:
-	$(COMPOSE) -f docker-compose.yml -f docker-compose.override.yml up -d
-
-# Clean up (xóa container, image rác)
-clean:
-	$(COMPOSE) down -v --rmi local
-	@docker network rm bicap-global-net 2>/dev/null || true
-	@echo "Cleaned up!"
-
-# Kiểm tra trạng thái
 status:
 	$(COMPOSE) ps
 
-# Kiểm tra trạng thái infrastructure
 status-infra:
-	$(COMPOSE) -f docker-compose.infra.yml ps
+	$(COMPOSE) ps $(INFRA)
 
-# Kiểm tra trạng thái services
 status-services:
-	$(COMPOSE) -f docker-compose.services.yml ps
+	$(COMPOSE) ps $(BACKEND)
 
-# Rebuild services
 build:
-	$(COMPOSE) build --no-cache
+	$(COMPOSE) build
 
-# Rebuild một service cụ thể
 build-svc:
-	$(COMPOSE) build --no-cache $(SVC)
+	$(COMPOSE) build $(SVC)
 
-# Help
+check:
+	$(COMPOSE) config --quiet
+
+# Explicit data cleanup: removes project volumes and locally built images.
+clean:
+	$(COMPOSE) down -v --rmi local
+
 help:
-	@echo "BICAP Docker Management"
-	@echo ""
-	@grep -E '^[a-zA-Z_-]+:' Makefile | sed 's/:.*//' | sed 's/^/  /'
+	@echo "BICAP: up | down | restart | check | status | logs | build"
+	@echo "Groups: up-infra | up-services | up-apps | down-infra | down-services | down-apps"
+	@echo "Single service: make build-svc SVC=farm-production-service"
+	@echo "Windows without make: npm run compose:up"

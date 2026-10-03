@@ -2,6 +2,7 @@ package com.bicap.farm_management.controller;
 
 import com.bicap.farm_management.dto.CreateMarketplaceProductRequest;
 import com.bicap.farm_management.dto.ProductResponse;
+import com.bicap.farm_management.dto.UpdateMarketplaceProductRequest;
 import com.bicap.farm_management.entity.MarketplaceProduct;
 import com.bicap.farm_management.service.IMarketplaceProductService;
 import com.bicap.farm_management.service.ImageStorageService;
@@ -22,7 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/marketplace-products")
+@RequestMapping({"/api/marketplace-products", "/api/products"})
 @CrossOrigin(originPatterns = "*", allowCredentials = "true")
 @RequiredArgsConstructor
 public class MarketplaceProductController {
@@ -30,15 +31,73 @@ public class MarketplaceProductController {
     private final IMarketplaceProductService service;
     private final ImageStorageService imageStorageService;
 
+    /**
+     * GET /api/products - Lấy tất cả sản phẩm
+     * GET /api/marketplace-products - Lấy tất cả sản phẩm
+     */
+    @GetMapping
+    public ResponseEntity<List<ProductResponse>> getAllProducts() {
+        List<ProductResponse> products = service.getApprovedProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    /**
+     * GET /api/products/my - Lấy sản phẩm theo farm (sử dụng farm mặc định)
+     */
+    @GetMapping("/my")
+    public ResponseEntity<List<ProductResponse>> getMyProducts() {
+        // TODO: Lấy farm từ user context - hiện tại dùng farm đầu tiên
+        List<ProductResponse> products = service.getApprovedProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    /**
+     * GET /api/products/{id} - Lấy chi tiết sản phẩm
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
+        ProductResponse product = service.getProductDetail(id);
+        return ResponseEntity.ok(product);
+    }
+
+    /**
+     * POST /api/products - Tạo sản phẩm mới
+     * POST /api/marketplace-products - Tạo sản phẩm mới
+     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public MarketplaceProduct createProduct(@Valid @RequestBody CreateMarketplaceProductRequest request) {
         return service.createProduct(request);
     }
 
+    /**
+     * PUT /api/products/{id} - Cập nhật sản phẩm
+     * PUT /api/marketplace-products/{id} - Cập nhật sản phẩm
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<MarketplaceProduct> updateProduct(
+            @PathVariable Long id,
+            @RequestBody UpdateMarketplaceProductRequest request) {
+        MarketplaceProduct updated = service.updateProduct(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * DELETE /api/products/{id} - Xóa sản phẩm khỏi database
+     * DELETE /api/marketplace-products/{id} - Xóa sản phẩm khỏi database
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        service.deleteProduct(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * GET /api/products/farm/{farmId} - Lấy sản phẩm theo farm cụ thể
+     */
     @GetMapping("/farm/{farmId}")
-    public List<ProductResponse> getProductsByFarm(@PathVariable Long farmId) {
-        return service.getProductsByFarm(farmId);
+    public ResponseEntity<List<ProductResponse>> getProductsByFarm(@PathVariable Long farmId) {
+        return ResponseEntity.ok(service.getProductsByFarm(farmId));
     }
 
     /**
@@ -63,8 +122,7 @@ public class MarketplaceProductController {
                 MarketplaceProduct product = service.getProductById(productId);
                 if (product != null) {
                     product.setImageUrl(imageUrl);
-                    com.bicap.farm_management.dto.UpdateMarketplaceProductRequest updateReq =
-                        new com.bicap.farm_management.dto.UpdateMarketplaceProductRequest();
+                    UpdateMarketplaceProductRequest updateReq = new UpdateMarketplaceProductRequest();
                     updateReq.setName(product.getName());
                     updateReq.setDescription(product.getDescription());
                     updateReq.setPrice(product.getPrice());

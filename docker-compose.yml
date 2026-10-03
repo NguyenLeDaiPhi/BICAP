@@ -1,12 +1,15 @@
 # BICAP - Main Docker Compose Configuration
 # ============================================================
-# Sử dụng: docker compose up
+# Bộ chạy chính: services/ + frontend/web/ + MySQL + Kong
+# Sử dụng từ thư mục gốc: docker compose up -d --build
 # Hoặc chạy từng phần riêng biệt:
 #   - make up-infra    : Chỉ infrastructure (DBs, MQ, MinIO, Kong)
-#   - make up-services : Backend services
+#   - make up-services : Backend services và các dependency
 #   - make up-apps     : Web apps
-#   - make up-dev      : Tất cả (development mode)
+#   - make up-dev      : Build và chạy tất cả
 # ============================================================
+
+name: bicap
 
 include:
   - docker-compose.base.yml

@@ -8,11 +8,12 @@ import java.math.BigDecimal;
 
 @Data
 public class CreateMarketplaceProductRequest {
-    @NotNull
-    private Long farmId; // The ID of the farm owning the product
+    
+    // Farm ID - nullable để backend tự lấy farm mặc định
+    private Long farmId;
 
-    @NotNull
-    private Long exportBatchId; // Link to the validated Export Batch
+    // Link to the validated Export Batch - MADE NULLABLE để farm manager có thể thêm sản phẩm trực tiếp
+    private Long exportBatchId;
     
     @NotBlank
     private String name;

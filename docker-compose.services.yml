@@ -198,7 +198,7 @@ services:
   admin-service:
     build:
       context: ./services/admin_service
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     image: bicap/admin-service:latest
     container_name: admin-service
     restart: unless-stopped
@@ -282,4 +282,5 @@ services:
 
 networks:
   bicap-global-net:
-    external: true
+    name: bicap-global-net
+    driver: bridge
