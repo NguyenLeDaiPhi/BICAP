@@ -93,10 +93,13 @@ CREATE TABLE `export_batches` (
   `tx_hash` varchar(255) DEFAULT NULL,
   `unit` varchar(255) DEFAULT NULL,
   `batch_id` bigint NOT NULL,
+  `farm_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UK_htn175kpm7cd45jlore6oym1v` (`export_code`),
   KEY `FK9yobnh5yfd3xdkbcb5kwhpgjl` (`batch_id`),
-  CONSTRAINT `FK9yobnh5yfd3xdkbcb5kwhpgjl` FOREIGN KEY (`batch_id`) REFERENCES `production_batches` (`id`)
+  KEY `idx_export_batches_farm_id` (`farm_id`),
+  CONSTRAINT `FK9yobnh5yfd3xdkbcb5kwhpgjl` FOREIGN KEY (`batch_id`) REFERENCES `production_batches` (`id`),
+  CONSTRAINT `fk_export_batches_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

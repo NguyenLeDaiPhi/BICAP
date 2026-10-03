@@ -80,6 +80,12 @@ export const productApi = {
 };
 
 // Farm Production API - Kết nối với farm-production-service qua Kong routes
+export interface CreateFarmingProcessRequest {
+  processType: string;
+  description: string;
+  performedDate: string;
+}
+
 export const farmProductionApi = {
   // Lấy danh sách mùa vụ (GET /api/production-batches)
   getSeasons: () => api.get('/api/production-batches'),
@@ -115,7 +121,7 @@ export const farmProductionApi = {
   deleteMarketplaceProduct: (id: number) => api.delete(`/api/marketplace-products/${id}`),
   
   // Tạo nhật ký canh tác (farming process)
-  createProcess: (seasonId: number, data: any) => api.post(`/api/farming-processes/batch/${seasonId}`, data),
+  createProcess: (seasonId: number, data: CreateFarmingProcessRequest) => api.post(`/api/farming-processes/batch/${seasonId}`, data),
   
   // Lấy nhật ký canh tác
   getProcesses: (seasonId: number) => api.get(`/api/farming-processes/batch/${seasonId}`),

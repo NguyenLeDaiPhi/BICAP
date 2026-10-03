@@ -23,9 +23,9 @@ interface SeasonDetail {
 
 interface FarmingProcess {
   id: number;
-  stage: string;
+  processType: string;
   description: string;
-  date: string;
+  performedDate: string;
   status: string;
 }
 
@@ -37,6 +37,11 @@ interface ExportBatch {
   qrCode: string;
   status: string;
 }
+
+const getToday = () => {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().split('T')[0];
+};
 
 export default function SeasonDetailPage() {
   const params = useParams();
@@ -50,10 +55,13 @@ export default function SeasonDetailPage() {
   
   // Form state for adding new process
   const [showProcessForm, setShowProcessForm] = useState(false);
+  const [isSavingProcess, setIsSavingProcess] = useState(false);
+  const [processError, setProcessError] = useState<string | null>(null);
+  const [processSuccess, setProcessSuccess] = useState<string | null>(null);
   const [processForm, setProcessForm] = useState({
-    stage: '',
+    processType: '',
     description: '',
-    date: new Date().toISOString().split('T')[0],
+    performedDate: getToday(),
   });
 
   // Lấy chi tiết mùa vụ từ API
@@ -92,9 +100,9 @@ export default function SeasonDetailPage() {
         if (data.farmingProcesses) {
           setProcesses(data.farmingProcesses.map((p: any) => ({
             id: p.id,
-            stage: p.stage,
+            processType: p.processType,
             description: p.description,
-            date: p.date,
+            performedDate: p.performedDate,
             status: p.status,
           })));
         }
@@ -128,25 +136,32 @@ export default function SeasonDetailPage() {
   // Thêm nhật ký canh tác mới
   const handleAddProcess = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSavingProcess) return;
+    setIsSavingProcess(true);
+    setProcessError(null);
+    setProcessSuccess(null);
     try {
       await farmProductionApi.createProcess(Number(seasonId), {
-        ...processForm,
-        status: 'COMPLETED',
+        processType: processForm.processType,
+        description: processForm.description.trim(),
+        performedDate: `${processForm.performedDate}T00:00:00`,
       });
       
       setShowProcessForm(false);
       setProcessForm({
-        stage: '',
+        processType: '',
         description: '',
-        date: new Date().toISOString().split('T')[0],
+        performedDate: getToday(),
       });
       
       // Refresh lại chi tiết
-      fetchSeasonDetail();
-      alert('Thêm nhật ký thành công!');
+      await fetchSeasonDetail();
+      setProcessSuccess('Đã lưu nhật ký canh tác.');
     } catch (err: any) {
       console.error('Lỗi khi thêm nhật ký:', err);
-      alert('Lỗi: ' + getErrorMessage(err));
+      setProcessError(getErrorMessage(err));
+    } finally {
+      setIsSavingProcess(false);
     }
   };
 
@@ -168,9 +183,11 @@ export default function SeasonDetailPage() {
     const stages: Record<string, { label: string; color: string }> = {
       'PREPARATION': { label: 'Chuẩn bị', color: 'bg-blue-100 text-blue-700' },
       'PLANTING': { label: 'Gieo hạt', color: 'bg-green-100 text-green-700' },
+      'SOWING': { label: 'Gieo hạt', color: 'bg-green-100 text-green-700' },
       'GROWING': { label: 'Phát triển', color: 'bg-emerald-100 text-emerald-700' },
       'FERTILIZING': { label: 'Bón phân', color: 'bg-amber-100 text-amber-700' },
       'IRRIGATION': { label: 'Tưới tiêu', color: 'bg-cyan-100 text-cyan-700' },
+      'WATERING': { label: 'Tưới tiêu', color: 'bg-cyan-100 text-cyan-700' },
       'PEST_CONTROL': { label: 'Phòng trừ', color: 'bg-orange-100 text-orange-700' },
       'MONITORING': { label: 'Giám sát', color: 'bg-purple-100 text-purple-700' },
       'HARVESTING': { label: 'Thu hoạch', color: 'bg-yellow-100 text-yellow-700' },
@@ -297,31 +314,48 @@ export default function SeasonDetailPage() {
 
         {/* Nhật ký canh tác */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <h2 className="text-lg font-bold text-gray-900">Nhật ký canh tác</h2>
             <button 
-              onClick={() => setShowProcessForm(!showProcessForm)}
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 text-sm"
+              type="button"
+              onClick={() => {
+                setShowProcessForm(!showProcessForm);
+                setProcessError(null);
+                setProcessSuccess(null);
+              }}
+              className="btn-primary text-sm"
+              disabled={isSavingProcess}
+              aria-expanded={showProcessForm}
+              aria-controls="farming-process-form"
             >
-              + Thêm nhật ký
+              {showProcessForm ? 'Đóng biểu mẫu' : '+ Thêm nhật ký'}
             </button>
           </div>
 
+          {processSuccess && (
+            <p role="status" className="mb-4 rounded-lg bg-green-50 p-3 text-green-700">{processSuccess}</p>
+          )}
+
           {/* Form thêm nhật ký */}
           {showProcessForm && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div id="farming-process-form" className="bg-gray-50 rounded-lg p-4 mb-4">
               <h3 className="font-medium text-gray-900 mb-3">Thêm nhật ký canh tác</h3>
               <form onSubmit={handleAddProcess} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                {processError && (
+                  <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-700">{processError}</p>
+                )}
+                <fieldset disabled={isSavingProcess} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Giai đoạn *</label>
+                    <label htmlFor="process-type" className="label">Hoạt động canh tác *</label>
                     <select
-                      value={processForm.stage}
-                      onChange={(e) => setProcessForm({...processForm, stage: e.target.value})}
+                      id="process-type"
+                      value={processForm.processType}
+                      onChange={(e) => setProcessForm({...processForm, processType: e.target.value})}
                       className="input"
                       required
                     >
-                      <option value="">Chọn giai đoạn</option>
+                      <option value="">Chọn hoạt động</option>
                       <option value="PREPARATION">Chuẩn bị</option>
                       <option value="PLANTING">Gieo hạt</option>
                       <option value="GROWING">Phát triển</option>
@@ -334,38 +368,46 @@ export default function SeasonDetailPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="label">Ngày *</label>
+                    <label htmlFor="process-date" className="label">Ngày thực hiện *</label>
                     <input
                       type="date"
-                      value={processForm.date}
-                      onChange={(e) => setProcessForm({...processForm, date: e.target.value})}
+                      id="process-date"
+                      value={processForm.performedDate}
+                      onChange={(e) => setProcessForm({...processForm, performedDate: e.target.value})}
                       className="input"
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="label">Mô tả</label>
+                  <label htmlFor="process-description" className="label">Nội dung ghi chép</label>
                   <textarea
+                    id="process-description"
                     value={processForm.description}
                     onChange={(e) => setProcessForm({...processForm, description: e.target.value})}
                     className="input"
                     rows={3}
+                    maxLength={255}
                     placeholder="Mô tả chi tiết công việc..."
                   />
+                  <p className="mt-1 text-xs text-gray-500">Tối đa 255 ký tự.</p>
                 </div>
                 <div className="flex gap-4 justify-end">
                   <button
                     type="button"
-                    onClick={() => setShowProcessForm(false)}
+                    onClick={() => {
+                      setShowProcessForm(false);
+                      setProcessError(null);
+                    }}
                     className="btn-secondary"
                   >
                     Hủy
                   </button>
                   <button type="submit" className="btn-primary">
-                    Lưu
+                    {isSavingProcess ? 'Đang lưu...' : 'Lưu nhật ký'}
                   </button>
                 </div>
+                </fieldset>
               </form>
             </div>
           )}
@@ -379,7 +421,14 @@ export default function SeasonDetailPage() {
           ) : (
             <div className="space-y-4">
               {processes.map((process) => {
-                const stageInfo = getProcessStageLabel(process.stage);
+                const stageInfo = getProcessStageLabel(process.processType);
+                const processStatus = process.status === 'SYNCED'
+                  ? { label: 'Đã xác thực', color: 'bg-green-100 text-green-700' }
+                  : process.status === 'PENDING_BLOCKCHAIN'
+                  ? { label: 'Đã lưu · Chờ xác thực', color: 'bg-yellow-100 text-yellow-700' }
+                  : process.status === 'COMPLETED'
+                  ? { label: 'Hoàn thành', color: 'bg-green-100 text-green-700' }
+                  : { label: process.status, color: 'bg-gray-100 text-gray-700' };
                 return (
                   <div key={process.id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
@@ -387,14 +436,14 @@ export default function SeasonDetailPage() {
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${stageInfo.color}`}>
                           {stageInfo.label}
                         </span>
-                        <p className="mt-2 text-gray-700">{process.description}</p>
+                        <p className="mt-2 text-gray-700 whitespace-pre-wrap break-words">{process.description}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-500">{process.date}</p>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          process.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                        }`}>
-                          {process.status === 'COMPLETED' ? 'Hoàn thành' : process.status}
+                        <p className="text-sm text-gray-500">{process.performedDate
+                          ? new Date(process.performedDate).toLocaleDateString('vi-VN')
+                          : 'Chưa có ngày thực hiện'}</p>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${processStatus.color}`}>
+                          {processStatus.label}
                         </span>
                       </div>
                     </div>
