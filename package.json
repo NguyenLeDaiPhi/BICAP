@@ -21,6 +21,9 @@
     "start:farm": "npm start --workspace=farm-manager-web",
     "start:guest": "npm start --workspace=guest-web",
     "start:retailer": "npm start --workspace=retailer-web",
-    "start:shipping": "npm start --workspace=shipping-manager-web"
+    "start:shipping": "npm start --workspace=shipping-manager-web",
+    "audit:java": "node scripts/audit-java.mjs",
+    "audit:http": "node scripts/audit-http.mjs",
+    "test:shopping-ai": "node scripts/check-shopping-ai.mjs"
   }
 }

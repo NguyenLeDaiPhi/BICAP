@@ -43,6 +43,7 @@ public class SecurityConfig {
 
                 // ===== PRE-FLIGHT =====
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/assistant/search").permitAll()
 
                 // ===== SWAGGER =====
                 .requestMatchers(

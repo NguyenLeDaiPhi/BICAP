@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-04T07:22:29.843Z",
+  "dockerBuild": {
+    "exitCode": 0,
+    "images": 12
+  },
+  "java": {
+    "tests": 65,
+    "errors": 5,
+    "failures": 0,
+    "skipped": 0,
+    "passed": 60
+  },
+  "http": {
+    "total": 81,
+    "passed": 71,
+    "failed": 10
+  },
+  "realAi": {
+    "total": 6,
+    "passed": 6
+  },
+  "widget": {
+    "guest": "passed",
+    "retailer": "passed",
+    "method": "React hook harness; not browser E2E"
+  }
+}

@@ -1,0 +1,940 @@
+[
+  {
+    "name": "Direct internal admin API must require authentication",
+    "url": "http://localhost:8082/api/admin/products",
+    "status": 200,
+    "expected": [
+      401,
+      403
+    ],
+    "passed": false,
+    "milliseconds": 79,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "content",
+        "pageable",
+        "last",
+        "totalPages",
+        "totalElements",
+        "first",
+        "size",
+        "number",
+        "sort",
+        "numberOfElements",
+        "empty"
+      ],
+      "count": 1
+    }
+  },
+  {
+    "name": "Public approved catalog",
+    "url": "http://localhost:8000/api/fetch-marketplace-products",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 3443,
+    "shape": {
+      "kind": "array",
+      "count": 1
+    }
+  },
+  {
+    "name": "Protected admin products",
+    "url": "http://localhost:8000/api/v1/admin/products",
+    "status": 403,
+    "expected": [
+      401,
+      403
+    ],
+    "passed": true,
+    "milliseconds": 4014,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "status": 403
+    }
+  },
+  {
+    "name": "Admin products",
+    "url": "http://localhost:8000/api/v1/admin/products",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 4091,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "content",
+        "pageable",
+        "last",
+        "totalPages",
+        "totalElements",
+        "first",
+        "size",
+        "number",
+        "sort",
+        "numberOfElements",
+        "empty"
+      ],
+      "count": 1
+    }
+  },
+  {
+    "name": "Admin users",
+    "url": "http://localhost:8000/api/v1/admin/users",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 35,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "content",
+        "pageable",
+        "last",
+        "totalPages",
+        "totalElements",
+        "first",
+        "size",
+        "number",
+        "sort",
+        "numberOfElements",
+        "empty"
+      ],
+      "count": 5
+    }
+  },
+  {
+    "name": "Admin dashboard",
+    "url": "http://localhost:8000/api/v1/admin/dashboard/stats",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 128,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "totalFarms",
+        "rejectedOrders",
+        "totalUsers",
+        "completedOrders",
+        "totalFarmManagers",
+        "totalOrders",
+        "createdOrders",
+        "confirmedOrders"
+      ]
+    }
+  },
+  {
+    "name": "Admin farms",
+    "url": "http://localhost:8000/api/v1/admin/farms",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 3885,
+    "shape": {
+      "kind": "array",
+      "count": 1
+    }
+  },
+  {
+    "name": "Admin orders",
+    "url": "http://localhost:8000/api/v1/admin/orders",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 3891,
+    "shape": {
+      "kind": "array",
+      "count": 0
+    }
+  },
+  {
+    "name": "Internal admin API must require authentication",
+    "url": "http://localhost:8000/api/admin/products",
+    "status": 500,
+    "expected": [
+      401,
+      403
+    ],
+    "passed": false,
+    "milliseconds": 4011
+  },
+  {
+    "name": "Farm products",
+    "url": "http://localhost:8000/api/products/my",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 2586,
+    "shape": {
+      "kind": "array",
+      "count": 2
+    }
+  },
+  {
+    "name": "Farm seasons",
+    "url": "http://localhost:8000/api/production-batches",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 2577,
+    "shape": {
+      "kind": "array",
+      "count": 2
+    }
+  },
+  {
+    "name": "Another farm cannot read private season",
+    "url": "http://localhost:8000/api/production-batches/1/detail",
+    "status": 500,
+    "expected": [
+      403,
+      404
+    ],
+    "passed": false,
+    "milliseconds": 18,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "error",
+        "message",
+        "timestamp",
+        "status"
+      ],
+      "status": 500
+    }
+  },
+  {
+    "name": "Another farm cannot read all products",
+    "url": "http://localhost:8000/api/products/farm/1",
+    "status": 200,
+    "expected": [
+      403,
+      404
+    ],
+    "passed": false,
+    "milliseconds": 18,
+    "shape": {
+      "kind": "array",
+      "count": 2
+    }
+  },
+  {
+    "name": "Season detail",
+    "url": "http://localhost:8000/api/production-batches/1/detail",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 2573,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "productionBatch",
+        "farmingProcesses",
+        "exportBatches"
+      ]
+    }
+  },
+  {
+    "name": "Farming journal",
+    "url": "http://localhost:8000/api/farming-processes/batch/1",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 2329,
+    "shape": {
+      "kind": "array",
+      "count": 2
+    }
+  },
+  {
+    "name": "Farm order list",
+    "url": "http://localhost:8000/api/orders/my",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 42,
+    "shape": {
+      "kind": "array",
+      "count": 0
+    }
+  },
+  {
+    "name": "Current farm profile",
+    "url": "http://localhost:8000/api/farms/my",
+    "status": 500,
+    "expected": 200,
+    "passed": false,
+    "milliseconds": 3868
+  },
+  {
+    "name": "Retailer orders",
+    "url": "http://localhost:8000/api/orders/my",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 22,
+    "shape": {
+      "kind": "array",
+      "count": 0
+    }
+  },
+  {
+    "name": "Farm orders by farm",
+    "url": "http://localhost:8000/api/orders/by-farm/1",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 2582,
+    "shape": {
+      "kind": "array",
+      "count": 0
+    }
+  },
+  {
+    "name": "Auth profile called by frontend",
+    "url": "http://localhost:8000/api/auth/profile",
+    "status": 404,
+    "expected": 200,
+    "passed": false,
+    "milliseconds": 4036,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "path",
+        "error",
+        "timestamp"
+      ]
+    }
+  },
+  {
+    "name": "Shipping vehicles",
+    "url": "http://localhost:8000/api/vehicles",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 3143,
+    "shape": {
+      "kind": "array",
+      "count": 0
+    }
+  },
+  {
+    "name": "Shipping shipments",
+    "url": "http://localhost:8000/api/shipments",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 3612,
+    "shape": {
+      "kind": "array",
+      "count": 0
+    }
+  },
+  {
+    "name": "Shipping drivers",
+    "url": "http://localhost:8000/api/drivers",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 3153,
+    "shape": {
+      "kind": "array",
+      "count": 0
+    }
+  },
+  {
+    "name": "Shipping daily report",
+    "url": "http://localhost:8000/api/shipping/reports/daily",
+    "status": 500,
+    "expected": 200,
+    "passed": false,
+    "milliseconds": 5
+  },
+  {
+    "name": "Notifications inbox",
+    "url": "http://localhost:8000/api/notifications/me",
+    "status": 500,
+    "expected": 200,
+    "passed": false,
+    "milliseconds": 23
+  },
+  {
+    "name": "Unknown trace returns not found",
+    "url": "http://localhost:8000/api/trace/AUDIT-NOT-A-REAL-CODE",
+    "status": 500,
+    "expected": 404,
+    "passed": false,
+    "milliseconds": 4
+  },
+  {
+    "name": "Confirmed orders for shipping",
+    "url": "http://localhost:8000/api/orders/confirmed",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 2307,
+    "shape": {
+      "kind": "array",
+      "count": 0
+    }
+  },
+  {
+    "name": "IoT integration",
+    "url": "http://localhost:8000/api/iot/farm/1",
+    "status": 500,
+    "expected": 200,
+    "passed": false,
+    "milliseconds": 3991
+  },
+  {
+    "name": "Read farm products for negative test selection",
+    "url": "http://localhost:8000/api/products/my",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 19,
+    "shape": {
+      "kind": "array",
+      "count": 2
+    }
+  },
+  {
+    "name": "Duplicate season product rejected",
+    "url": "http://localhost:8000/api/products",
+    "status": 409,
+    "expected": 409,
+    "passed": true,
+    "milliseconds": 14,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "error"
+      ],
+      "status": 409
+    }
+  },
+  {
+    "name": "Invalid product image rejected",
+    "url": "http://localhost:8000/api/products/2/images",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "milliseconds": 61,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "error"
+      ],
+      "status": 400
+    }
+  },
+  {
+    "name": "Legacy product creation cannot bypass photo workflow",
+    "url": "http://localhost:8000/api/fetch-marketplace-products",
+    "status": 409,
+    "expected": 409,
+    "passed": true,
+    "milliseconds": 38,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "error"
+      ],
+      "status": 409
+    }
+  },
+  {
+    "name": "Empty order rejected before writes",
+    "url": "http://localhost:8000/api/orders",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "milliseconds": 35,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "error"
+      ],
+      "status": 400
+    }
+  },
+  {
+    "name": "Empty AI message",
+    "url": "http://localhost:8000/api/assistant/search",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "milliseconds": 8,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "error"
+      ],
+      "status": 400
+    }
+  },
+  {
+    "name": "Oversized AI message",
+    "url": "http://localhost:8000/api/assistant/search",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "milliseconds": 14,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "error"
+      ],
+      "status": 400
+    }
+  },
+  {
+    "name": "Spoofed AI system role",
+    "url": "http://localhost:8000/api/assistant/search",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "milliseconds": 13,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "error"
+      ],
+      "status": 400
+    }
+  },
+  {
+    "name": "Invalid login rejected",
+    "url": "http://localhost:8000/api/auth/login",
+    "status": 400,
+    "expected": [
+      400,
+      401
+    ],
+    "passed": true,
+    "milliseconds": 4038
+  },
+  {
+    "name": "auth health",
+    "url": "http://localhost:8088/actuator/health",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 19,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "components"
+      ],
+      "status": "UP"
+    }
+  },
+  {
+    "name": "farm health",
+    "url": "http://localhost:8081/actuator/health",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 11,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "components"
+      ],
+      "status": "UP"
+    }
+  },
+  {
+    "name": "trading health",
+    "url": "http://localhost:8082/actuator/health",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 321,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "components"
+      ],
+      "status": "UP"
+    }
+  },
+  {
+    "name": "shipping health",
+    "url": "http://localhost:8083/actuator/health",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 23,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "components"
+      ],
+      "status": "UP"
+    }
+  },
+  {
+    "name": "admin health",
+    "url": "http://localhost:8085/actuator/health",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 18,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "components"
+      ],
+      "status": "UP"
+    }
+  },
+  {
+    "name": "blockchain health",
+    "url": "http://localhost:8084/actuator/health",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 10,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "components"
+      ],
+      "status": "UP"
+    }
+  },
+  {
+    "name": "images health",
+    "url": "http://localhost:8086/actuator/health",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 7,
+    "shape": {
+      "kind": "object",
+      "keys": [
+        "status",
+        "components"
+      ],
+      "status": "UP"
+    }
+  },
+  {
+    "name": "Web page 3001/dashboard",
+    "url": "http://localhost:3001/dashboard",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 12
+  },
+  {
+    "name": "Web page 3001/login",
+    "url": "http://localhost:3001/login",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 13
+  },
+  {
+    "name": "Web page 3001/farms",
+    "url": "http://localhost:3001/farms",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 13
+  },
+  {
+    "name": "Web page 3001/orders",
+    "url": "http://localhost:3001/orders",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 9
+  },
+  {
+    "name": "Web page 3001/",
+    "url": "http://localhost:3001/",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 8
+  },
+  {
+    "name": "Web page 3001/products",
+    "url": "http://localhost:3001/products",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 8
+  },
+  {
+    "name": "Web page 3001/users",
+    "url": "http://localhost:3001/users",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 4
+  },
+  {
+    "name": "Web page 3002/dashboard",
+    "url": "http://localhost:3002/dashboard",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 12
+  },
+  {
+    "name": "Web page 3002/farm",
+    "url": "http://localhost:3002/farm",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 12
+  },
+  {
+    "name": "Web page 3002/login",
+    "url": "http://localhost:3002/login",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 13
+  },
+  {
+    "name": "Web page 3002/orders",
+    "url": "http://localhost:3002/orders",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 7
+  },
+  {
+    "name": "Web page 3002/",
+    "url": "http://localhost:3002/",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 7
+  },
+  {
+    "name": "Web page 3002/products",
+    "url": "http://localhost:3002/products",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 5
+  },
+  {
+    "name": "Web page 3002/register",
+    "url": "http://localhost:3002/register",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 5
+  },
+  {
+    "name": "Web page 3002/seasons",
+    "url": "http://localhost:3002/seasons",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 6
+  },
+  {
+    "name": "Web page 3010/cart",
+    "url": "http://localhost:3010/cart",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 12
+  },
+  {
+    "name": "Web page 3010/",
+    "url": "http://localhost:3010/",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 10
+  },
+  {
+    "name": "Web page 3002/seasons/1",
+    "url": "http://localhost:3002/seasons/1",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 16
+  },
+  {
+    "name": "Web page 3010/products",
+    "url": "http://localhost:3010/products",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 6
+  },
+  {
+    "name": "Web page 3010/retailer",
+    "url": "http://localhost:3010/retailer",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 10
+  },
+  {
+    "name": "Web page 3010/trace",
+    "url": "http://localhost:3010/trace",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 10
+  },
+  {
+    "name": "Web page 3000/cart",
+    "url": "http://localhost:3000/cart",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 7
+  },
+  {
+    "name": "Web page 3000/dashboard",
+    "url": "http://localhost:3000/dashboard",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 9
+  },
+  {
+    "name": "Web page 3000/marketplace",
+    "url": "http://localhost:3000/marketplace",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 6
+  },
+  {
+    "name": "Web page 3000/login",
+    "url": "http://localhost:3000/login",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 9
+  },
+  {
+    "name": "Web page 3000/orders",
+    "url": "http://localhost:3000/orders",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 6
+  },
+  {
+    "name": "Web page 3000/",
+    "url": "http://localhost:3000/",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 5
+  },
+  {
+    "name": "Web page 3000/register",
+    "url": "http://localhost:3000/register",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 6
+  },
+  {
+    "name": "Web page 3000/trace",
+    "url": "http://localhost:3000/trace",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 3
+  },
+  {
+    "name": "Web page 3003/dashboard",
+    "url": "http://localhost:3003/dashboard",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 11
+  },
+  {
+    "name": "Web page 3003/drivers",
+    "url": "http://localhost:3003/drivers",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 11
+  },
+  {
+    "name": "Web page 3003/login",
+    "url": "http://localhost:3003/login",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 11
+  },
+  {
+    "name": "Web page 3003/",
+    "url": "http://localhost:3003/",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 6
+  },
+  {
+    "name": "Web page 3003/register",
+    "url": "http://localhost:3003/register",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 6
+  },
+  {
+    "name": "Web page 3003/shipments/new",
+    "url": "http://localhost:3003/shipments/new",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 5
+  },
+  {
+    "name": "Web page 3003/shipments",
+    "url": "http://localhost:3003/shipments",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 4
+  },
+  {
+    "name": "Web page 3003/vehicles",
+    "url": "http://localhost:3003/vehicles",
+    "status": 200,
+    "expected": 200,
+    "passed": true,
+    "milliseconds": 3
+  }
+]

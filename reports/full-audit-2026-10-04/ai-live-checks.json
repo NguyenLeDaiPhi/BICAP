@@ -1,0 +1,139 @@
+[
+  {
+    "name": "Total budget positive",
+    "passed": true,
+    "milliseconds": 4903,
+    "filters": {
+      "keywords": [
+        "gạo",
+        "ST25"
+      ],
+      "excludedKeywords": [],
+      "minUnitPrice": null,
+      "maxUnitPrice": null,
+      "maxTotalPrice": 200000,
+      "quantity": 10,
+      "unit": "kg",
+      "sort": "relevance",
+      "unsupportedRequirements": [],
+      "shoppingRelated": true
+    },
+    "productIds": [
+      1
+    ],
+    "reply": "Tìm được 1 sản phẩm đã duyệt còn hàng phù hợp với yêu cầu của bạn. Giá và số lượng dưới đây được lấy từ danh mục hiện tại."
+  },
+  {
+    "name": "Unit price and variety",
+    "passed": true,
+    "milliseconds": 3603,
+    "filters": {
+      "keywords": [
+        "gạo",
+        "ST25"
+      ],
+      "excludedKeywords": [],
+      "minUnitPrice": null,
+      "maxUnitPrice": 20000,
+      "maxTotalPrice": null,
+      "quantity": null,
+      "unit": "kg",
+      "sort": "relevance",
+      "unsupportedRequirements": [],
+      "shoppingRelated": true
+    },
+    "productIds": [
+      1
+    ],
+    "reply": "Tìm được 1 sản phẩm đã duyệt còn hàng phù hợp với yêu cầu của bạn. Giá và số lượng dưới đây được lấy từ danh mục hiện tại."
+  },
+  {
+    "name": "Conversation budget refinement",
+    "passed": true,
+    "milliseconds": 1384,
+    "filters": {
+      "keywords": [
+        "gạo",
+        "ST25"
+      ],
+      "excludedKeywords": [],
+      "minUnitPrice": null,
+      "maxUnitPrice": null,
+      "maxTotalPrice": 100000,
+      "quantity": 10,
+      "unit": "kg",
+      "sort": "relevance",
+      "unsupportedRequirements": [],
+      "shoppingRelated": true
+    },
+    "productIds": [],
+    "reply": "Chưa có sản phẩm đã duyệt còn hàng đáp ứng yêu cầu này. Bạn có thể đổi loại sản phẩm, số lượng hoặc ngân sách."
+  },
+  {
+    "name": "Unsupported organic certificate",
+    "passed": true,
+    "milliseconds": 1294,
+    "filters": {
+      "keywords": [
+        "gạo"
+      ],
+      "excludedKeywords": [],
+      "minUnitPrice": null,
+      "maxUnitPrice": null,
+      "maxTotalPrice": null,
+      "quantity": null,
+      "unit": null,
+      "sort": "relevance",
+      "unsupportedRequirements": [
+        "chứng nhận hữu cơ"
+      ],
+      "shoppingRelated": true
+    },
+    "productIds": [],
+    "reply": "Danh mục hiện chưa có dữ liệu xác thực cho yêu cầu: chứng nhận hữu cơ. Tôi chưa thể khẳng định sản phẩm đáp ứng các tiêu chí này. Bạn có muốn tìm theo loại sản phẩm, giá và số lượng trước không?"
+  },
+  {
+    "name": "Unavailable product",
+    "passed": true,
+    "milliseconds": 1408,
+    "filters": {
+      "keywords": [
+        "xoài",
+        "cát Hoà Lộc"
+      ],
+      "excludedKeywords": [],
+      "minUnitPrice": null,
+      "maxUnitPrice": 30000,
+      "maxTotalPrice": null,
+      "quantity": null,
+      "unit": "kg",
+      "sort": "relevance",
+      "unsupportedRequirements": [],
+      "shoppingRelated": true
+    },
+    "productIds": [],
+    "reply": "Chưa có sản phẩm đã duyệt còn hàng đáp ứng yêu cầu này. Bạn có thể đổi loại sản phẩm, số lượng hoặc ngân sách."
+  },
+  {
+    "name": "Stock constraint",
+    "passed": true,
+    "milliseconds": 1398,
+    "filters": {
+      "keywords": [
+        "gạo",
+        "ST25"
+      ],
+      "excludedKeywords": [],
+      "minUnitPrice": null,
+      "maxUnitPrice": 20000,
+      "maxTotalPrice": null,
+      "quantity": 2000,
+      "unit": "kg",
+      "sort": "relevance",
+      "unsupportedRequirements": [],
+      "shoppingRelated": true
+    },
+    "productIds": [],
+    "reply": "Chưa có sản phẩm đã duyệt còn hàng đáp ứng yêu cầu này. Bạn có thể đổi loại sản phẩm, số lượng hoặc ngân sách."
+  }
+]

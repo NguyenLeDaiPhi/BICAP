@@ -22,6 +22,10 @@ Admin | Blockchain Adapter | Image Storage
 6 MySQL databases + RabbitMQ + Kafka + Redis + MinIO
 ```
 
+## Trợ lý AI tìm sản phẩm
+
+Guest và retailer có nút **Hỏi AI tìm sản phẩm**, dùng Ollama `qwen3:4b` đang chạy trên máy để hiểu nhu cầu tiếng Việt, số lượng và ngân sách. Kết quả lấy từ sản phẩm đã duyệt, còn hàng trong database. Xem [hướng dẫn AI](docs/SHOPPING_ASSISTANT.md) và [báo cáo kiểm tra toàn dự án ngày 04/10/2026](BICAP_FULL_AUDIT_2026-10-04.md).
+
 ## Cấu trúc thư mục
 
 ```text
@@ -48,6 +52,8 @@ Bản cấu hình SQL Server/Spring Cloud Gateway trước đây được lưu t
 RULE.MD mô tả kiến trúc mục tiêu SQL Server/Spring Cloud Gateway. Bộ chạy hiện tại dùng MySQL/Kong; nếu tiêu chí nghiệm thu bắt buộc kiến trúc mục tiêu, cần chuyển đổi riêng và kiểm thử tích hợp trước triển khai.
 
 ## Blockchain Service ⭐
+
+**Trạng thái hiện tại:** adapter và trang truy xuất vẫn có dữ liệu mô phỏng; các khả năng dưới đây là mục tiêu, chưa phải bằng chứng giao dịch trên mạng blockchain thật. Xem báo cáo audit trước khi dùng để xác thực nguồn gốc.
 
 ### Tổng quan
 

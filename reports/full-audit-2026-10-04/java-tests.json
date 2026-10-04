@@ -1,0 +1,155 @@
+[
+  {
+    "service": "auth-service",
+    "exitCode": 1,
+    "suites": [
+      {
+        "name": "com.bicap.auth.AuthServiceApplicationTests",
+        "tests": 1,
+        "errors": 1,
+        "failures": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  {
+    "service": "admin_service",
+    "exitCode": 1,
+    "suites": [
+      {
+        "name": "com.example.admin_service.AdminServiceApplicationTests",
+        "tests": 1,
+        "errors": 1,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.example.admin_service.security.JwtUtilsTests",
+        "tests": 3,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  {
+    "service": "blockchain-adapter-service",
+    "exitCode": 1,
+    "suites": [
+      {
+        "name": "com.bicap.blockchain_adapter_service.BlockchainAdapterServiceApplicationTests",
+        "tests": 1,
+        "errors": 1,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.bicap.blockchain_adapter_service.BlockchainClientTest",
+        "tests": 19,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.bicap.blockchain_adapter_service.BlockchainEventListenerTest",
+        "tests": 1,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  {
+    "service": "image-storage-service",
+    "exitCode": 1,
+    "suites": []
+  },
+  {
+    "service": "farm-production-service",
+    "exitCode": 1,
+    "suites": [
+      {
+        "name": "com.bicap.farm_management.service.MarketplaceProductCreationTests",
+        "tests": 8,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.bicap.farm_management.service.ProductImageTests",
+        "tests": 4,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.bicap.farm_management.service.ProductStatusListenerTests",
+        "tests": 1,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.example.farm_management.FarmManagementApplicationTests",
+        "tests": 1,
+        "errors": 1,
+        "failures": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  {
+    "service": "shipping-manager-service",
+    "exitCode": 0,
+    "suites": [
+      {
+        "name": "com.bicap.shipping_manager_service.ShippingManagerServiceApplicationTests",
+        "tests": 1,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  {
+    "service": "trading-order-service",
+    "exitCode": 1,
+    "suites": [
+      {
+        "name": "com.bicap.trading_order_service.assistant.ShoppingAssistantTests",
+        "tests": 12,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.bicap.trading_order_service.ProductReviewTests",
+        "tests": 2,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.bicap.trading_order_service.ProductSyncTests",
+        "tests": 3,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.bicap.trading_order_service.PublicMarketplaceTests",
+        "tests": 6,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.bicap.trading_order_service.TradingOrderServiceApplicationTests",
+        "tests": 1,
+        "errors": 1,
+        "failures": 0,
+        "skipped": 0
+      }
+    ]
+  }
+]

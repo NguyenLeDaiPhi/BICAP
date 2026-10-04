@@ -137,6 +137,27 @@ services:
           path: /tmp/kong/mobile-ship-driver.log
 
 routes:
+  - name: shopping-assistant-api
+    service: trading-order-service
+    paths: ["/api/assistant/search"]
+    methods: [POST, OPTIONS]
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 12
+          policy: local
+      - name: request-size-limiting
+        config:
+          allowed_payload_size: 20
+          size_unit: kilobytes
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: [POST, OPTIONS]
+          headers: [Accept, Content-Type, Authorization]
+          credentials: true
+
   # Blockchain API
   - name: blockchain-api
     service: blockchain-adapter-service

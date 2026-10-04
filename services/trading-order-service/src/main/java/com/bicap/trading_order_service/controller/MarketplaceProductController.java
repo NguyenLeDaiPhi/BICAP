@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,7 +59,8 @@ public class MarketplaceProductController {
     public MarketplaceProduct createProduct(
             @Valid @RequestBody CreateMarketplaceProductRequest request
     ) {
-        return service.createProduct(request);
+        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Vui lòng tạo sản phẩm và thêm ảnh tại giao diện quản lý nông sản của trang trại.");
     }
 
     /**

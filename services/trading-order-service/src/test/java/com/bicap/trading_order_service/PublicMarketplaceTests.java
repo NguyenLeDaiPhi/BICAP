@@ -15,6 +15,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 class PublicMarketplaceTests {
+    @Test void legacyCreationCannotBypassSeasonAndPhotoWorkflow() {
+        var service = mock(IMarketplaceProductService.class);
+        var controller = new com.bicap.trading_order_service.controller.MarketplaceProductController(service);
+        assertEquals(409, assertThrows(ResponseStatusException.class,
+                () -> controller.createProduct(new CreateMarketplaceProductRequest())).getStatusCode().value());
+        verifyNoInteractions(service);
+    }
     private MarketplaceProduct product(String status) {var p=new MarketplaceProduct();p.setId(1L);p.setSourceProductId(2L);p.setName("Rice");p.setStatus(status);p.setImageUrl("photo.png");p.setPrice(15000.0);p.setQuantity(10);return p;}
     private CreateOrderRequest request(int quantity) {var item=new OrderItemRequest();item.setProductId(1L);item.setQuantity(quantity);ReflectionTestUtils.setField(item,"unitPrice",BigDecimal.ONE);var r=new CreateOrderRequest();r.setItems(List.of(item));r.setShippingAddress("Ho Chi Minh City");return r;}
     @Test void reviewAutomaticallyMakesProductVisibleToPublicCatalog() {

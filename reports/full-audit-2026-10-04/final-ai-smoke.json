@@ -1,0 +1,46 @@
+{
+  "preflight": {
+    "status": 200,
+    "origin": "http://localhost:3010",
+    "methods": "POST,OPTIONS",
+    "headers": "Accept,Content-Type,Authorization"
+  },
+  "ai": {
+    "status": 200,
+    "productIds": [
+      1
+    ],
+    "filters": {
+      "keywords": [
+        "gạo",
+        "ST25"
+      ],
+      "excludedKeywords": [],
+      "minUnitPrice": null,
+      "maxUnitPrice": null,
+      "maxTotalPrice": 200000,
+      "quantity": 10,
+      "unit": "kg",
+      "sort": "relevance",
+      "unsupportedRequirements": [],
+      "shoppingRelated": true
+    },
+    "hasRealImage": true
+  },
+  "invalidInput": {
+    "status": 400
+  },
+  "passed": true,
+  "deployedWeb": [
+    {
+      "port": 3010,
+      "status": 200,
+      "assistantButtonPresent": true
+    },
+    {
+      "port": 3000,
+      "status": 200,
+      "assistantButtonPresent": true
+    }
+  ]
+}

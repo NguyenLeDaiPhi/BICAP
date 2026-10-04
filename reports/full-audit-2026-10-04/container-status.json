@@ -1,0 +1,122 @@
+[
+  {
+    "service": "admin-service",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "admin-web",
+    "state": "running",
+    "health": ""
+  },
+  {
+    "service": "auth-db",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "auth-service",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "bicap-kafka",
+    "state": "running",
+    "health": ""
+  },
+  {
+    "service": "bicap-message-queue",
+    "state": "running",
+    "health": ""
+  },
+  {
+    "service": "bicap-redis",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "bicap-zookeeper",
+    "state": "running",
+    "health": ""
+  },
+  {
+    "service": "blockchain-adapter-service",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "blockchain-db",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "farm-management-web",
+    "state": "running",
+    "health": ""
+  },
+  {
+    "service": "farm-production-db",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "farm-production-service",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "guest-web",
+    "state": "running",
+    "health": ""
+  },
+  {
+    "service": "image-storage-db",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "image-storage-service",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "kong-gateway",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "minio",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "retailer-web",
+    "state": "running",
+    "health": ""
+  },
+  {
+    "service": "shipping-db",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "shipping-manager-service",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "shipping-manager-web",
+    "state": "running",
+    "health": ""
+  },
+  {
+    "service": "trading-order-db",
+    "state": "running",
+    "health": "healthy"
+  },
+  {
+    "service": "trading-order-service",
+    "state": "running",
+    "health": "healthy"
+  }
+]

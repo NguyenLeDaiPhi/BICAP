@@ -15,6 +15,8 @@ services:
       bicap-message-queue:
         condition: service_started
     environment:
+      - SPRING_DATA_REDIS_HOST=bicap-redis
+      - SPRING_DATA_REDIS_PORT=6379
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
       - BICAP_APP_JWTEXPIRATIONMS=86400000
       - SPRING_RABBITMQ_HOST=bicap-message-queue
@@ -95,6 +97,8 @@ services:
       bicap-message-queue:
         condition: service_started
     environment:
+      - SPRING_DATA_REDIS_HOST=bicap-redis
+      - SPRING_DATA_REDIS_PORT=6379
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
       - BICAP_APP_JWTEXPIRATIONMS=86400000
       - SPRING_RABBITMQ_HOST=bicap-message-queue
@@ -107,6 +111,8 @@ services:
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
       - spring.jpa.hibernate.ddl-auto=update
       - SERVER_PORT=8082
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen3:4b}
     ports:
       - "8082:8082"
     networks:
@@ -175,6 +181,8 @@ services:
       blockchain-adapter-service:
         condition: service_started
     environment:
+      - SPRING_DATA_REDIS_HOST=bicap-redis
+      - SPRING_DATA_REDIS_PORT=6379
       - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
       - BICAP_APP_JWTEXPIRATIONMS=86400000
       - SPRING_RABBITMQ_HOST=bicap-message-queue

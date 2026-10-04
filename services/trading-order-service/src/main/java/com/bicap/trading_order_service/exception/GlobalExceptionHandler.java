@@ -14,6 +14,11 @@ public class GlobalExceptionHandler {
             "status", ex.getStatusCode().value(), "error", ex.getReason() != null ? ex.getReason() : "Yêu cầu không hợp lệ."));
     }
 
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    public org.springframework.http.ResponseEntity<java.util.Map<String,Object>> handleValidation(org.springframework.web.bind.MethodArgumentNotValidException ex) {
+        return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("status", 400, "error", "Dữ liệu gửi lên không hợp lệ. Vui lòng kiểm tra các trường bắt buộc và giới hạn độ dài."));
+    }
+
     @ExceptionHandler(ProductNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleProductNotFound(ProductNotFoundException ex) {

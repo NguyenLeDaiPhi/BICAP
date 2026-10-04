@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import ShoppingAssistant from '@/components/ShoppingAssistant';
 
 export const metadata: Metadata = {
   title: 'BICAP - Nhà bán lẻ',
@@ -15,6 +16,7 @@ export default function RootLayout({
     <html lang="vi">
       <body className="bg-gray-50">
         {children}
+        <ShoppingAssistant retailer />
       </body>
     </html>
   );
