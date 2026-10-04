@@ -18,6 +18,7 @@ public interface IMarketplaceProductService {
     List<ProductResponse> getPendingProducts();
 
     MarketplaceProduct updateProduct(Long productId, UpdateMarketplaceProductRequest request);
+    MarketplaceProduct attachProductImage(Long productId, String imageUrl);
     MarketplaceProduct approveProduct(Long productId);
     MarketplaceProduct getProductById(Long productId);
 

@@ -53,6 +53,9 @@ public class OrderService implements IOrderService {
         }
 
         Order order = new Order();
+        if (request.getItems() == null || request.getItems().isEmpty() || request.getShippingAddress() == null || request.getShippingAddress().isBlank()) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Vui lòng chọn sản phẩm và nhập địa chỉ nhận hàng.");
+        }
         order.setBuyerId(buyerId);
         order.setBuyerEmail(buyerEmail);
         order.setShippingAddress(request.getShippingAddress());
@@ -61,6 +64,9 @@ public class OrderService implements IOrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (OrderItemRequest itemReq : request.getItems()) {
+            if (itemReq.getQuantity() == null || itemReq.getQuantity() <= 0) {
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Số lượng mua phải lớn hơn 0.");
+            }
 
             MarketplaceProduct product = productRepository
                     .findById(itemReq.getProductId())
@@ -71,6 +77,12 @@ public class OrderService implements IOrderService {
                     );
 
             OrderItem item = new OrderItem();
+            if (!"APPROVED".equals(product.getStatus())) {
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "Sản phẩm chưa được duyệt hoặc đã ngừng bán.");
+            }
+            if (product.getQuantity() == null || itemReq.getQuantity() > product.getQuantity()) {
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "Số lượng mua vượt quá số lượng hiện có.");
+            }
             item.setOrder(order);
             item.setProduct(product);
             item.setProductId(product.getId());

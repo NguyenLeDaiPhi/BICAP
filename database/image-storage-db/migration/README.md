@@ -1,0 +1,1 @@
+Apply V001__add_image_metadata.sql to image_storage_db for existing Docker volumes. It creates the metadata table required by ImageStorageService without modifying product_images. The fresh database initialization includes the same table. This migration is safe to run repeatedly.

@@ -6,6 +6,9 @@ import com.bicap.farm_management.dto.UpdateMarketplaceProductRequest;
 import com.bicap.farm_management.entity.MarketplaceProduct;
 import com.bicap.farm_management.service.IMarketplaceProductService;
 import com.bicap.farm_management.service.ImageStorageService;
+import com.bicap.farm_management.service.ProductImageValidator;
+import org.springframework.web.server.ResponseStatusException;
+import com.bicap.farm_management.util.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +33,7 @@ public class MarketplaceProductController {
 
     private final IMarketplaceProductService service;
     private final ImageStorageService imageStorageService;
+    private final SecurityUtils securityUtils;
 
     /**
      * GET /api/products - Lấy tất cả sản phẩm
@@ -46,8 +50,8 @@ public class MarketplaceProductController {
      */
     @GetMapping("/my")
     public ResponseEntity<List<ProductResponse>> getMyProducts() {
-        // TODO: Lấy farm từ user context - hiện tại dùng farm đầu tiên
-        List<ProductResponse> products = service.getApprovedProducts();
+        Long farmId = securityUtils.getCurrentFarmId();
+        List<ProductResponse> products = farmId != null ? service.getProductsByFarm(farmId) : List.of();
         return ResponseEntity.ok(products);
     }
 
@@ -107,49 +111,15 @@ public class MarketplaceProductController {
     public ResponseEntity<Map<String, Object>> uploadProductImage(
             @PathVariable Long productId,
             @RequestParam("file") MultipartFile file,
-            @RequestParam("farmId") Long farmId,
             HttpServletRequest request) {
-        
-        try {
-            // Extract auth token from request
-            String authToken = extractAuthToken(request);
-            
-            // Upload image to image-storage-service
-            String imageUrl = imageStorageService.uploadImage(file, productId, farmId, authToken);
-            
-            if (imageUrl != null) {
-                // Update product with image URL
-                MarketplaceProduct product = service.getProductById(productId);
-                if (product != null) {
-                    product.setImageUrl(imageUrl);
-                    UpdateMarketplaceProductRequest updateReq = new UpdateMarketplaceProductRequest();
-                    updateReq.setName(product.getName());
-                    updateReq.setDescription(product.getDescription());
-                    updateReq.setPrice(product.getPrice());
-                    updateReq.setUnit(product.getUnit());
-                    updateReq.setQuantity(product.getQuantity());
-                    updateReq.setCategory(product.getCategory());
-                    updateReq.setImageUrl(imageUrl);
-                    service.updateProduct(productId, updateReq);
-                }
-                
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", true);
-                response.put("imageUrl", imageUrl);
-                response.put("message", "Image uploaded successfully");
-                return ResponseEntity.ok(response);
-            } else {
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", false);
-                response.put("message", "Failed to upload image");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-            }
-        } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Error uploading image: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        MarketplaceProduct product = service.getProductById(productId);
+        if (!securityUtils.isAdmin() && !product.getFarm().getId().equals(securityUtils.getCurrentFarmId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sản phẩm không thuộc trang trại của bạn.");
         }
+        ProductImageValidator.validate(file);
+        String imageUrl = imageStorageService.uploadImage(file, productId, product.getFarm().getId(), extractAuthToken(request));
+        MarketplaceProduct saved = service.attachProductImage(productId, imageUrl);
+        return ResponseEntity.ok(Map.of("success", true, "imageUrl", saved.getImageUrl(), "status", saved.getStatus()));
     }
 
     /**

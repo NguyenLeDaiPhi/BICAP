@@ -28,6 +28,7 @@ public interface MarketplaceProductRepository
     List<MarketplaceProduct> findByFarmId(@Param("farmId") Long farmId);
 
     Optional<MarketplaceProduct> findFirstByBatchId(String batchId);
+    Optional<MarketplaceProduct> findBySourceProductId(Long sourceProductId);
 
     Optional<MarketplaceProduct> findFirstByFarmManager_FarmIdAndNameIgnoreCaseAndStatusOrderByCreatedAtDesc(
             Long farmId,
@@ -52,10 +53,12 @@ public interface MarketplaceProductRepository
     // ===============================
     @Query(value = "SELECT p FROM MarketplaceProduct p LEFT JOIN FETCH p.farmManager fm " +
            "WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND p.status <> 'DRAFT' " +
            "AND (:status IS NULL OR :status = '' OR p.status = :status) " +
            "AND (:farmId IS NULL OR fm.farmId = :farmId)",
            countQuery = "SELECT COUNT(p) FROM MarketplaceProduct p LEFT JOIN p.farmManager fm " +
            "WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND p.status <> 'DRAFT' " +
            "AND (:status IS NULL OR :status = '' OR p.status = :status) " +
            "AND (:farmId IS NULL OR fm.farmId = :farmId)")
     Page<MarketplaceProduct> findWithFilters(

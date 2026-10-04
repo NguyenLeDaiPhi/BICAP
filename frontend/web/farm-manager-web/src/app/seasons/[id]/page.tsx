@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { farmProductionApi, getErrorMessage } from '@/lib/api';
+import { farmProductionApi, productApi, getErrorMessage } from '@/lib/api';
 
 interface SeasonDetail {
   id: number;
@@ -52,6 +52,7 @@ export default function SeasonDetailPage() {
   const [exportBatches, setExportBatches] = useState<ExportBatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [seasonProduct, setSeasonProduct] = useState<{ id: number; batchId?: number } | null>(null);
   
   // Form state for adding new process
   const [showProcessForm, setShowProcessForm] = useState(false);
@@ -71,7 +72,11 @@ export default function SeasonDetailPage() {
       setError(null);
       
       // Gọi API lấy chi tiết đầy đủ
-      const response = await farmProductionApi.getSeasonDetail(Number(seasonId));
+      const [response, productsResponse] = await Promise.all([
+        farmProductionApi.getSeasonDetail(Number(seasonId)), productApi.getMyProducts(),
+      ]);
+      const products = productsResponse.data.data || productsResponse.data;
+      setSeasonProduct(Array.isArray(products) ? products.find(product => product.batchId === Number(seasonId)) || null : null);
       
       if (response.data) {
         // Backend trả về SeasonDetailResponse với cấu trúc:
@@ -256,9 +261,12 @@ export default function SeasonDetailPage() {
                 </p>
               </div>
             </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href={seasonProduct ? `/products?productId=${seasonProduct.id}` : `/products?seasonId=${season.id}`} className="btn-primary text-sm">{seasonProduct ? 'Xem sản phẩm' : '+ Thêm sản phẩm từ mùa vụ'}</Link>
             <span className={`px-4 py-2 rounded-full text-sm font-medium ${statusInfo.color}`}>
               {statusInfo.label}
             </span>
+            </div>
           </div>
         </div>
       </header>
@@ -332,6 +340,7 @@ export default function SeasonDetailPage() {
             </button>
           </div>
 
+          <p className="mb-4 text-sm text-gray-500">Nhật ký được lưu ngay và hệ thống tự động ghi nhận, không cần admin duyệt. Ghi nhận hiện ở chế độ mô phỏng, không chứng nhận hoạt động canh tác ngoài thực tế.</p>
           {processSuccess && (
             <p role="status" className="mb-4 rounded-lg bg-green-50 p-3 text-green-700">{processSuccess}</p>
           )}
@@ -423,9 +432,9 @@ export default function SeasonDetailPage() {
               {processes.map((process) => {
                 const stageInfo = getProcessStageLabel(process.processType);
                 const processStatus = process.status === 'SYNCED'
-                  ? { label: 'Đã xác thực', color: 'bg-green-100 text-green-700' }
+                  ? { label: 'Đã ghi nhận (mô phỏng)', color: 'bg-green-100 text-green-700' }
                   : process.status === 'PENDING_BLOCKCHAIN'
-                  ? { label: 'Đã lưu · Chờ xác thực', color: 'bg-yellow-100 text-yellow-700' }
+                  ? { label: 'Đã lưu · Chờ ghi nhận tự động', color: 'bg-yellow-100 text-yellow-700' }
                   : process.status === 'COMPLETED'
                   ? { label: 'Hoàn thành', color: 'bg-green-100 text-green-700' }
                   : { label: process.status, color: 'bg-gray-100 text-gray-700' };

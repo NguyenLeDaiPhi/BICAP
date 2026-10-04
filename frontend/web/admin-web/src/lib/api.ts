@@ -50,14 +50,14 @@ export const authApi = {
 
 // Admin API
 export const adminApi = {
-  getDashboard: () => api.get('/api/admin/dashboard'),
-  getUsers: () => api.get('/api/admin/users'),
-  getFarms: () => api.get('/api/admin/farms'),
-  approveFarm: (farmId: number) => api.put(`/api/admin/farms/${farmId}/approve`),
-  rejectFarm: (farmId: number) => api.put(`/api/admin/farms/${farmId}/reject`),
-  getProducts: () => api.get('/api/admin/products'),
-  getOrders: () => api.get('/api/admin/orders'),
-  getStatistics: () => api.get('/api/admin/statistics'),
+  getDashboard: () => api.get('/api/v1/admin/dashboard/stats'),
+  getUsers: (params?: { page?: number; size?: number; keyword?: string }) =>
+    api.get('/api/v1/admin/users', { params }),
+  getFarms: () => api.get('/api/v1/admin/farms'),
+  getProducts: (params?: { page?: number; size?: number; keyword?: string }) =>
+    api.get('/api/v1/admin/products', { params }),
+  approveProduct: (id: number) => api.put(`/api/v1/admin/products/${id}/approve`),
+  getOrders: () => api.get('/api/v1/admin/orders'),
 };
 
 export default api;

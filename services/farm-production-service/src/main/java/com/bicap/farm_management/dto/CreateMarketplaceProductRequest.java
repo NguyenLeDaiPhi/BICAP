@@ -14,6 +14,8 @@ public class CreateMarketplaceProductRequest {
 
     // Link to the validated Export Batch - MADE NULLABLE để farm manager có thể thêm sản phẩm trực tiếp
     private Long exportBatchId;
+
+    private Long productionBatchId;
     
     @NotBlank
     private String name;

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -18,9 +18,9 @@ export const traceApi = {
 // Product API - Public for browsing
 export const productApi = {
   getProducts: (params?: any) =>
-    api.get('/api/products', { params }),
+    api.get('/api/fetch-marketplace-products', { params }),
   getProductById: (id: number) =>
-    api.get(`/api/products/${id}`),
+    api.get(`/api/fetch-marketplace-products/${id}`),
   getProductsByCategory: (categoryId: number) =>
     api.get(`/api/products/category/${categoryId}`),
 };

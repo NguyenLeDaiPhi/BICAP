@@ -42,7 +42,8 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('role', 'RETAILER');
       
-      router.push('/dashboard');
+      const next = new URLSearchParams(window.location.search).get('next');
+      router.push(next && /^\/(marketplace|cart|orders)(?:[/?]|$)/.test(next) ? next : '/dashboard');
     } catch (err: any) {
       setError(getErrorMessage(err));
     } finally {

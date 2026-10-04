@@ -12,12 +12,16 @@ services:
     <<: *web-app-base
     build:
       context: ./frontend/web/guest-web
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
+        - NEXT_PUBLIC_RETAILER_URL=http://localhost:3000
     container_name: guest-web
     depends_on:
       - kong-gateway
     environment:
       - NODE_ENV=development
       - PORT=3010
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - TRADING_SERVICE_URL=http://kong-gateway:8000/api/trading
@@ -33,13 +37,15 @@ services:
     <<: *web-app-base
     build:
       context: ./frontend/web/retailer-web
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
     container_name: retailer-web
     depends_on:
       - kong-gateway
     environment:
       - NODE_ENV=development
       - PORT=3000
-      - NEXT_PUBLIC_API_URL=http://kong-gateway:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000

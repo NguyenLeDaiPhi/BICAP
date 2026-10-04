@@ -28,6 +28,7 @@ public class ProductProducerMQ {
             LOGGER.info("The message is broadcast to the directed service");
         } catch (Exception e) {
             LOGGER.error("❌ Error sending message to trading-order-service: {}", e.getMessage());
+            throw new IllegalStateException("Không thể gửi sản phẩm tới hệ thống duyệt. Vui lòng thử lại.", e);
         }
     }
 }

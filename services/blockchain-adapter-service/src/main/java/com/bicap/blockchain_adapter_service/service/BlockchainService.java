@@ -81,7 +81,7 @@ public class BlockchainService implements IBlockchainService {
      */
     @Override
     @Transactional
-    public void write(Long batchId, String resourceType, String rawData) {
+    public BlockchainRecord write(Long batchId, String resourceType, String rawData) {
         long startTime = System.currentTimeMillis();
         logger.info("🔄 Starting blockchain write for batchId={}, resourceType={}", batchId, resourceType);
         
@@ -150,6 +150,7 @@ public class BlockchainService implements IBlockchainService {
         
         long elapsed = System.currentTimeMillis() - startTime;
         logger.info("✅ Blockchain write completed in {}ms for batchId={}", elapsed, batchId);
+        return savedRecord;
     }
 
     /**

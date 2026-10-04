@@ -15,6 +15,12 @@ public class MarketplaceProduct {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "source_product_id", unique = true)
+    private Long sourceProductId;
+
+    @Column(name = "production_batch_id")
+    private Long productionBatchId;
+
     private String name;
     private String category;
     @Column(length = 1000)

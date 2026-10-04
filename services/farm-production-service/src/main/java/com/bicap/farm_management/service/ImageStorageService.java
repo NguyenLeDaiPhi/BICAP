@@ -1,78 +1,48 @@
 package com.bicap.farm_management.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.HashMap;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImageStorageService {
-
     private final RestTemplate restTemplate;
-
-    @Value("${image.storage.service.url:http://localhost:8086}")
+    @Value("${IMAGE_STORAGE_SERVICE_URL:http://localhost:8086}")
     private String imageStorageServiceUrl;
+    @Value("${IMAGE_PUBLIC_BASE_URL:http://localhost:8000}")
+    private String publicBaseUrl;
 
     public String uploadImage(MultipartFile file, Long productId, Long farmId, String authToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        if (authToken != null && !authToken.isBlank()) headers.setBearerAuth(authToken);
+        var body = new LinkedMultiValueMap<String, Object>();
+        body.add("file", file.getResource());
+        body.add("category", "PRODUCT");
+        body.add("referenceId", "farm-product-" + productId);
+        body.add("uploadedBy", "farm-" + farmId);
         try {
-            String url = imageStorageServiceUrl + "/api/images/upload";
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-            if (authToken != null && !authToken.isEmpty()) {
-                headers.set("Authorization", "Bearer " + authToken);
+            var response = restTemplate.postForEntity(imageStorageServiceUrl + "/api/v1/images/upload", new HttpEntity<>(body, headers), Map.class);
+            if (response.getBody() != null && response.getBody().get("data") instanceof Map<?, ?> data && data.get("storedFilename") instanceof String filename && filename.matches("[A-Za-z0-9_-]+\\.[A-Za-z0-9]+")) {
+                return publicBaseUrl.replaceAll("/+$", "") + "/api/v1/images/download/" + filename;
             }
-
-            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("file", file.getResource());
-            body.add("productId", String.valueOf(productId));
-            body.add("farmId", String.valueOf(farmId));
-
-            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-            ResponseEntity<Map> response = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                requestEntity,
-                Map.class
-            );
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                Map<String, Object> responseBody = response.getBody();
-                return (String) responseBody.get("imageUrl");
-            }
-            
-            return null;
-        } catch (Exception e) {
-            log.error("Error uploading image to image-storage-service", e);
-            return null;
+        } catch (org.springframework.web.client.RestClientException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Chưa tải được ảnh. Sản phẩm chưa được gửi duyệt, vui lòng thử lại.", exception);
         }
+        throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Dịch vụ lưu ảnh trả về dữ liệu không hợp lệ.");
     }
 
+    @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getProductImages(Long productId) {
-        try {
-            String url = imageStorageServiceUrl + "/api/images/product/" + productId;
-            ResponseEntity<List> response = restTemplate.getForEntity(url, List.class);
-            
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return response.getBody();
-            }
-            
-            return List.of();
-        } catch (Exception e) {
-            log.error("Error fetching product images", e);
-            return List.of();
-        }
+        var response = restTemplate.getForObject(imageStorageServiceUrl + "/api/v1/images/reference/farm-product-" + productId, Map.class);
+        return response != null && response.get("data") instanceof List<?> list ? (List<Map<String, Object>>) list : List.of();
     }
 }

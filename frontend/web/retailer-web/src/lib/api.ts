@@ -29,7 +29,7 @@ api.interceptors.response.use(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname + window.location.search);
       }
     }
     return Promise.reject(error);
@@ -53,7 +53,7 @@ export const tradingApi = {
 
 // Product API
 export const productApi = {
-  getProducts: (params?: any) => api.get('/api/products', { params }),
+  getProducts: (params?: any) => api.get('/api/fetch-marketplace-products', { params }),
 };
 
 // Order API

@@ -2,6 +2,9 @@ _format_version: "3.0"
 _transform: true
 
 services:
+  - name: admin-service
+    url: http://admin-service:8085
+
   - name: admin-web
     url: http://admin-web:3001
     plugins:
@@ -233,6 +236,20 @@ routes:
       - name: file-log
         config:
           path: /tmp/kong/auth-service.log
+
+  # Stable public URLs for product photos (no expiring MinIO links)
+  - name: product-image-download
+    service: image-storage-service
+    paths:
+      - /api/v1/images/download
+    methods: [GET, HEAD, OPTIONS]
+    strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "HEAD", "OPTIONS"]
+          headers: ["Accept", "Content-Type"]
 
   # Image Storage API - Product Images
   - name: image-storage-api
@@ -757,7 +774,7 @@ routes:
           credentials: true
 
   - name: admin-api-proxy
-    service: admin-web
+    service: admin-service
     paths:
       - /api/v1/admin
     methods:

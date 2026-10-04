@@ -13,7 +13,7 @@ public interface IBlockchainService {
      * @param resourceType Loại tài nguyên
      * @param rawData Dữ liệu gốc (sẽ được hash và lưu)
      */
-    void write(Long batchId, String resourceType, String rawData);
+    BlockchainRecord write(Long batchId, String resourceType, String rawData);
 
     /**
      * Xác minh tính toàn vẹn dữ liệu của một lô

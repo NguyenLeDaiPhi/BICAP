@@ -14,6 +14,7 @@ public class ProductResponse {
     private String status;
     private LocalDateTime createdAt;
     private Long farmId;
+    private String farmName;
     private String batchId;
     private Boolean isApproved;
 
@@ -42,6 +43,8 @@ public class ProductResponse {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public Long getFarmId() { return farmId; }
     public void setFarmId(Long farmId) { this.farmId = farmId; }
+    public String getFarmName() { return farmName; }
+    public void setFarmName(String farmName) { this.farmName = farmName; }
     public String getBatchId() { return batchId; }
     public void setBatchId(String batchId) { this.batchId = batchId; }
     public Boolean getIsApproved() { return isApproved; }

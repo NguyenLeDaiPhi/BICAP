@@ -68,8 +68,9 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
     @Transactional(readOnly = true)
     public ProductResponse getProductDetail(Long id) {
         return repository.findById(id)
+                .filter(product -> "APPROVED".equals(product.getStatus()))
                 .map(this::mapToProductResponse)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm đã duyệt."));
     }
 
     private ProductResponse mapToProductResponse(MarketplaceProduct product) {
@@ -84,6 +85,7 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
         response.setStatus(product.getStatus());
         response.setCreatedAt(product.getCreatedAt());
         response.setFarmId(product.getFarmId());
+        response.setFarmName(product.getFarmManager() != null ? product.getFarmManager().getUsername() + "'s Farm" : null);
         response.setBatchId(product.getBatchId());
         response.setDescription(product.getDescription());
         // Map isApproved boolean if needed by frontend logic, usually derived from status

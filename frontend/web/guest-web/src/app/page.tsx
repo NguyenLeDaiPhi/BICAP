@@ -1,33 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import AuthModal from '@/components/AuthModal';
+import ApprovedProducts from '@/components/ApprovedProducts';
 
-interface ProductItem {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  originalPrice?: number;
-  unit: string;
-  origin: string;
-  certification: 'VietGAP' | 'GlobalGAP' | 'Organic';
-  image: string;
-  rating: number;
-  soldCount: number;
-  harvestDate: string;
-  blockchainCode: string;
-  freshPercent: number;
-}
 
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cartCount, setCartCount] = useState(0);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authModalMessage, setAuthModalMessage] = useState('');
 
   // Danh mục sản phẩm nông sản sạch phong phú
   const categories = [
@@ -39,184 +19,8 @@ export default function HomePage() {
     { id: 'HERB', name: 'Nấm & Thảo Mộc', icon: '🍄' },
   ];
 
-  // Mock data sản phẩm tươi ngon, hình ảnh chất lượng cao kích thích vị giác
-  const featuredProducts: ProductItem[] = [
-    {
-      id: 1,
-      name: 'Xà Lách Romaine Thủy Canh Đà Lạt',
-      category: 'VEGETABLE',
-      price: 32000,
-      originalPrice: 40000,
-      unit: 'Gói 500g',
-      origin: 'Đà Lạt, Lâm Đồng',
-      certification: 'VietGAP',
-      image: 'https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?auto=format&fit=crop&w=600&q=80',
-      rating: 4.9,
-      soldCount: 842,
-      harvestDate: 'Hôm nay, 05:30 Sáng',
-      blockchainCode: 'BICAP-DALAT-ROM-8821',
-      freshPercent: 99,
-    },
-    {
-      id: 2,
-      name: 'Dâu Tây Giống New Zealand Mọng Nước',
-      category: 'FRUIT',
-      price: 145000,
-      originalPrice: 175000,
-      unit: 'Hộp 500g',
-      origin: 'Trang Trại Mai Khôi, Đà Lạt',
-      certification: 'GlobalGAP',
-      image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&w=600&q=80',
-      rating: 5.0,
-      soldCount: 1240,
-      harvestDate: 'Hôm nay, 06:00 Sáng',
-      blockchainCode: 'BICAP-STRAW-NZ-9912',
-      freshPercent: 98,
-    },
-    {
-      id: 3,
-      name: 'Cà Chua Bi Hữu Cơ Giọt Lệ Đỏ',
-      category: 'ROOT',
-      price: 45000,
-      originalPrice: 55000,
-      unit: 'Hộp 500g',
-      origin: 'Nông Trại Xanh Đơn Dương',
-      certification: 'Organic',
-      image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80',
-      rating: 4.8,
-      soldCount: 650,
-      harvestDate: 'Hôm qua, 16:00 Chiều',
-      blockchainCode: 'BICAP-TOMATO-ORG-3129',
-      freshPercent: 96,
-    },
-    {
-      id: 4,
-      name: 'Gạo Thơm Thượng Hạng ST25 Ông Cua',
-      category: 'RICE',
-      price: 195000,
-      originalPrice: 220000,
-      unit: 'Túi 5kg',
-      origin: 'Sóc Trăng (Vùng lúa - tôm sạch)',
-      certification: 'GlobalGAP',
-      image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=600&q=80',
-      rating: 5.0,
-      soldCount: 3100,
-      harvestDate: 'Vụ Đông Xuân 2026',
-      blockchainCode: 'BICAP-ST25-SOC-1004',
-      freshPercent: 100,
-    },
-    {
-      id: 5,
-      name: 'Ớt Chuông Ngọt Đà Lạt 3 Màu Giòn Ngọt',
-      category: 'ROOT',
-      price: 38000,
-      originalPrice: 48000,
-      unit: 'Gói 500g',
-      origin: 'Nhà Kính Lạc Dương',
-      certification: 'VietGAP',
-      image: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=600&q=80',
-      rating: 4.7,
-      soldCount: 420,
-      harvestDate: 'Hôm nay, 06:15 Sáng',
-      blockchainCode: 'BICAP-BELL-PEPPER-4401',
-      freshPercent: 98,
-    },
-    {
-      id: 6,
-      name: 'Nấm Đùi Gà Sinh Thái Nguyên Cây',
-      category: 'HERB',
-      price: 42000,
-      originalPrice: 50000,
-      unit: 'Khay 350g',
-      origin: 'Trang Trại Sinh Học Củ Chi',
-      certification: 'Organic',
-      image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80',
-      rating: 4.9,
-      soldCount: 512,
-      harvestDate: 'Hôm nay, 05:00 Sáng',
-      blockchainCode: 'BICAP-MUSH-CUCHI-5523',
-      freshPercent: 97,
-    },
-    {
-      id: 7,
-      name: 'Bưởi Da Xanh Ruột Hồng Bến Tre',
-      category: 'FRUIT',
-      price: 68000,
-      originalPrice: 85000,
-      unit: 'Quả (1.2kg - 1.4kg)',
-      origin: 'Châu Thành, Bến Tre',
-      certification: 'GlobalGAP',
-      image: 'https://images.unsplash.com/photo-1557800636-894a64c1696f?auto=format&fit=crop&w=600&q=80',
-      rating: 4.9,
-      soldCount: 980,
-      harvestDate: 'Hái trực tiếp tại vườn',
-      blockchainCode: 'BICAP-POMELO-BEN-0199',
-      freshPercent: 99,
-    },
-    {
-      id: 8,
-      name: 'Cải Bó Xôi (Chân Vịt) Hữu Cơ Giàu Sắt',
-      category: 'VEGETABLE',
-      price: 28000,
-      originalPrice: 35000,
-      unit: 'Bó 400g',
-      origin: 'Đà Lạt, Lâm Đồng',
-      certification: 'Organic',
-      image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=600&q=80',
-      rating: 4.8,
-      soldCount: 710,
-      harvestDate: 'Hôm nay, 06:30 Sáng',
-      blockchainCode: 'BICAP-SPINACH-DALAT-221',
-      freshPercent: 100,
-    },
-  ];
-
-  const handleAddToCart = (productName: string) => {
-    // Check if user is logged in as retailer
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-    
-    if (!token || role !== 'RETAILER') {
-      setAuthModalMessage(`"${productName}" - Bạn cần đăng nhập với tư cách Nhà Bán Lẻ để mua hàng.`);
-      setShowAuthModal(true);
-      return;
-    }
-    
-    setCartCount(prev => prev + 1);
-    setToastMessage(`Đã thêm "${productName}" vào giỏ hàng thành công!`);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3000);
-  };
-
-  const filteredProducts = featuredProducts.filter(p => {
-    const matchesCategory = activeCategory === 'ALL' || p.category === activeCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.origin.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
   return (
     <div className="min-h-screen">
-      {/* Toast thông báo đặt hàng tiện lợi */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-900/95 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-emerald-500/40 animate-bounce">
-          <span className="text-xl">🧺</span>
-          <span className="text-sm font-medium">{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Floating Quick Cart */}
-      {cartCount > 0 && (
-        <Link
-          href="/cart"
-          className="fixed bottom-6 left-6 z-50 bg-gradient-to-r from-emerald-600 to-green-600 text-white px-5 py-3 rounded-full shadow-xl shadow-green-600/40 hover:scale-105 transition-all flex items-center gap-2 border border-white/40"
-        >
-          <span className="text-xl">🛒</span>
-          <span className="font-bold text-sm">Giỏ hàng ({cartCount})</span>
-        </Link>
-      )}
-
       {/* 1. HERO SECTION - Cảm giác xanh mát & sinh động */}
       <section className="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 text-white pt-12 pb-24 lg:pt-20 lg:pb-32">
         {/* Nền đồ họa lá cây nhẹ nhàng */}
@@ -406,7 +210,7 @@ export default function HomePage() {
               <h3 className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-2">
                 <span>Rau Củ Tươi Ngon Hôm Nay</span>
                 <span className="text-xs px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">
-                  {filteredProducts.length} Sản Phẩm
+                  Sản phẩm đã duyệt
                 </span>
               </h3>
               <p className="text-sm text-slate-500 mt-1">Đảm bảo độ tươi và giữ nguyên hàm lượng vitamin</p>
@@ -416,105 +220,8 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <div
-                key={product.id}
-                className="card-product group"
-              >
-                {/* Hình ảnh & Badges */}
-                <div className="relative h-52 w-full overflow-hidden bg-emerald-50">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-                  />
-                  
-                  {/* Badge Chứng Nhận */}
-                  <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                    {product.certification === 'VietGAP' && (
-                      <span className="badge-vietgap shadow-sm">✓ VietGAP</span>
-                    )}
-                    {product.certification === 'GlobalGAP' && (
-                      <span className="badge-globalgap shadow-sm">✓ GlobalGAP</span>
-                    )}
-                    {product.certification === 'Organic' && (
-                      <span className="badge-organic shadow-sm">🌿 100% Organic</span>
-                    )}
-                  </div>
+          <ApprovedProducts category={activeCategory} search={searchQuery} limit={8} />
 
-                  {/* Giảm giá nếu có */}
-                  {product.originalPrice && (
-                    <div className="absolute top-3 right-3 bg-rose-500 text-white font-black text-xs px-2.5 py-1 rounded-full shadow-md">
-                      -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
-                    </div>
-                  )}
-
-                  {/* Độ tươi mới */}
-                  <div className="absolute bottom-3 left-3 bg-emerald-950/80 backdrop-blur-sm text-emerald-300 text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>{product.freshPercent}% Tươi ngon</span>
-                  </div>
-                </div>
-
-                {/* Nội dung sản phẩm */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                  <div>
-                    {/* Xuất xứ & Đánh giá */}
-                    <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                      <span className="truncate max-w-[150px]">📍 {product.origin}</span>
-                      <span className="flex items-center gap-1 font-bold text-amber-500">
-                        ★ {product.rating} <span className="text-slate-400 font-normal">({product.soldCount})</span>
-                      </span>
-                    </div>
-
-                    {/* Tên sản phẩm */}
-                    <h4 className="font-bold text-slate-900 text-base group-hover:text-emerald-700 transition-colors line-clamp-2 leading-snug">
-                      {product.name}
-                    </h4>
-
-                    {/* Giờ thu hoạch */}
-                    <p className="text-xs text-emerald-700/80 font-medium mt-1">
-                      🌱 Thu hoạch: {product.harvestDate}
-                    </p>
-                  </div>
-
-                  {/* Giá tiền & Đơn vị */}
-                  <div className="pt-2 border-t border-slate-100">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xl font-black text-emerald-700">
-                        {product.price.toLocaleString('vi-VN')} đ
-                      </span>
-                      {product.originalPrice && (
-                        <span className="text-xs text-slate-400 line-through">
-                          {product.originalPrice.toLocaleString('vi-VN')} đ
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs text-slate-500 font-medium block">/{product.unit}</span>
-                  </div>
-
-                  {/* Nút hành động Mua Ngay & Xem Blockchain */}
-                  <div className="space-y-2 pt-1">
-                    <button
-                      onClick={() => handleAddToCart(product.name)}
-                      className="w-full btn-buy-now text-xs py-2.5 justify-center"
-                    >
-                      <span>🧺 Thêm Vào Giỏ</span>
-                    </button>
-                    
-                    <Link
-                      href={`/trace?code=${product.blockchainCode}`}
-                      className="w-full btn-secondary text-[11px] py-1.5 justify-center text-emerald-800"
-                    >
-                      <span>🔗 Xem Gốc Blockchain</span>
-                    </Link>
-                  </div>
-
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -646,12 +353,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Auth Modal for Guest Users */}
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)}
-        message={authModalMessage}
-      />
+
 
     </div>
   );

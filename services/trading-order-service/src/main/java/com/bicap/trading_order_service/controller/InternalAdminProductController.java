@@ -16,6 +16,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -31,6 +35,17 @@ public class InternalAdminProductController {
 
     private final MarketplaceProductRepository repository;
     private final IProductService adminProductService;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+    @Value("${bicap.farm.product.exchange:bicap.product.exchange}")
+    private String productExchange;
+
+    private void notifyFarm(MarketplaceProduct product) {
+        if (product.getSourceProductId() != null) {
+            rabbitTemplate.convertAndSend(productExchange, "product.status.routing_key",
+                Map.of("sourceProductId", product.getSourceProductId(), "status", product.getStatus()));
+        }
+    }
 
     @Autowired
     public InternalAdminProductController(MarketplaceProductRepository repository, IProductService adminProductService) {
@@ -95,8 +110,15 @@ public class InternalAdminProductController {
         MarketplaceProduct product = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         
+        if (!"PENDING".equals(product.getStatus()) && !"APPROVED".equals(product.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Chỉ có thể duyệt sản phẩm đang chờ duyệt.");
+        }
+        if (product.getImageUrl() == null || product.getImageUrl().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cần ảnh sản phẩm trước khi duyệt.");
+        }
         product.setStatus("APPROVED");
         repository.save(product);
+        notifyFarm(product);
         
         return ResponseEntity.ok(adminProductService.getProductById(id));
     }
@@ -116,6 +138,7 @@ public class InternalAdminProductController {
         product.setStatus("REJECTED");
         product.setBanReason(request.getReason());
         repository.save(product);
+        notifyFarm(product);
         
         return ResponseEntity.ok(adminProductService.getProductById(id));
     }

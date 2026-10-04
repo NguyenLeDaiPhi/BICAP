@@ -266,6 +266,7 @@ DROP TABLE IF EXISTS `marketplace_products`;
 CREATE TABLE `marketplace_products` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `batch_id` bigint DEFAULT NULL,
+  `export_batch_id` bigint DEFAULT NULL,
   `category` varchar(100) DEFAULT NULL,
   `created_at` datetime(6) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
@@ -277,7 +278,11 @@ CREATE TABLE `marketplace_products` (
   `unit` varchar(50) DEFAULT NULL,
   `farm_id` bigint NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_marketplace_products_export_batch` (`export_batch_id`),
+  UNIQUE KEY `uk_marketplace_products_season` (`batch_id`),
   KEY `FKbxnw4ln20bq2ru1kjcpi46k9v` (`farm_id`),
+  CONSTRAINT `fk_marketplace_products_batch` FOREIGN KEY (`batch_id`) REFERENCES `production_batches` (`id`),
+  CONSTRAINT `fk_marketplace_products_export_batch` FOREIGN KEY (`export_batch_id`) REFERENCES `export_batches` (`id`),
   CONSTRAINT `FKbxnw4ln20bq2ru1kjcpi46k9v` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

@@ -53,13 +53,11 @@ public class BlockchainEventListener {
 
             // Use the resourceType from the message (BATCH, PROCESS, or EXPORT)
             String resourceType = message.getResourceType() != null ? message.getResourceType() : "BATCH";
-            blockchainService.write(id, resourceType, message.getDataHash());
+            BlockchainRecord record = blockchainService.write(id, resourceType, message.getDataHash());
             
             // 2. Tạo kết quả THÀNH CÔNG
             // Lấy txHash thực tế từ BlockchainRecord (66 ký tự chuẩn Keccak256)
-            String txHash = blockchainService.getBlockchainInfo(id)
-                    .map(BlockchainRecord::getBlockchainTx)
-                    .orElse("0x" + message.getDataHash()); 
+            String txHash = record.getBlockchainTx();
             
             result.setSuccess(true);
             result.setTransactionId(txHash);

@@ -20,6 +20,11 @@ public class MarketplaceProduct {
     @OneToOne
     @JoinColumn(name = "export_batch_id", referencedColumnName = "id", unique = true)
     private ExportBatch exportBatch; // Direct link to traceability data
+
+    @ManyToOne
+    @JoinColumn(name = "batch_id", unique = true)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private ProductionBatch productionBatch;
     
     private String name;
     private String description;

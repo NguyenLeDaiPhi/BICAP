@@ -71,6 +71,10 @@ export const productApi = {
   getProductsByFarm: (farmId: number) => api.get(`/api/products/farm/${farmId}`),
   // Tạo sản phẩm mới
   createProduct: (data: any) => api.post('/api/products', data),
+  uploadProductImage: (id: number, file: File) => {
+    const body = new FormData(); body.append('file', file);
+    return api.post('/api/products/' + id + '/images', body, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
   // Cập nhật sản phẩm
   updateProduct: (id: number, data: any) => api.put(`/api/products/${id}`, data),
   // Xóa sản phẩm (soft delete)

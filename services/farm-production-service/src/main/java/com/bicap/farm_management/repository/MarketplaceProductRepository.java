@@ -7,4 +7,5 @@ import java.util.List;
 @Repository
 public interface MarketplaceProductRepository extends JpaRepository<MarketplaceProduct, Long> {
     List<MarketplaceProduct> findByFarmId(Long farmId);
+    boolean existsByProductionBatch_Id(Long batchId);
 }

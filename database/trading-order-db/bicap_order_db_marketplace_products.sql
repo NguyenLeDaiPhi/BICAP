@@ -25,6 +25,8 @@ DROP TABLE IF EXISTS `marketplace_products`;
 CREATE TABLE `marketplace_products` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `batch_id` varchar(255) DEFAULT NULL,
+  `source_product_id` bigint DEFAULT NULL,
+  `production_batch_id` bigint DEFAULT NULL,
   `category` varchar(255) DEFAULT NULL,
   `created_at` datetime(6) DEFAULT NULL,
   `description` varchar(1000) DEFAULT NULL,
@@ -36,6 +38,7 @@ CREATE TABLE `marketplace_products` (
   `unit` varchar(255) DEFAULT NULL,
   `farm_manager_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_trading_source_product` (`source_product_id`),
   KEY `FKimf0ebijwdto6ebsgvik6flmx` (`farm_manager_id`),
   CONSTRAINT `FKimf0ebijwdto6ebsgvik6flmx` FOREIGN KEY (`farm_manager_id`) REFERENCES `farm_manager` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

@@ -81,6 +81,21 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue productStatusQueue() {
+        return new Queue("bicap.farm.product.status.queue", true);
+    }
+
+    @Bean
+    public TopicExchange productStatusExchange(@Value("${bicap.farm.product.exchange:bicap.product.exchange}") String name) {
+        return new TopicExchange(name);
+    }
+
+    @Bean
+    public Binding productStatusBinding(@org.springframework.beans.factory.annotation.Qualifier("productStatusExchange") TopicExchange exchange) {
+        return BindingBuilder.bind(productStatusQueue()).to(exchange).with("product.status.routing_key");
+    }
+
+    @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(jsonMessageConverter());
