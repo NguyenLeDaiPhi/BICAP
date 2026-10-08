@@ -25,15 +25,15 @@ export default function ShoppingAssistant({ retailer = false }: { retailer?: boo
     const history = messages.filter(m => !m.error).slice(-8).map(m => ({ role: m.role, content: m.content.slice(0, 1200) }));
     setMessages(previous => [...previous, { role: 'user', content: message }]); setInput(''); setLoading(true);
     const abort = new AbortController(); controller.current = abort;
-    const timer = setTimeout(() => abort.abort(), 95000);
+    const timer = setTimeout(() => abort.abort('timeout'), 55000);
     try {
       const response = await fetch(apiUrl + '/api/assistant/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, history }), signal: abort.signal });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Trợ lý AI tạm thời chưa sẵn sàng. Vui lòng thử lại.');
-      if (!Array.isArray(data.products) || typeof data.reply !== 'string') throw new Error('Chưa đọc được kết quả tìm kiếm. Vui lòng thử lại.');
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || 'Trợ lý AI tạm thời chưa sẵn sàng. Vui lòng thử lại.');
+      if (!Array.isArray(data?.products) || typeof data?.reply !== 'string') throw new Error('Chưa đọc được kết quả tìm kiếm. Vui lòng thử lại.');
       setMessages(previous => [...previous, { role: 'assistant', content: data.reply, products: data.products.filter((p: Product) => p.status === 'APPROVED' && p.quantity > 0), filters: data.filters }]);
     } catch (error) {
-      setMessages(previous => [...previous, { role: 'assistant', content: abort.signal.aborted ? 'Yêu cầu đang mất nhiều thời gian. Bạn có thể thử lại hoặc dùng trang danh mục sản phẩm.' : error instanceof Error ? error.message : 'Chưa kết nối được trợ lý AI.', error: true }]);
+      setMessages(previous => [...previous, { role: 'assistant', content: abort.signal.aborted ? (abort.signal.reason === 'cancelled' ? 'Đã dừng chờ kết quả. Bạn có thể xem danh mục sản phẩm hoặc thử lại sau ít giây.' : 'AI chưa trả kết quả trong 55 giây. Bạn có thể thử lại hoặc dùng trang danh mục sản phẩm.') : error instanceof Error ? error.message : 'Chưa kết nối được trợ lý AI.', error: true }]);
     } finally { clearTimeout(timer); controller.current = null; setLoading(false); }
   };
   return <aside aria-label="Trợ lý tìm sản phẩm" className="fixed bottom-4 right-4 z-50">
@@ -61,7 +61,7 @@ export default function ShoppingAssistant({ retailer = false }: { retailer?: boo
           </div> : null}
           {message.error && <a href={retailer ? '/marketplace' : '/products'} className="mt-2 inline-block text-sm text-emerald-700 underline">Mở danh mục sản phẩm</a>}
         </div>)}
-        {loading && <p role="status" className="text-sm text-emerald-700">{slow ? 'AI vẫn đang xử lý yêu cầu của bạn…' : 'AI đang tìm sản phẩm…'}</p>}
+        {loading && <div className="space-y-2"><p role="status" className="text-sm text-emerald-700">{slow ? 'Lần tìm đầu có thể mất khoảng 30–45 giây để chuẩn bị AI. Bạn có thể dừng chờ và xem danh mục sản phẩm.' : 'AI đang tìm sản phẩm…'}</p><button type="button" onClick={() => controller.current?.abort('cancelled')} className="text-sm text-emerald-700 underline">Dừng chờ</button></div>}
       </div>
       <footer className="border-t p-3">
         <form onSubmit={event => { event.preventDefault(); void send(); }} className="flex items-end gap-2">

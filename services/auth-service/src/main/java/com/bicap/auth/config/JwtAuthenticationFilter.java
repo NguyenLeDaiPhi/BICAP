@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import com.bicap.auth.service.UserDetailsServiceImpl;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -27,7 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtUtils jwtUtils;
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserDetailsServiceImpl userDetailsService;
 
     @Override
     @Deprecated
@@ -49,9 +49,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (jwtUtils.validateToken(jwt)) {
                 String username = jwtUtils.getUserNameFromJwtToken(jwt);
+                Long userId = jwtUtils.getUserIdFromJwtToken(jwt);
 
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (username != null && userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserById(userId);
+                    if (!username.equals(userDetails.getUsername()) || !userDetails.isEnabled()) {
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
 
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,

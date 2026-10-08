@@ -20,13 +20,10 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody AuthRequest authRequest) {
-        try {
-            User newUser = authenticationUser.registerNewUser(authRequest);
-            return ResponseEntity.ok(newUser);
-        } catch (Exception e) { // Catch all exceptions for better error reporting
-            System.err.println("Registration error: " + e.getMessage()); // Add logging for server-side
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        User user = authenticationUser.registerNewUser(authRequest);
+        return ResponseEntity.ok(java.util.Map.of("id", user.getId(), "username", user.getUsername(),
+                "email", user.getEmail(), "status", user.getStatus(), "roles",
+                user.getRole().stream().map(role -> role.getName().name()).toList()));
     }
 
     @PostMapping("/login")

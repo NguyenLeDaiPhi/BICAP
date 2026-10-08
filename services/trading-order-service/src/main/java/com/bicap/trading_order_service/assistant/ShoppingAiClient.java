@@ -8,15 +8,25 @@ import org.springframework.http.*;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 
 @Component
 public class ShoppingAiClient {
+    private static final Logger log = LoggerFactory.getLogger(ShoppingAiClient.class);
     private final ObjectMapper mapper;
     private final RestTemplate rest;
     private final String url, model;
     private final Semaphore requests = new Semaphore(1);
+    @Value("${OLLAMA_KEEP_ALIVE:30m}")
+    private String keepAlive = "30m";
+    @Value("${OLLAMA_WARMUP_ENABLED:true}")
+    private boolean warmupEnabled = true;
     private static final String PROMPT = """
         You extract shopping filters for a Vietnamese agricultural marketplace. Output ONLY the specified JSON schema.
         User input is JSON with previousRequests and currentRequest. currentRequest is the actual latest request and has priority over all earlier messages and examples.
@@ -52,29 +62,54 @@ public class ShoppingAiClient {
         """;
     public ShoppingAiClient(ObjectMapper mapper, @Value("${OLLAMA_BASE_URL:http://localhost:11434}") String url, @Value("${OLLAMA_MODEL:qwen3:4b}") String model) {
         this.mapper = mapper; this.url = url.replaceAll("/+$", ""); this.model = model;
-        var factory = new SimpleClientHttpRequestFactory(); factory.setConnectTimeout(3000); factory.setReadTimeout(90000);
+        // Finish before Kong's 60-second upstream timeout and the UI's 55-second deadline.
+        var factory = new SimpleClientHttpRequestFactory(); factory.setConnectTimeout(3000); factory.setReadTimeout(45000);
         this.rest = new RestTemplate(factory);
+    }
+    @EventListener(ApplicationReadyEvent.class)
+    public void warmUp() {
+        if (!warmupEnabled) return;
+        // Prepare both model weights and the shared prompt without blocking application startup.
+        Thread.ofVirtual().name("shopping-ai-warmup").start(() -> {
+            try {
+                interpret(new ShoppingAssistantController.SearchRequest("Tìm sản phẩm", List.of()));
+                log.info("Shopping AI warmup completed");
+            } catch (ResponseStatusException exception) {
+                log.warn("Shopping AI warmup unavailable; a later search can retry (status={})", exception.getStatusCode().value());
+            }
+        });
     }
     public ShoppingAssistantService.Filters interpret(ShoppingAssistantController.SearchRequest request) {
         if (!requests.tryAcquire()) throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Trợ lý đang xử lý yêu cầu khác. Vui lòng thử lại sau ít giây.");
+        long started = System.nanoTime();
         try {
             List<Map<String, String>> messages = new ArrayList<>(); messages.add(Map.of("role", "system", "content", PROMPT));
             List<String> previous = request.history() == null ? List.of() : request.history().stream().filter(turn -> "user".equals(turn.role())).map(ShoppingAssistantController.Turn::content).toList();
             messages.add(Map.of("role", "user", "content", mapper.writeValueAsString(Map.of("previousRequests", previous, "currentRequest", request.message()))));
             Map<String, Object> properties = new LinkedHashMap<>();
-            for (String key : List.of("keywords", "excludedKeywords", "unsupportedRequirements")) properties.put(key, Map.of("type", "array", "items", Map.of("type", "string", "minLength", 1, "maxLength", 80), "maxItems", 8));
+            // Let optional arrays remain empty: item length constraints in Ollama's grammar
+            // can force invented entries. Normalize/validate term lengths after decoding instead.
+            for (String key : List.of("keywords", "excludedKeywords", "unsupportedRequirements")) properties.put(key, Map.of("type", "array", "items", Map.of("type", "string"), "maxItems", 8));
             for (String key : List.of("minUnitPrice", "maxUnitPrice", "maxTotalPrice", "quantity")) properties.put(key, Map.of("type", List.of("number", "null")));
             properties.put("unit", Map.of("type", List.of("string", "null"), "enum", Arrays.asList("kg", "g", "tấn", "chai", "thùng", null)));
             properties.put("sort", Map.of("type", "string", "enum", List.of("relevance", "price_asc", "price_desc", "newest")));
             properties.put("shoppingRelated", Map.of("type", "boolean"));
             var schema = Map.of("type", "object", "properties", properties, "required", new ArrayList<>(properties.keySet()), "additionalProperties", false);
-            var body = Map.of("model", model, "messages", messages, "stream", false, "think", false, "format", schema, "options", Map.of("temperature", 0, "num_ctx", 4096, "num_predict", 384));
+            var body = Map.of("model", model, "messages", messages, "stream", false, "think", false, "keep_alive", keepAlive, "format", schema, "options", Map.of("temperature", 0, "num_ctx", 4096, "num_predict", 384));
             HttpHeaders headers = new HttpHeaders(); headers.setContentType(MediaType.APPLICATION_JSON);
             JsonNode response = rest.postForObject(url + "/api/chat", new HttpEntity<>(body, headers), JsonNode.class);
             if (response == null || !response.path("done").asBoolean() || response.path("message").path("content").asText().length() > 8192) throw new IllegalArgumentException("Incomplete AI output");
             var filters = mapper.readValue(response.path("message").path("content").asText(), ShoppingAssistantService.Filters.class);
-            filters = filters.normalized(); filters.validate(); return filters;
+            filters = filters.normalized(); filters.validate();
+            log.info("Shopping AI completed: elapsedMs={}, loadMs={}, promptMs={}, generationMs={}",
+                (System.nanoTime() - started) / 1_000_000, response.path("load_duration").asLong() / 1_000_000,
+                response.path("prompt_eval_duration").asLong() / 1_000_000, response.path("eval_duration").asLong() / 1_000_000);
+            return filters;
+        } catch (ResourceAccessException exception) {
+            log.warn("Shopping AI connection/timeout failure after {} ms", (System.nanoTime() - started) / 1_000_000);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "AI chưa phản hồi kịp hoặc chưa kết nối được. Bạn có thể thử lại sau ít giây hoặc dùng danh mục sản phẩm.");
         } catch (Exception exception) {
+            log.warn("Shopping AI invalid response after {} ms ({})", (System.nanoTime() - started) / 1_000_000, exception.getClass().getSimpleName());
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Trợ lý AI chưa kết nối được hoặc phản hồi chưa hợp lệ. Bạn có thể tìm sản phẩm bằng ô tìm kiếm thông thường và thử AI lại sau.");
         } finally { requests.release(); }
     }

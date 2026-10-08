@@ -124,6 +124,21 @@ public class JwtUtils {
         return null;
     }
 
+    public Long getUserIdFromJwtToken(String token) {
+        for (String secret : new String[]{jwtSecretAdmin, jwtSecretRetailer, jwtSecretFarm,
+                jwtSecretShippingManager, jwtSecretShippingDriver, jwtSecretDefault}) {
+            if (secret == null || secret.isEmpty()) continue;
+            try {
+                Object value = Jwts.parserBuilder().setSigningKey(keyFromBase64(secret)).build()
+                        .parseClaimsJws(token).getBody().get("userId");
+                return value instanceof Number number && number.longValue() > 0 ? number.longValue() : null;
+            } catch (Exception ex) {
+                // Try the other configured role keys.
+            }
+        }
+        return null;
+    }
+
     public boolean validateToken(String authToken) {
         return validateTokenWithAnyKey(authToken);
     }

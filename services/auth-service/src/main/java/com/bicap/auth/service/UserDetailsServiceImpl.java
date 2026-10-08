@@ -1,8 +1,5 @@
 package com.bicap.auth.service;
 
-import java.util.Optional;
-
-import com.bicap.auth.model.User;
 import com.bicap.auth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,19 +16,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Try email first (since login uses email), then username
-        Optional<User> userOpt = userRepository.findByEmail(username);
-        if (userOpt.isEmpty()) {
-            userOpt = userRepository.findByUsername(username);
-        }
-        if (userOpt.isEmpty()) {
-            // Fallback to findByUsernameOrEmail but get first result (handles duplicates)
-            userOpt = userRepository.findByUsernameOrEmail(username, username);
-        }
-        
-        User user = userOpt
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username or email: " + username));
+        if (username == null || username.isBlank()) throw new UsernameNotFoundException("User not found");
+        var users = userRepository.findByUsernameOrEmailList(username.trim());
+        if (users.size() != 1) throw new UsernameNotFoundException("User identity is missing or ambiguous");
+        return UserDetailsImpl.build(users.get(0));
+    }
 
-        return UserDetailsImpl.build(user);
+    @Transactional
+    public UserDetails loadUserById(Long userId) {
+        return UserDetailsImpl.build(userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found")));
     }
 }

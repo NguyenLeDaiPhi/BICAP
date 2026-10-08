@@ -9,6 +9,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value; // Added import
@@ -20,6 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.bicap.auth.service.UserDetailsImpl;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.bicap.auth.config.JwtUtils;
 import com.bicap.auth.dto.AuthRequest;
@@ -47,9 +50,20 @@ public class AuthenticationUser implements IAuthenticationUser {
 
     @Override
     public User registerNewUser(AuthRequest authRequest) {
-        if (userRepository.findByUsername(authRequest.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already taken");
-        }
+        String email = authRequest.getEmail() == null ? "" : authRequest.getEmail().trim().toLowerCase(Locale.ROOT);
+        if (email.length() > 255 || !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vui lòng nhập email hợp lệ.");
+        if (authRequest.getPassword() == null || authRequest.getPassword().isBlank() || authRequest.getRole() == null || authRequest.getRole().isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vui lòng nhập mật khẩu và loại tài khoản.");
+        String username = authRequest.getUsername() == null || authRequest.getUsername().isBlank()
+                ? email.substring(0, email.indexOf('@')) : authRequest.getUsername().trim();
+        if (username.length() > 255) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên đăng nhập quá dài.");
+        if (userRepository.existsByEmailIgnoreCase(email))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email đã được đăng ký. Vui lòng đăng nhập hoặc sử dụng email khác.");
+        if (userRepository.existsByUsernameIgnoreCase(username))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Tên đăng nhập đã được sử dụng. Vui lòng chọn tên đăng nhập khác.");
+        authRequest.setEmail(email);
+        authRequest.setUsername(username);
         User user = userRegistrationFactory.createUser(authRequest);
 
         boolean isFarmManager = user.getRole().stream()
@@ -67,8 +81,12 @@ public class AuthenticationUser implements IAuthenticationUser {
 
     @Override
     public String signIn(AuthRequest authRequest) {
+        if (authRequest.getEmail() == null || authRequest.getEmail().isBlank() || authRequest.getPassword() == null || authRequest.getPassword().isBlank()) return null;
+        String identifier = authRequest.getEmail().trim();
+        if (userRepository.findByUsernameOrEmailList(identifier).size() > 1)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email hoặc tên đăng nhập đang bị trùng trong hệ thống. Vui lòng liên hệ quản trị viên để xử lý.");
         try {
-            Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
+            Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(identifier, authRequest.getPassword()));
             String clientId = authRequest.getClientId();
             if (clientId != null && !clientId.isBlank()) {
                 if (!userHasRoleForClient(authentication, clientId)) {

@@ -246,7 +246,9 @@ CREATE TABLE `users` (
   `password` varchar(255) DEFAULT NULL,
   `status` enum('ACTIVE','BLOCKED','INACTIVE','PENDING') DEFAULT NULL,
   `username` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_users_email` (`email`),
+  UNIQUE KEY `ux_users_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

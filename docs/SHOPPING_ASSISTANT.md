@@ -19,9 +19,13 @@ Trong Docker Compose, trading-order-service dùng:
 ```dotenv
 OLLAMA_BASE_URL=http://host.docker.internal:11434
 OLLAMA_MODEL=qwen3:4b
+OLLAMA_KEEP_ALIVE=30m
+OLLAMA_WARMUP_ENABLED=true
 ```
 
-Hai biến có thể đặt trong `.env` ở thư mục gốc. Khi đổi, chạy `docker compose up -d --no-deps trading-order-service`. Khi chạy Java trực tiếp ngoài Docker, URL mặc định là `http://localhost:11434`. Với máy chủ khác, đặt URL mà container có thể truy cập. Frontend gọi Kong qua `NEXT_PUBLIC_API_URL`; không cần API key.
+Các biến có thể đặt trong `.env` ở thư mục gốc. Khi đổi, chạy `docker compose up -d --no-deps trading-order-service`. Khi chạy Java trực tiếp ngoài Docker, URL mặc định là `http://localhost:11434`. Với máy chủ khác, đặt URL mà container có thể truy cập. Frontend gọi Kong qua `NEXT_PUBLIC_API_URL`; không cần API key.
+
+Backend chuẩn bị mô hình và prompt ở nền khi khởi động, giữ mô hình trong bộ nhớ 30 phút sau mỗi yêu cầu bằng `keep_alive`. Có thể tắt bước chuẩn bị bằng `OLLAMA_WARMUP_ENABLED=false`. Thời gian đọc phản hồi AI giới hạn 45 giây; giao diện ngừng chờ sau 55 giây, hiển thị lỗi và cho phép mở danh mục. Nút **Dừng chờ** hủy chờ trên trình duyệt; backend có thể vẫn đang xử lý đến khi hoàn tất hoặc hết hạn. Log `Shopping AI completed` ghi thời gian tổng, nạp mô hình và xử lý prompt để chẩn đoán, không ghi thêm nội dung khách hỏi.
 
 Tích hợp dùng [Chat API chính thức của Ollama](https://docs.ollama.com/api/chat) và [JSON schema cho structured outputs](https://docs.ollama.com/capabilities/structured-outputs). Mô hình chỉ nhận yêu cầu và các tin nhắn trước của khách; không nhận thông tin tài khoản, đơn hàng hay toàn bộ database.
 
@@ -46,7 +50,7 @@ Kong giới hạn 12 yêu cầu/phút theo client và payload 20 KB. Backend x�
 - Ngân sách chưa gồm phí giao hàng; chưa kết nối tính phí hay thanh toán.
 - Chứng nhận hữu cơ, xuất xứ địa lý, độ an toàn cho bệnh lý, khẩu vị và cam kết giao hàng chưa có dữ liệu xác thực. Trợ lý nói rõ chưa xác nhận được và đề nghị đổi tiêu chí.
 - Tìm bằng bộ lọc và các từ đồng nghĩa phổ biến; chưa có tìm kiếm vector hoặc bộ đánh giá trên danh mục lớn. Mô hình có thể hiểu sai cách diễn đạt mới; người mua cần xem lại sản phẩm và điều kiện đã được hiểu trên thẻ kết quả.
-- Chưa lưu hội thoại lâu dài. Cần Ollama hoạt động để sử dụng AI. Lần gọi đầu khi model chưa nạp có thể chậm hơn các lần sau.
+- Chưa lưu hội thoại lâu dài. Cần Ollama hoạt động để sử dụng AI. Lần gọi khi model đã bị dỡ khỏi bộ nhớ vẫn có thể chậm hơn; bước chuẩn bị nền và `keep_alive` giảm số lần phải nạp lại, không đảm bảo tốc độ cố định trên mọi máy.
 
 ## Kiểm tra lại
 

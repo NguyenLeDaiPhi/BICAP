@@ -19,6 +19,21 @@ public class GlobalExceptionHandler {
     
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleStatus(org.springframework.web.server.ResponseStatusException ex) {
+        return ResponseEntity.status(ex.getStatusCode()).body(Map.of("error", ex.getReason() == null ? "Yêu cầu không hợp lệ." : ex.getReason(), "status", ex.getStatusCode().value()));
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicate(org.springframework.dao.DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email hoặc tên đăng nhập đã được sử dụng.", "status", 409));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidRegistration(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Map.of("error", "Thông tin đăng ký không hợp lệ.", "status", 400));
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNoResourceFound(NoResourceFoundException ex, WebRequest request) {
         log.error("No resource found for: {}", ex.getResourcePath());

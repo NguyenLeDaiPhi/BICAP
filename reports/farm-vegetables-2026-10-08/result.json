@@ -1,0 +1,122 @@
+{
+  "email": "farmmanager@gmail.com",
+  "farmId": 1,
+  "ownerId": 4,
+  "sampleData": true,
+  "items": [
+    {
+      "name": "Đậu xanh",
+      "batchId": 3,
+      "batchCode": "VU-1791433319312",
+      "productId": 5,
+      "price": 45000,
+      "quantity": 300,
+      "unit": "kg",
+      "status": "DRAFT",
+      "seasonStatus": "SYNCED"
+    },
+    {
+      "name": "Đậu đen",
+      "batchId": 4,
+      "batchCode": "VU-1791433319470",
+      "productId": 6,
+      "price": 48000,
+      "quantity": 250,
+      "unit": "kg",
+      "status": "DRAFT",
+      "seasonStatus": "SYNCED"
+    },
+    {
+      "name": "Đậu đỏ",
+      "batchId": 5,
+      "batchCode": "VU-1791433319515",
+      "productId": 7,
+      "price": 55000,
+      "quantity": 200,
+      "unit": "kg",
+      "status": "DRAFT",
+      "seasonStatus": "SYNCED"
+    },
+    {
+      "name": "Đậu nành",
+      "batchId": 6,
+      "batchCode": "VU-1791433319557",
+      "productId": 8,
+      "price": 35000,
+      "quantity": 400,
+      "unit": "kg",
+      "status": "DRAFT",
+      "seasonStatus": "SYNCED"
+    },
+    {
+      "name": "Đậu cô ve",
+      "batchId": 7,
+      "batchCode": "VU-1791433319606",
+      "productId": 9,
+      "price": 30000,
+      "quantity": 350,
+      "unit": "kg",
+      "status": "DRAFT",
+      "seasonStatus": "SYNCED"
+    },
+    {
+      "name": "Rau muống",
+      "batchId": 8,
+      "batchCode": "VU-1791433319646",
+      "productId": 10,
+      "price": 15000,
+      "quantity": 500,
+      "unit": "kg",
+      "status": "DRAFT",
+      "seasonStatus": "SYNCED"
+    },
+    {
+      "name": "Cải ngọt",
+      "batchId": 9,
+      "batchCode": "VU-1791433319684",
+      "productId": 11,
+      "price": 22000,
+      "quantity": 400,
+      "unit": "kg",
+      "status": "DRAFT",
+      "seasonStatus": "SYNCED"
+    },
+    {
+      "name": "Cải thìa",
+      "batchId": 10,
+      "batchCode": "VU-1791433319727",
+      "productId": 12,
+      "price": 25000,
+      "quantity": 350,
+      "unit": "kg",
+      "status": "DRAFT",
+      "seasonStatus": "SYNCED"
+    },
+    {
+      "name": "Xà lách",
+      "batchId": 11,
+      "batchCode": "VU-1791433319769",
+      "productId": 13,
+      "price": 30000,
+      "quantity": 250,
+      "unit": "kg",
+      "status": "DRAFT",
+      "seasonStatus": "SYNCED"
+    },
+    {
+      "name": "Mồng tơi",
+      "batchId": 12,
+      "batchCode": "VU-1791433319818",
+      "productId": 14,
+      "price": 18000,
+      "quantity": 300,
+      "unit": "kg",
+      "status": "DRAFT",
+      "seasonStatus": "SYNCED"
+    }
+  ],
+  "verifiedAt": "2026-10-08T04:21:59.897Z",
+  "totalProducts": 12,
+  "totalSeasons": 12,
+  "existingRecordsUnchanged": true
+}

@@ -1,0 +1,97 @@
+{
+  "farm": {
+    "id": 1,
+    "ownerId": 4,
+    "farmName": "farmmanager's Farm",
+    "address": null,
+    "email": "farmmanager@gmail.com",
+    "hotline": null,
+    "areaSize": null,
+    "description": null,
+    "createdAt": "2026-10-03T14:14:13.638793"
+  },
+  "batches": [
+    {
+      "id": 1,
+      "farm": {
+        "id": 1,
+        "ownerId": 4,
+        "farmName": "farmmanager's Farm",
+        "address": null,
+        "email": "farmmanager@gmail.com",
+        "hotline": null,
+        "areaSize": null,
+        "description": null,
+        "createdAt": "2026-10-03T14:14:13.638793"
+      },
+      "batchCode": "VU-1791037062735",
+      "productType": "Lúa ST25",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-05",
+      "name": "Vụ test",
+      "area": 10,
+      "quantity": 1000,
+      "status": "PLANNING",
+      "txHash": null,
+      "createdAt": "2026-10-03T14:17:42.734985"
+    },
+    {
+      "id": 2,
+      "farm": {
+        "id": 1,
+        "ownerId": 4,
+        "farmName": "farmmanager's Farm",
+        "address": null,
+        "email": "farmmanager@gmail.com",
+        "hotline": null,
+        "areaSize": null,
+        "description": null,
+        "createdAt": "2026-10-03T14:14:13.638793"
+      },
+      "batchCode": "VU-1791054828954",
+      "productType": "Lúa ST25",
+      "startDate": "2026-10-13",
+      "endDate": "2026-10-14",
+      "name": "Nguyễn Anh Tuấn",
+      "area": 5,
+      "quantity": 25,
+      "status": "SYNCED",
+      "txHash": "0x341838ab0245969c7184e3515c0e55e453d10dadf7228a5a18611726fe1266d4",
+      "createdAt": "2026-10-03T19:13:48.954814"
+    }
+  ],
+  "products": [
+    {
+      "id": 2,
+      "batchId": 1,
+      "farmId": 1,
+      "farmName": "farmmanager's Farm",
+      "ownerName": null,
+      "name": "Lúa ST25",
+      "description": "lúa",
+      "price": 15000,
+      "unit": "kg",
+      "quantity": 1000,
+      "category": "Lúa gạo",
+      "imageUrl": "http://localhost:8000/api/v1/images/download/ab9775a1-7279-45a7-b015-3a71524d08f3.jpeg",
+      "status": "APPROVED",
+      "createdAt": "2026-10-03T15:37:06.163202"
+    },
+    {
+      "id": 3,
+      "batchId": 2,
+      "farmId": 1,
+      "farmName": "farmmanager's Farm",
+      "ownerName": null,
+      "name": "Lúa ST25",
+      "description": "1111",
+      "price": 1300,
+      "unit": "kg",
+      "quantity": 1111,
+      "category": "Đậu các loại",
+      "imageUrl": null,
+      "status": "DRAFT",
+      "createdAt": "2026-10-03T19:14:15.574372"
+    }
+  ]
+}

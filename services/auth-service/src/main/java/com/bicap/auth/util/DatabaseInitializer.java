@@ -36,7 +36,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         }
 
         // Create default admin user if not exist
-        if (userRepository.findByEmail("admin@bicap.com").isEmpty()) {
+        if (!userRepository.existsByUsernameIgnoreCase("admin") && !userRepository.existsByEmailIgnoreCase("admin@bicap.com")) {
             User admin = new User();
             admin.setUsername("admin");
             admin.setEmail("admin@bicap.com");
@@ -51,7 +51,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             admin.setRole(roles);
 
             userRepository.save(admin);
-            System.out.println("Default admin user created: admin@bicap.com / 12345");
+            System.out.println("Default admin user created.");
         }
     }
 }

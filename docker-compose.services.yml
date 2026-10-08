@@ -113,6 +113,8 @@ services:
       - SERVER_PORT=8082
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen3:4b}
+      - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE:-30m}
+      - OLLAMA_WARMUP_ENABLED=${OLLAMA_WARMUP_ENABLED:-true}
     ports:
       - "8082:8082"
     networks:

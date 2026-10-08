@@ -16,16 +16,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
-    // Find by username OR email - returns first match to avoid "non-unique result" error
-    @Query("SELECT u FROM User u WHERE u.username = :identifier OR u.email = :identifier")
+    boolean existsByUsernameIgnoreCase(String username);
+
+    boolean existsByEmailIgnoreCase(String email);
+
+    @Query("SELECT u FROM User u WHERE LOWER(u.username) = LOWER(:identifier) OR LOWER(u.email) = LOWER(:identifier)")
     List<User> findByUsernameOrEmailList(@Param("identifier") String identifier);
-    
-    // Default method to get first result or empty
-    default Optional<User> findByUsernameOrEmail(String username, String email) {
-        List<User> users = findByUsernameOrEmailList(username);
-        if (users.isEmpty()) {
-            users = findByUsernameOrEmailList(email);
-        }
-        return users.stream().findFirst();
-    }
 }
